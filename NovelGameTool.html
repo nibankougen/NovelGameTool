@@ -110,6 +110,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 .scene-group-head:hover .s-btns{display:flex}
 .scene-group-head.ungrouped{cursor:default}
 .scene-group-head.ungrouped:hover{background:transparent;color:var(--text-dim)}
+.scene-group-head.drop-target{background:var(--accent-dim);color:var(--text);outline:1px dashed var(--accent)}
 .mini-btn{
   padding:0 5px;font-size:11px;border:none;background:transparent;color:var(--text-dim);
 }
@@ -1112,6 +1113,7 @@ function makeGroupHeadRow(g, gi){
   const count = sceneGroupCount(isUngrouped ? null : g.id);
   const div = document.createElement("div");
   div.className = "scene-group-head" + (isUngrouped ? " ungrouped" : "");
+  div.dataset.groupId = isUngrouped ? "" : g.id;   // ドラッグ中に見出しへドロップした際の判定に使用
   div.innerHTML =
     (isUngrouped ? "" : `<span class="drag-handle" title="ドラッグで並べ替え">${icon("grip-vertical")}</span>`) +
     `<span class="g-caret">${collapsed ? icon("chevron-right") : icon("chevron-down")}</span>` +
@@ -2710,7 +2712,7 @@ document.addEventListener("click", e => {
   if(Date.now() < dndSuppressClick){ e.stopPropagation(); e.preventDefault(); }
 }, true);
 
-function makeListDraggable(container, itemSelector, scroller, onDrop){
+function makeListDraggable(container, itemSelector, scroller, onDrop, onHover){
   container.addEventListener("mousedown", e => {
     if(e.button !== 0) return;
     const handle = e.target.closest(".drag-handle");
@@ -2721,11 +2723,13 @@ function makeListDraggable(container, itemSelector, scroller, onDrop){
     const items = () => [...container.querySelectorAll(itemSelector)];
     const fromIdx = items().indexOf(item);
     let toIdx = fromIdx;
+    let lastY = e.clientY;
     const indicator = document.createElement("div");
     indicator.className = "drop-indicator";
     item.classList.add("dragging");
     document.body.style.cursor = "grabbing";
     const move = ev => {
+      lastY = ev.clientY;
       const list = items();
       let idx = list.length;                 // マウスY座標から挿入位置を求める
       for(let i = 0; i < list.length; i++){
@@ -2738,6 +2742,7 @@ function makeListDraggable(container, itemSelector, scroller, onDrop){
       const sr = scroller.getBoundingClientRect();   // リスト端に近づいたら自動スクロール
       if(ev.clientY < sr.top + 30) scroller.scrollTop -= 12;
       else if(ev.clientY > sr.bottom - 30) scroller.scrollTop += 12;
+      if(onHover) onHover(ev);
     };
     const up = () => {
       document.removeEventListener("mousemove", move);
@@ -2745,11 +2750,14 @@ function makeListDraggable(container, itemSelector, scroller, onDrop){
       item.classList.remove("dragging");
       indicator.remove();
       document.body.style.cursor = "";
+      if(onHover) onHover(null);
       dndSuppressClick = Date.now() + 150;
       const rawTo = toIdx;                   // 補正前（ドロップ直前の並びでの挿入位置）
       let to = toIdx;
       if(to > fromIdx) to--;                 // 自分を除いた後の挿入位置に補正
-      if(to !== fromIdx) onDrop(fromIdx, to, rawTo);
+      // 位置が変わらない場合でも呼び出す（シーンの見出しへのドロップ等、位置以外の判定を伴うケースがあるため）。
+      // 単純な並べ替えのみを扱うonDropは呼び出し側でfrom===toの早期returnを行う
+      onDrop(fromIdx, to, rawTo, lastY);
     };
     document.addEventListener("mousemove", move);
     document.addEventListener("mouseup", up);
@@ -2758,6 +2766,7 @@ function makeListDraggable(container, itemSelector, scroller, onDrop){
 }
 
 makeListDraggable($("#cmdList"), ".cmd-row", $("#cmdListWrap"), (from, to) => {
+  if(from === to) return;
   mutate(() => {
     const arr = cmds();
     const [c] = arr.splice(from, 1);
@@ -2772,33 +2781,51 @@ makeListDraggable($("#cmdList"), ".cmd-row", $("#cmdListWrap"), (from, to) => {
     }
   });
 });
-makeListDraggable($("#sceneList"), ".scene-item", $("#sceneList"), (from, to, rawTo) => {
+makeListDraggable($("#sceneList"), ".scene-item", $("#sceneList"), (from, to, rawTo, lastY) => {
   const moved = sceneRowMap[from];
   if(!moved) return;
-  // ドロップ位置の前後にある行が属するグループへ移動先を合わせる
+  // グループ見出し（空のグループを含む）の上に直接ドロップした場合は、そのグループの先頭へ
+  const headerHit = lastY == null ? null : [...document.querySelectorAll("#sceneList .scene-group-head")].find(h => {
+    const r = h.getBoundingClientRect();
+    return lastY >= r.top && lastY <= r.bottom;
+  });
+  if(!headerHit && to === from) return;   // 見出しへのドロップでなく位置も変わらないなら何もしない
   const afterEntry = sceneRowMap[rawTo];
   const beforeEntry = rawTo > 0 ? sceneRowMap[rawTo - 1] : null;
-  const targetGroupId = afterEntry ? afterEntry.groupId : (beforeEntry ? beforeEntry.groupId : null);
+  const targetGroupId = headerHit
+    ? (headerHit.classList.contains("ungrouped") ? null : headerHit.dataset.groupId)
+    : (afterEntry ? afterEntry.groupId : (beforeEntry ? beforeEntry.groupId : null));
   mutate(() => {
     const idx = project.scenes.findIndex(x => x.id === moved.sceneId);
     if(idx === -1) return;
     const [s] = project.scenes.splice(idx, 1);
-    s.groupId = targetGroupId;
+    s.groupId = targetGroupId || null;
     let insertAt;
-    if(afterEntry) insertAt = project.scenes.findIndex(x => x.id === afterEntry.sceneId);
+    if(headerHit) insertAt = project.scenes.findIndex(x => (x.groupId || null) === (targetGroupId || null));
+    else if(afterEntry) insertAt = project.scenes.findIndex(x => x.id === afterEntry.sceneId);
     else if(beforeEntry) insertAt = project.scenes.findIndex(x => x.id === beforeEntry.sceneId) + 1;
     else insertAt = project.scenes.length;
     if(insertAt === -1) insertAt = project.scenes.length;
     project.scenes.splice(insertAt, 0, s);
   });
+}, ev => {
+  const headers = document.querySelectorAll("#sceneList .scene-group-head");
+  headers.forEach(h => h.classList.remove("drop-target"));
+  if(!ev) return;
+  for(const h of headers){
+    const r = h.getBoundingClientRect();
+    if(ev.clientY >= r.top && ev.clientY <= r.bottom){ h.classList.add("drop-target"); break; }
+  }
 });
 makeListDraggable($("#sceneList"), ".scene-group-head:not(.ungrouped)", $("#sceneList"), (from, to) => {
+  if(from === to) return;
   mutate(() => {
     const [g] = project.sceneGroups.splice(from, 1);
     project.sceneGroups.splice(to, 0, g);
   });
 });
 makeListDraggable($("#charList"), ".char-item", $("#charList"), (from, to) => {
+  if(from === to) return;
   mutate(() => {
     const [c] = project.characters.splice(from, 1);
     project.characters.splice(to, 0, c);
