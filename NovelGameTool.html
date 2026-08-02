@@ -89,6 +89,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 .scene-item .s-btns,.char-item .c-btns{display:none;gap:2px}
 .scene-item:hover .s-btns,.char-item:hover .c-btns{display:flex}
 .scene-item.grouped{margin-left:16px}
+.scene-item .s-caret{color:var(--text-dim);font-size:10px;padding:0 4px;flex-shrink:0}
+.scene-item .s-caret:hover{color:var(--text)}
+.scene-memo-panel{margin:0 6px 6px 26px}
+.scene-memo-panel.grouped{margin-left:42px}
+.scene-memo-panel textarea{
+  width:100%;font-size:12px;padding:6px 8px;min-height:44px;resize:vertical;line-height:1.6;
+}
 /* シーングループ（章）見出し */
 .scene-group-head{
   display:flex;align-items:center;gap:4px;padding:5px 6px;margin:6px 0 0;
@@ -362,6 +369,30 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 .tr-row input.tr-input:placeholder-shown{border-style:dashed;border-color:#6b5d33}
 .tr-empty{padding:30px 10px;color:var(--text-dim);font-size:13px;text-align:center;line-height:2}
 
+/* あらすじビュー */
+.outline-modal{
+  width:92vw;max-width:900px;height:86vh;max-height:86vh;
+  display:flex;flex-direction:column;padding:16px 20px;
+}
+#outlineOverviewWrap{flex-shrink:0;margin-bottom:12px}
+#outlineOverviewWrap label{display:block;color:var(--text-dim);font-size:12px;margin-bottom:4px}
+#outlineOverviewInput{width:100%;min-height:80px;resize:vertical;line-height:1.6;font-size:13px}
+#outlineList{flex:1;overflow-y:auto;min-height:0;border-top:1px solid var(--border);padding-top:4px}
+.ol-section{
+  position:sticky;top:0;background:var(--bg2);z-index:2;
+  padding:10px 4px 6px;font-size:12px;font-weight:700;color:var(--sys);
+  border-bottom:1px solid var(--border);
+}
+.ol-row{padding:8px 4px;border-bottom:1px solid #ffffff08}
+.ol-name{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.ol-name .s-count{color:var(--text-dim);font-size:11px;font-weight:400}
+.ol-goto{
+  font-weight:700;font-size:13px;padding:1px 8px;background:transparent;border:none;
+  color:var(--text);
+}
+.ol-goto:hover{background:var(--bg3);color:var(--accent)}
+.ol-row textarea.ol-syn{width:100%;font-size:12px;padding:6px 8px;min-height:44px;resize:vertical;line-height:1.6}
+
 .chk-row{display:flex;align-items:baseline;gap:8px;margin-bottom:10px;cursor:pointer}
 .chk-row input{accent-color:var(--accent);flex-shrink:0;position:relative;top:2px}
 .chk-row .chk-desc{color:var(--text-dim);font-size:12px;flex:1}
@@ -449,6 +480,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
     <button id="btnExportGame" title="メモ・サムネイル・コメント行を除いたゲーム用データを書き出し"><span data-icon="gamepad-2"></span>ゲーム出力</button>
     <span id="saveStatus"></span>
     <button id="btnPlay" title="テストプレイ (Ctrl+P)"><span data-icon="play"></span>テストプレイ</button>
+    <button id="btnOutline" title="あらすじビュー — 全体の流れ・大枠メモ・シーンごとのあらすじ"><span data-icon="book-open"></span></button>
     <button id="btnTrans" title="翻訳画面 — セリフ・選択肢・キャラ名を他言語に翻訳"><span data-icon="languages"></span></button>
     <button id="btnSearch" title="プロジェクト全体を全文検索 (Ctrl+F)"><span data-icon="search"></span></button>
     <button id="btnHelp" title="ヘルプ (F1)"><span data-icon="circle-help"></span></button>
@@ -623,11 +655,27 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
       <tr><td>選択肢・ジャンプ</td><td>入力欄右の「選択肢」「ジャンプ」ボタンからもクリックで挿入できます（<code>/choice</code> <code>/jump</code> と同じ）</td></tr>
       <tr><td>並べ替え</td><td>行・シーン・キャラクターの左端にホバーすると表示されるハンドル（⋮⋮）をドラッグして順番を変えられます（行は <kbd>Ctrl</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd>、シーンは▲▼ボタンでも可）。キャラクターの並び順は <kbd>Ctrl</kbd>+<kbd>1</kbd>〜<kbd>9</kbd> の割り当てに対応します</td></tr>
       <tr><td>シーンのグループ分け</td><td>シーン一覧の「＋章」ボタンでグループ（章・状況・キャラ別など、名前は自由）を作成できます。シーンをグループの見出しにドラッグ&ドロップするか、シーン行にホバーして表示されるフォルダアイコン <span data-icon="folder-open"></span> から移動先を選ぶと、そのグループに割り当てられます。グループ見出しをクリックすると折りたたみ、ハンドルをドラッグ（または▲▼）で並べ替え、鉛筆で名前変更、ゴミ箱で削除（中のシーンは未分類に戻るだけで削除されません）。ジャンプ・選択肢の飛び先一覧もグループごとに表示されます。グループはゲーム出力には含まれません</td></tr>
+      <tr><td>あらすじメモ・あらすじビュー</td><td>シーン一覧の各シーン行にある <span data-icon="chevron-right"></span> をクリックすると、そのシーンの短いあらすじ・メモをその場で開いて編集できます。ツールバーの <span data-icon="book-open"></span>（あらすじビュー）を開くと、上部に物語全体の設定・伏線などを書ける<b>大枠メモ</b>、その下にグループ（章）順に並んだ全シーンのあらすじが一覧表示され、話の流れを俯瞰しながら確認・編集できます。シーン名をクリックするとそのシーンへ移動します。あらすじ・大枠メモはいずれもゲーム出力には含まれません</td></tr>
       <tr><td>キャラクター設定</td><td>キャラ一覧の鉛筆アイコン <span data-icon="pencil"></span> から名前・色・デフォルトイラスト・表情候補・設定メモを編集できます。表情は入力して Enter でラベルとして追加され、各ラベルに使用回数（未使用かどうか）が表示されます。ラベルの鉛筆アイコンで名前変更（使用中の全セリフに自動反映）、×で削除。使用中の表情を削除して保存すると、該当セリフ行とシーン一覧に <span data-icon="triangle-alert"></span> アラートが表示され、赤いラベルをクリックすると候補に戻せます。「この表情をテンプレに保存」を押すと現在の表情一覧がテンプレートになり、以後の新規キャラクター（@名前 での自動登録も含む）に自動適用されます（「テンプレを適用」で既存キャラにも追加可能）。「新規プロジェクトにも引き継ぐ」にチェックすると、この表情テンプレートはプロジェクトを跨いで保存され、「新規」ボタンで作成した次のプロジェクトにも自動で適用されます。表情ラベルの画像アイコンから<b>表情画像</b>を任意で設定でき、セリフ一覧の行・セリフ編集画面・テストプレイ（セリフ左の正方形の顔画像）に表示されます。表情画像がない表情では<b>デフォルトイラスト</b>（「デフォルトイラスト」欄の画像）が使われ、ラベル内に薄いプレビューで示されます（画像類はゲーム出力には含まれません）。<span data-icon="chevron-right"></span> をクリックするとメモをその場で開いて確認・編集できます。キャラは内部IDで管理されるため、名前を変えても既存のセリフはそのまま追従します</td></tr>
       <tr><td>翻訳</td><td>ツールバーの <span data-icon="languages"></span> で翻訳専用画面を開きます。「＋言語」で翻訳先（en など）を追加し、セリフ・選択肢・キャラ名・タイトルの訳を入力できます。<kbd>Enter</kbd> で次の欄へ、「未翻訳のみ」で絞り込み、進捗表示つき。翻訳はゲーム出力に <code>tr</code> として含まれます</td></tr>
       <tr><td>ゲーム出力</td><td>「ゲーム出力」ボタンで、ゲーム実装用JSONを書き出せます。設定メモ・デフォルトイラスト・表情画像は常に除外され、表情・シーン名・キャラ色・コメント行を含めるかは出力時の設定画面で選べます（設定はプロジェクトに保存）</td></tr>
     </table>
     <div class="m-foot"><button data-close class="primary">閉じる</button></div>
+  </div>
+</div>
+
+<!-- あらすじビュー -->
+<div class="modal-back" id="outlineModal">
+  <div class="modal outline-modal">
+    <div class="trans-head">
+      <h3 style="margin-bottom:0"><span data-icon="book-open"></span> あらすじ</h3>
+      <button data-close style="margin-left:auto">閉じる (Esc)</button>
+    </div>
+    <div id="outlineOverviewWrap">
+      <label for="outlineOverviewInput">大枠メモ（設定・プロット全体・伏線など）</label>
+      <textarea id="outlineOverviewInput" placeholder="物語全体の設定・あらすじ・伏線などを自由にメモできます（ゲーム出力には含まれません）"></textarea>
+    </div>
+    <div id="outlineList"></div>
   </div>
 </div>
 
@@ -733,11 +781,12 @@ function defaultProject(){
   return {
     title: "新規プロジェクト",
     characters: [],
-    scenes: [{ id: uid(), name: "オープニング", commands: [], groupId: null }],
+    scenes: [{ id: uid(), name: "オープニング", commands: [], groupId: null, synopsis: "" }],
     sceneGroups: [],    // シーンのグループ（章など）: { id, name }
     exportSettings: { ...EXPORT_DEFAULTS },
     exprTemplate: [],   // 新規キャラクターに自動適用する表情テンプレート
     languages: [],      // 翻訳先の言語コード（例: ["en","zh-CN"]）。ベース言語は日本語
+    overview: "",       // 大枠メモ（設定・プロット全体・伏線など）。ゲーム用出力には含まれません
   };
 }
 
@@ -773,7 +822,7 @@ function findOrCreateScene(name){
   name = name.trim();
   let s = project.scenes.find(s => s.name === name);
   if(!s){
-    s = { id: uid(), name, commands: [], groupId: null };
+    s = { id: uid(), name, commands: [], groupId: null, synopsis: "" };
     project.scenes.push(s);
     toast(`シーン「${name}」を作成しました`);
   }
@@ -808,7 +857,9 @@ function normalizeProject(p){
     if(s.groupId !== undefined && s.groupId !== null && !p.sceneGroups.some(g => g.id === s.groupId))
       s.groupId = null;   // 参照先グループが存在しない場合は未分類に戻す
     if(s.groupId === undefined) s.groupId = null;
+    if(typeof s.synopsis !== "string") s.synopsis = "";
   }
+  if(typeof p.overview !== "string") p.overview = "";
   p.exportSettings = Object.assign({}, EXPORT_DEFAULTS,
     (p.exportSettings && typeof p.exportSettings === "object") ? p.exportSettings : {});
   return p;
@@ -1019,6 +1070,7 @@ function renderAll(){
 
 /* ---------- シーングループ（章など） ---------- */
 const collapsedGroups = new Set();   // 折りたたみ中のグループid（"__ungrouped__"含む）。セッション内のみ
+const expandedScenes = new Set();     // あらすじメモを開いているシーンid。セッション内のみ
 let sceneRowMap = [];                 // renderScenes()時点の可視シーン行の並び（ドラッグ&ドロップで参照）
 
 const sceneGroupCount = groupId => project.scenes.filter(s => (s.groupId || null) === groupId).length;
@@ -1034,6 +1086,7 @@ function renderScenes(){
       if((s.groupId || null) !== groupId) continue;
       box.appendChild(makeSceneRow(s, indented));
       sceneRowMap.push({ sceneId: s.id, groupId });
+      if(expandedScenes.has(s.id)) box.appendChild(makeSceneMemoPanel(s, indented));
     }
   };
 
@@ -1137,6 +1190,7 @@ function makeSceneRow(s, indented){
     `<span class="s-name">${esc(s.name)}</span>` +
     (sceneHasAlert(s) ? `<span class="s-alert" title="削除済みのシーンやキャラへの参照があります">${icon("triangle-alert")}</span>` : "") +
     `<span class="s-count">${s.commands.length}</span>` +
+    `<button class="mini-btn s-caret" data-act="memo" title="あらすじメモを開閉">${expandedScenes.has(s.id) ? icon("chevron-down") : icon("chevron-right")}</button>` +
     `<span class="s-btns">` +
       `<button class="mini-btn" data-act="up" title="上へ">${icon("chevron-up")}</button>` +
       `<button class="mini-btn" data-act="down" title="下へ">${icon("chevron-down")}</button>` +
@@ -1158,6 +1212,9 @@ function makeSceneRow(s, indented){
       startSceneRename(div, s);
     }else if(act === "grp"){
       openSceneGroupMenu(div, s);
+    }else if(act === "memo"){
+      if(expandedScenes.has(s.id)) expandedScenes.delete(s.id); else expandedScenes.add(s.id);
+      renderScenes();
     }else if(act === "up" || act === "down"){
       moveSceneWithinSiblings(s.id, act === "up" ? -1 : 1);
     }else{
@@ -1172,6 +1229,19 @@ function makeSceneRow(s, indented){
     if(!e.target.dataset.act) startSceneRename(div, s);
   });
   return div;
+}
+
+function makeSceneMemoPanel(s, indented){
+  const panel = document.createElement("div");
+  panel.className = "scene-memo-panel" + (indented ? " grouped" : "");
+  const ta = document.createElement("textarea");
+  ta.placeholder = "このシーンのあらすじ・メモ…";
+  ta.value = s.synopsis || "";
+  ta.addEventListener("focus", () => pushUndo(), { once: true });   // 編集セッション単位でUndo可能に
+  ta.addEventListener("input", () => { s.synopsis = ta.value; scheduleSave(); });
+  ta.addEventListener("keydown", e => e.stopPropagation());
+  panel.appendChild(ta);
+  return panel;
 }
 
 function startSceneRename(div, s){
@@ -2532,7 +2602,7 @@ $("#fileInput").addEventListener("change", e => {
       pushUndo();
       project = normalizeProject(p);
       currentSceneId = project.scenes[0]?.id;
-      if(!project.scenes.length) project.scenes.push({ id: uid(), name: "シーン1", commands: [], groupId: null });
+      if(!project.scenes.length) project.scenes.push({ id: uid(), name: "シーン1", commands: [], groupId: null, synopsis: "" });
       currentSceneId = project.scenes[0].id;
       speakerId = null; selIndex = null; editIndex = null;
       scheduleSave(); renderAll();
@@ -2562,7 +2632,7 @@ function createScene(groupId){
   while(project.scenes.some(s => s.name === "シーン" + n)) n++;
   let newScene;
   mutate(() => {
-    newScene = { id: uid(), name: "シーン" + n, commands: [], groupId: groupId || null };
+    newScene = { id: uid(), name: "シーン" + n, commands: [], groupId: groupId || null, synopsis: "" };
     project.scenes.push(newScene);
     currentSceneId = newScene.id;
     selIndex = null;
@@ -2855,6 +2925,68 @@ searchResults.addEventListener("click", e => {
   if(el) gotoSearchHit(+el.dataset.n);
 });
 
+/* ---------- あらすじビュー ---------- */
+let outlineOverviewTouched = false;   // 大枠メモの最初のフォーカスでのみUndoチェックポイントを作る
+function renderOutline(){
+  $("#outlineOverviewInput").value = project.overview || "";
+  const list = $("#outlineList");
+  list.innerHTML = "";
+  const grouped = project.sceneGroups.length > 0;
+  let lastGroup;
+  for(const { scene: s, groupName } of scenesInGroupOrder()){
+    if(grouped && groupName !== lastGroup){
+      const h = document.createElement("div");
+      h.className = "ol-section";
+      h.textContent = groupName || "未分類";
+      list.appendChild(h);
+      lastGroup = groupName;
+    }
+    const row = document.createElement("div");
+    row.className = "ol-row";
+    const nameRow = document.createElement("div");
+    nameRow.className = "ol-name";
+    const gotoBtn = document.createElement("button");
+    gotoBtn.type = "button"; gotoBtn.className = "ol-goto"; gotoBtn.textContent = s.name;
+    gotoBtn.title = "このシーンへ移動";
+    gotoBtn.addEventListener("click", () => {
+      currentSceneId = s.id; selIndex = null; editIndex = null;
+      hideModal("#outlineModal");
+      renderAll();
+      mainInput.focus();
+    });
+    const count = document.createElement("span");
+    count.className = "s-count"; count.textContent = `${s.commands.length}行`;
+    nameRow.append(gotoBtn, count);
+    const ta = document.createElement("textarea");
+    ta.className = "ol-syn"; ta.placeholder = "このシーンのあらすじ…"; ta.value = s.synopsis || "";
+    ta.addEventListener("focus", () => pushUndo(), { once: true });
+    ta.addEventListener("input", () => { s.synopsis = ta.value; scheduleSave(); });
+    ta.addEventListener("keydown", e => e.stopPropagation());
+    row.append(nameRow, ta);
+    list.appendChild(row);
+  }
+  if(!project.scenes.length){
+    const empty = document.createElement("div");
+    empty.className = "tr-empty"; empty.textContent = "シーンがありません";
+    list.appendChild(empty);
+  }
+}
+function openOutline(){
+  outlineOverviewTouched = false;
+  renderOutline();
+  showModal("#outlineModal");
+  $("#outlineOverviewInput").focus();
+}
+$("#btnOutline").addEventListener("click", openOutline);
+$("#outlineOverviewInput").addEventListener("focus", () => {
+  if(!outlineOverviewTouched){ outlineOverviewTouched = true; pushUndo(); }
+});
+$("#outlineOverviewInput").addEventListener("input", e => {
+  project.overview = e.target.value;
+  scheduleSave();
+});
+$("#outlineOverviewInput").addEventListener("keydown", e => e.stopPropagation());
+
 /* ---------- 翻訳画面 ---------- */
 const transCurLang = () => $("#transLang").value || null;
 
@@ -3000,7 +3132,7 @@ $("#transDelLang").addEventListener("click", () => {
 
 /* ---------- 起動 ---------- */
 project = loadLocal() || createNewProject();
-if(!project.scenes.length) project.scenes.push({ id: uid(), name: "シーン1", commands: [], groupId: null });
+if(!project.scenes.length) project.scenes.push({ id: uid(), name: "シーン1", commands: [], groupId: null, synopsis: "" });
 currentSceneId = project.scenes[0].id;
 renderAll();
 mainInput.focus();
