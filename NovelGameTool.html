@@ -82,12 +82,12 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
   display:flex;align-items:center;gap:6px;padding:5px 8px;margin:2px 0;
   border-radius:6px;cursor:pointer;border:1px solid transparent;position:relative;
 }
-.scene-item:hover,.char-item:hover{background:var(--bg3)}
+body:not(.dnd-dragging) .scene-item:hover,body:not(.dnd-dragging) .char-item:hover{background:var(--bg3)}
 .scene-item.active{background:var(--accent-dim);border-color:var(--accent)}
 .scene-item .s-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .scene-item .s-count{color:var(--text-dim);font-size:11px}
 .scene-item .s-btns,.char-item .c-btns{display:none;gap:2px}
-.scene-item:hover .s-btns,.char-item:hover .c-btns{display:flex}
+body:not(.dnd-dragging) .scene-item:hover .s-btns,body:not(.dnd-dragging) .char-item:hover .c-btns{display:flex}
 .scene-item.grouped{margin-left:16px}
 .scene-item .s-caret{color:var(--text-dim);font-size:10px;padding:0 4px;flex-shrink:0}
 .scene-item .s-caret:hover{color:var(--text)}
@@ -102,14 +102,14 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
   border-radius:6px;cursor:pointer;color:var(--text-dim);font-size:12px;font-weight:700;
   position:relative;
 }
-.scene-group-head:hover{background:var(--bg3);color:var(--text)}
+body:not(.dnd-dragging) .scene-group-head:hover{background:var(--bg3);color:var(--text)}
 .scene-group-head .g-caret{display:inline-flex;flex-shrink:0}
 .scene-group-head .g-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .scene-group-head .s-count{color:var(--text-dim);font-size:11px}
 .scene-group-head .s-btns{display:none;gap:2px}
-.scene-group-head:hover .s-btns{display:flex}
+body:not(.dnd-dragging) .scene-group-head:hover .s-btns{display:flex}
 .scene-group-head.ungrouped{cursor:default}
-.scene-group-head.ungrouped:hover{background:transparent;color:var(--text-dim)}
+body:not(.dnd-dragging) .scene-group-head.ungrouped:hover{background:transparent;color:var(--text-dim)}
 .scene-group-head.drop-target{background:var(--accent-dim);color:var(--text);outline:1px dashed var(--accent)}
 .mini-btn{
   padding:0 5px;font-size:11px;border:none;background:transparent;color:var(--text-dim);
@@ -167,7 +167,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
   border-radius:6px;cursor:pointer;position:relative;border:1px solid transparent;
   line-height:1.65;
 }
-.cmd-row:hover{background:var(--bg2)}
+body:not(.dnd-dragging) .cmd-row:hover{background:var(--bg2)}
 .cmd-row.selected{background:var(--bg3);border-color:var(--accent)}
 .cmd-row.selected::after{
   content:"▼ ここに挿入";position:absolute;left:62px;bottom:-15px;
@@ -183,7 +183,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
   display:none;position:absolute;right:6px;top:3px;gap:2px;
   background:var(--bg3);border-radius:5px;padding:1px;
 }
-.cmd-row:hover .row-actions{display:flex}
+body:not(.dnd-dragging) .cmd-row:hover .row-actions{display:flex}
 .row-actions button{padding:1px 7px;font-size:11px;border:none;background:transparent;color:var(--text-dim)}
 .row-actions button:hover{color:var(--text);background:#3d4354}
 .row-face{
@@ -199,9 +199,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 .drag-handle:hover{color:var(--text)}
 .drag-handle:active{cursor:grabbing}
 .cmd-row .drag-handle{visibility:hidden;padding-top:4px}
-.cmd-row:hover .drag-handle{visibility:visible}
+body:not(.dnd-dragging) .cmd-row:hover .drag-handle{visibility:visible}
 .scene-item .drag-handle,.char-item .drag-handle,.scene-group-head .drag-handle{visibility:hidden;margin-left:-4px}
-.scene-item:hover .drag-handle,.char-item:hover .drag-handle,.scene-group-head:hover .drag-handle{visibility:visible}
+body:not(.dnd-dragging) .scene-item:hover .drag-handle,body:not(.dnd-dragging) .char-item:hover .drag-handle,body:not(.dnd-dragging) .scene-group-head:hover .drag-handle{visibility:visible}
+.dragging .drag-handle{visibility:visible !important}
 .dragging{opacity:.4}
 .drop-indicator{height:2px;background:var(--accent);border-radius:1px;margin:1px 6px;pointer-events:none}
 .speaker-name{font-weight:700;margin-right:2px}
@@ -2728,6 +2729,7 @@ function makeListDraggable(container, itemSelector, scroller, onDrop, onHover){
     indicator.className = "drop-indicator";
     item.classList.add("dragging");
     document.body.style.cursor = "grabbing";
+    document.body.classList.add("dnd-dragging");   // ドラッグ中は他の行のhover演出(背景/ボタン表示)を止める
     const move = ev => {
       lastY = ev.clientY;
       const list = items();
@@ -2750,6 +2752,7 @@ function makeListDraggable(container, itemSelector, scroller, onDrop, onHover){
       item.classList.remove("dragging");
       indicator.remove();
       document.body.style.cursor = "";
+      document.body.classList.remove("dnd-dragging");
       if(onHover) onHover(null);
       dndSuppressClick = Date.now() + 150;
       const rawTo = toIdx;                   // 補正前（ドロップ直前の並びでの挿入位置）
