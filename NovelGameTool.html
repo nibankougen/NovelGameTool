@@ -111,6 +111,9 @@ body:not(.dnd-dragging) .scene-group-head:hover .s-btns{display:flex}
 .scene-group-head.ungrouped{cursor:default}
 body:not(.dnd-dragging) .scene-group-head.ungrouped:hover{background:transparent;color:var(--text-dim)}
 .scene-group-head.drop-target{background:var(--accent-dim);color:var(--text);outline:1px dashed var(--accent)}
+.scene-item.drop-target-before{box-shadow:inset 0 2px 0 var(--accent)}
+.scene-item.drop-target-after{box-shadow:inset 0 -2px 0 var(--accent)}
+#sceneList .drop-indicator{display:none}   /* シーン一覧は行/見出しの直接ハイライトで示すため、汎用インジケータ線は非表示にする */
 .mini-btn{
   padding:0 5px;font-size:11px;border:none;background:transparent;color:var(--text-dim);
 }
@@ -2784,40 +2787,72 @@ makeListDraggable($("#cmdList"), ".cmd-row", $("#cmdListWrap"), (from, to) => {
     }
   });
 });
-makeListDraggable($("#sceneList"), ".scene-item", $("#sceneList"), (from, to, rawTo, lastY) => {
-  const moved = sceneRowMap[from];
-  if(!moved) return;
-  // グループ見出し（空のグループを含む）の上に直接ドロップした場合は、そのグループの先頭へ
-  const headerHit = lastY == null ? null : [...document.querySelectorAll("#sceneList .scene-group-head")].find(h => {
+// ドロップ位置に何（グループ見出し／別のシーン行）が重なっているかを直接判定する。
+// makeListDraggableのインデックス計算はグループ見出しを無視した並びなので、
+// グループ間の移動先はこの実座標での当たり判定を優先して決める。
+function sceneDropTarget(lastY, excludeSceneId){
+  if(lastY == null) return null;
+  const headerHit = [...document.querySelectorAll("#sceneList .scene-group-head")].find(h => {
     const r = h.getBoundingClientRect();
     return lastY >= r.top && lastY <= r.bottom;
   });
-  if(!headerHit && to === from) return;   // 見出しへのドロップでなく位置も変わらないなら何もしない
-  const afterEntry = sceneRowMap[rawTo];
-  const beforeEntry = rawTo > 0 ? sceneRowMap[rawTo - 1] : null;
-  const targetGroupId = headerHit
-    ? (headerHit.classList.contains("ungrouped") ? null : headerHit.dataset.groupId)
-    : (afterEntry ? afterEntry.groupId : (beforeEntry ? beforeEntry.groupId : null));
+  if(headerHit){
+    const groupId = headerHit.classList.contains("ungrouped") ? null : headerHit.dataset.groupId;
+    return { groupId, atGroupStart: true };
+  }
+  const rowHit = [...document.querySelectorAll("#sceneList .scene-item")].find(r => {
+    if(r.dataset.sceneId === excludeSceneId) return false;
+    const rect = r.getBoundingClientRect();
+    return lastY >= rect.top && lastY <= rect.bottom;
+  });
+  if(rowHit){
+    const rect = rowHit.getBoundingClientRect();
+    const before = lastY < rect.top + rect.height / 2;
+    const entry = sceneRowMap.find(e => e.sceneId === rowHit.dataset.sceneId);
+    return { groupId: entry ? entry.groupId : null, beforeSceneId: before ? rowHit.dataset.sceneId : null, afterSceneId: before ? null : rowHit.dataset.sceneId };
+  }
+  return null;
+}
+makeListDraggable($("#sceneList"), ".scene-item", $("#sceneList"), (from, to, rawTo, lastY) => {
+  const moved = sceneRowMap[from];
+  if(!moved) return;
+  let target = sceneDropTarget(lastY, moved.sceneId);
+  if(!target){
+    // どの行・見出しにも重なっていない（リスト最上部/最下部の余白）場合は従来のインデックス方式にフォールバック
+    const afterEntry = sceneRowMap[rawTo];
+    const beforeEntry = rawTo > 0 ? sceneRowMap[rawTo - 1] : null;
+    target = afterEntry
+      ? { groupId: afterEntry.groupId, beforeSceneId: afterEntry.sceneId }
+      : (beforeEntry ? { groupId: beforeEntry.groupId, afterSceneId: beforeEntry.sceneId } : { groupId: null });
+  }
   mutate(() => {
     const idx = project.scenes.findIndex(x => x.id === moved.sceneId);
     if(idx === -1) return;
     const [s] = project.scenes.splice(idx, 1);
-    s.groupId = targetGroupId || null;
+    s.groupId = target.groupId || null;
     let insertAt;
-    if(headerHit) insertAt = project.scenes.findIndex(x => (x.groupId || null) === (targetGroupId || null));
-    else if(afterEntry) insertAt = project.scenes.findIndex(x => x.id === afterEntry.sceneId);
-    else if(beforeEntry) insertAt = project.scenes.findIndex(x => x.id === beforeEntry.sceneId) + 1;
+    if(target.atGroupStart) insertAt = project.scenes.findIndex(x => (x.groupId || null) === (target.groupId || null));
+    else if(target.beforeSceneId) insertAt = project.scenes.findIndex(x => x.id === target.beforeSceneId);
+    else if(target.afterSceneId) insertAt = project.scenes.findIndex(x => x.id === target.afterSceneId) + 1;
     else insertAt = project.scenes.length;
     if(insertAt === -1) insertAt = project.scenes.length;
     project.scenes.splice(insertAt, 0, s);
   });
 }, ev => {
-  const headers = document.querySelectorAll("#sceneList .scene-group-head");
-  headers.forEach(h => h.classList.remove("drop-target"));
+  document.querySelectorAll("#sceneList .scene-group-head").forEach(h => h.classList.remove("drop-target"));
+  document.querySelectorAll("#sceneList .scene-item").forEach(r => r.classList.remove("drop-target-before", "drop-target-after"));
   if(!ev) return;
-  for(const h of headers){
-    const r = h.getBoundingClientRect();
-    if(ev.clientY >= r.top && ev.clientY <= r.bottom){ h.classList.add("drop-target"); break; }
+  const dragging = document.querySelector("#sceneList .scene-item.dragging");
+  const target = sceneDropTarget(ev.clientY, dragging ? dragging.dataset.sceneId : null);
+  if(!target) return;
+  if(target.atGroupStart){
+    const headers = [...document.querySelectorAll("#sceneList .scene-group-head")];
+    const h = headers.find(h => (h.classList.contains("ungrouped") ? null : h.dataset.groupId) === (target.groupId || null));
+    if(h) h.classList.add("drop-target");
+  }else{
+    const sceneId = target.beforeSceneId || target.afterSceneId;
+    const row = document.querySelector(`#sceneList .scene-item[data-scene-id="${sceneId}"]`);
+    if(row) row.classList.add(target.beforeSceneId ? "drop-target-before" : "drop-target-after");
   }
 });
 makeListDraggable($("#sceneList"), ".scene-group-head:not(.ungrouped)", $("#sceneList"), (from, to) => {
