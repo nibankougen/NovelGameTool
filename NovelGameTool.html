@@ -527,6 +527,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
         <div class="expr-tmpl-row">
           <button type="button" id="exprTmplApply" title="保存済みテンプレートの表情をこのキャラクターに追加します">テンプレを適用</button>
           <button type="button" id="exprTmplSave" title="現在の表情一覧をテンプレートとして保存します。以後の新規キャラクター（@名前 での自動登録を含む）に自動適用されます">この表情をテンプレに保存</button>
+          <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);cursor:pointer;flex-shrink:0;white-space:nowrap" title="オンにすると「新規」で作成したプロジェクトにも、保存済みの表情テンプレートが自動で引き継がれます">
+            <input type="checkbox" id="exprTmplCarryOver" style="accent-color:var(--accent)">新規プロジェクトにも引き継ぐ
+          </label>
           <span id="exprTmplInfo"></span>
         </div>
       </div>
@@ -620,7 +623,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
       <tr><td>選択肢・ジャンプ</td><td>入力欄右の「選択肢」「ジャンプ」ボタンからもクリックで挿入できます（<code>/choice</code> <code>/jump</code> と同じ）</td></tr>
       <tr><td>並べ替え</td><td>行・シーン・キャラクターの左端にホバーすると表示されるハンドル（⋮⋮）をドラッグして順番を変えられます（行は <kbd>Ctrl</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd>、シーンは▲▼ボタンでも可）。キャラクターの並び順は <kbd>Ctrl</kbd>+<kbd>1</kbd>〜<kbd>9</kbd> の割り当てに対応します</td></tr>
       <tr><td>シーンのグループ分け</td><td>シーン一覧の「＋章」ボタンでグループ（章・状況・キャラ別など、名前は自由）を作成できます。シーンをグループの見出しにドラッグ&ドロップするか、シーン行にホバーして表示されるフォルダアイコン <span data-icon="folder-open"></span> から移動先を選ぶと、そのグループに割り当てられます。グループ見出しをクリックすると折りたたみ、ハンドルをドラッグ（または▲▼）で並べ替え、鉛筆で名前変更、ゴミ箱で削除（中のシーンは未分類に戻るだけで削除されません）。ジャンプ・選択肢の飛び先一覧もグループごとに表示されます。グループはゲーム出力には含まれません</td></tr>
-      <tr><td>キャラクター設定</td><td>キャラ一覧の鉛筆アイコン <span data-icon="pencil"></span> から名前・色・デフォルトイラスト・表情候補・設定メモを編集できます。表情は入力して Enter でラベルとして追加され、各ラベルに使用回数（未使用かどうか）が表示されます。ラベルの鉛筆アイコンで名前変更（使用中の全セリフに自動反映）、×で削除。使用中の表情を削除して保存すると、該当セリフ行とシーン一覧に <span data-icon="triangle-alert"></span> アラートが表示され、赤いラベルをクリックすると候補に戻せます。「この表情をテンプレに保存」を押すと現在の表情一覧がテンプレートになり、以後の新規キャラクター（@名前 での自動登録も含む）に自動適用されます（「テンプレを適用」で既存キャラにも追加可能）。表情ラベルの画像アイコンから<b>表情画像</b>を任意で設定でき、セリフ一覧の行・セリフ編集画面・テストプレイ（セリフ左の正方形の顔画像）に表示されます。表情画像がない表情では<b>デフォルトイラスト</b>（「デフォルトイラスト」欄の画像）が使われ、ラベル内に薄いプレビューで示されます（画像類はゲーム出力には含まれません）。<span data-icon="chevron-right"></span> をクリックするとメモをその場で開いて確認・編集できます。キャラは内部IDで管理されるため、名前を変えても既存のセリフはそのまま追従します</td></tr>
+      <tr><td>キャラクター設定</td><td>キャラ一覧の鉛筆アイコン <span data-icon="pencil"></span> から名前・色・デフォルトイラスト・表情候補・設定メモを編集できます。表情は入力して Enter でラベルとして追加され、各ラベルに使用回数（未使用かどうか）が表示されます。ラベルの鉛筆アイコンで名前変更（使用中の全セリフに自動反映）、×で削除。使用中の表情を削除して保存すると、該当セリフ行とシーン一覧に <span data-icon="triangle-alert"></span> アラートが表示され、赤いラベルをクリックすると候補に戻せます。「この表情をテンプレに保存」を押すと現在の表情一覧がテンプレートになり、以後の新規キャラクター（@名前 での自動登録も含む）に自動適用されます（「テンプレを適用」で既存キャラにも追加可能）。「新規プロジェクトにも引き継ぐ」にチェックすると、この表情テンプレートはプロジェクトを跨いで保存され、「新規」ボタンで作成した次のプロジェクトにも自動で適用されます。表情ラベルの画像アイコンから<b>表情画像</b>を任意で設定でき、セリフ一覧の行・セリフ編集画面・テストプレイ（セリフ左の正方形の顔画像）に表示されます。表情画像がない表情では<b>デフォルトイラスト</b>（「デフォルトイラスト」欄の画像）が使われ、ラベル内に薄いプレビューで示されます（画像類はゲーム出力には含まれません）。<span data-icon="chevron-right"></span> をクリックするとメモをその場で開いて確認・編集できます。キャラは内部IDで管理されるため、名前を変えても既存のセリフはそのまま追従します</td></tr>
       <tr><td>翻訳</td><td>ツールバーの <span data-icon="languages"></span> で翻訳専用画面を開きます。「＋言語」で翻訳先（en など）を追加し、セリフ・選択肢・キャラ名・タイトルの訳を入力できます。<kbd>Enter</kbd> で次の欄へ、「未翻訳のみ」で絞り込み、進捗表示つき。翻訳はゲーム出力に <code>tr</code> として含まれます</td></tr>
       <tr><td>ゲーム出力</td><td>「ゲーム出力」ボタンで、ゲーム実装用JSONを書き出せます。設定メモ・デフォルトイラスト・表情画像は常に除外され、表情・シーン名・キャラ色・コメント行を含めるかは出力時の設定画面で選べます（設定はプロジェクトに保存）</td></tr>
     </table>
@@ -677,6 +680,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 ========================================================= */
 
 const LS_KEY = "novelGameTool.project.v1";
+const EXPR_TMPL_LS_KEY = "novelGameTool.exprTemplateCarryOver.v1";   // プロジェクトを跨いだ表情テンプレート引き継ぎ設定
 const PALETTE = ["#ff7a7a","#ffb35c","#ffe066","#8ce99a","#66d9e8","#74a8ff","#b197fc","#faa2c1","#c0a98a","#9aa5b1"];
 const EXPORT_DEFAULTS = { face: true, sceneName: true, color: true, comment: false, pretty: true };
 
@@ -735,6 +739,28 @@ function defaultProject(){
     exprTemplate: [],   // 新規キャラクターに自動適用する表情テンプレート
     languages: [],      // 翻訳先の言語コード（例: ["en","zh-CN"]）。ベース言語は日本語
   };
+}
+
+/* プロジェクトを跨いで表情テンプレートを引き継ぐ設定（キャラ編集画面のチェックボックスで切替） */
+function loadGlobalExprTemplate(){
+  try{
+    const raw = localStorage.getItem(EXPR_TMPL_LS_KEY);
+    if(raw){
+      const o = JSON.parse(raw);
+      if(o && typeof o === "object")
+        return { enabled: !!o.enabled, template: Array.isArray(o.template) ? o.template : [] };
+    }
+  }catch(e){}
+  return { enabled: false, template: [] };
+}
+function saveGlobalExprTemplate(state){
+  try{ localStorage.setItem(EXPR_TMPL_LS_KEY, JSON.stringify(state)); }catch(e){}
+}
+function createNewProject(){
+  const p = defaultProject();
+  const g = loadGlobalExprTemplate();
+  if(g.enabled && g.template.length) p.exprTemplate = [...g.template];
+  return p;
 }
 
 /* ---------- 参照ヘルパ ---------- */
@@ -2094,15 +2120,27 @@ function renderExprTmplInfo(){
   const t = project.exprTemplate;
   $("#exprTmplInfo").textContent = t.length ? `テンプレ: ${t.join(", ")}` : "テンプレ未設定";
   $("#exprTmplInfo").title = t.length ? `新規キャラクターに自動適用されます: ${t.join(", ")}` : "";
+  $("#exprTmplCarryOver").checked = loadGlobalExprTemplate().enabled;
 }
 $("#exprTmplSave").addEventListener("click", () => {
   commitExprInput();
   project.exprTemplate = exprStaged.map(x => x.name);
   scheduleSave();
+  const g = loadGlobalExprTemplate();
+  if(g.enabled){ g.template = [...project.exprTemplate]; saveGlobalExprTemplate(g); }
   renderExprTmplInfo();
   toast(project.exprTemplate.length
     ? "表情テンプレートを保存しました（新規キャラクターに自動適用されます）"
     : "表情テンプレートを空にしました（自動適用は行われません）");
+});
+$("#exprTmplCarryOver").addEventListener("change", e => {
+  const g = loadGlobalExprTemplate();
+  g.enabled = e.target.checked;
+  if(g.enabled) g.template = [...project.exprTemplate];   // オンにした時点の内容を引き継ぎ対象にする
+  saveGlobalExprTemplate(g);
+  toast(g.enabled
+    ? "新規プロジェクトにも表情テンプレートを引き継ぐようにしました"
+    : "新規プロジェクトへの引き継ぎをオフにしました");
 });
 $("#exprTmplApply").addEventListener("click", () => {
   if(!project.exprTemplate.length){ toast("表情テンプレートはまだ保存されていません", true); return; }
@@ -2509,7 +2547,7 @@ $("#fileInput").addEventListener("change", e => {
 $("#btnNew").addEventListener("click", () => {
   if(!confirm("新規プロジェクトを作成しますか？\n現在の内容は履歴（Ctrl+Z）に残りますが、JSON保存でのバックアップをおすすめします。")) return;
   pushUndo();
-  project = defaultProject();
+  project = createNewProject();
   currentSceneId = project.scenes[0].id;
   speakerId = null; selIndex = null; editIndex = null;
   scheduleSave(); renderAll();
@@ -2961,7 +2999,7 @@ $("#transDelLang").addEventListener("click", () => {
 });
 
 /* ---------- 起動 ---------- */
-project = loadLocal() || defaultProject();
+project = loadLocal() || createNewProject();
 if(!project.scenes.length) project.scenes.push({ id: uid(), name: "シーン1", commands: [], groupId: null });
 currentSceneId = project.scenes[0].id;
 renderAll();
