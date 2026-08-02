@@ -659,7 +659,7 @@ body:not(.dnd-dragging) .scene-item:hover .drag-handle,body:not(.dnd-dragging) .
       <tr><td>行の編集</td><td>行をダブルクリック、または行選択中に Enter。セリフ行では話者・表情がボタン（チップ）になり、クリックで切替できます。入力欄の文頭で <kbd>Backspace</kbd> を押すと表情→話者の順にチップごと削除（地の文に）。<code>/bg …</code> や <code>@名前 …</code> の記法もそのまま使えます</td></tr>
       <tr><td>選択肢・ジャンプ</td><td>入力欄右の「選択肢」「ジャンプ」ボタンからもクリックで挿入できます（<code>/choice</code> <code>/jump</code> と同じ）</td></tr>
       <tr><td>並べ替え</td><td>行・シーン・キャラクターの左端にホバーすると表示されるハンドル（⋮⋮）をドラッグして順番を変えられます（行は <kbd>Ctrl</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd>、シーンは▲▼ボタンでも可）。キャラクターの並び順は <kbd>Ctrl</kbd>+<kbd>1</kbd>〜<kbd>9</kbd> の割り当てに対応します</td></tr>
-      <tr><td>シーンのグループ分け</td><td>シーン一覧の「＋章」ボタンでグループ（章・状況・キャラ別など、名前は自由）を作成できます。シーンをグループの見出しにドラッグ&ドロップするか、シーン行にホバーして表示されるフォルダアイコン <span data-icon="folder-open"></span> から移動先を選ぶと、そのグループに割り当てられます。グループ見出しをクリックすると折りたたみ、ハンドルをドラッグ（または▲▼）で並べ替え、鉛筆で名前変更、ゴミ箱で削除（中のシーンは未分類に戻るだけで削除されません）。ジャンプ・選択肢の飛び先一覧もグループごとに表示されます。グループはゲーム出力には含まれません</td></tr>
+      <tr><td>シーンのグループ分け</td><td>シーン一覧の「＋章」ボタンでグループ（章・状況・キャラ別など、名前は自由）を作成できます。シーンをドラッグしてグループの見出しやシーン行にドロップすると、そのグループに割り当てられます（シーン行の上半分にドロップでその直前、下半分でその直後に入ります）。グループ見出しをクリックすると折りたたみ、ハンドルをドラッグで並べ替え、鉛筆で名前変更、ゴミ箱で削除（中のシーンは未分類に戻るだけで削除されません）。ジャンプ・選択肢の飛び先一覧もグループごとに表示されます。グループはゲーム出力には含まれません</td></tr>
       <tr><td>あらすじメモ・あらすじビュー</td><td>シーン一覧の各シーン行にある <span data-icon="chevron-right"></span> をクリックすると、そのシーンの短いあらすじ・メモをその場で開いて編集できます。ツールバーの <span data-icon="book-open"></span>（あらすじビュー）を開くと、上部に物語全体の設定・伏線などを書ける<b>大枠メモ</b>、その下にグループ（章）順に並んだ全シーンのあらすじが一覧表示され、話の流れを俯瞰しながら確認・編集できます。シーン名をクリックするとそのシーンへ移動します。あらすじ・大枠メモはいずれもゲーム出力には含まれません</td></tr>
       <tr><td>キャラクター設定</td><td>キャラ一覧の鉛筆アイコン <span data-icon="pencil"></span> から名前・色・デフォルトイラスト・表情候補・設定メモを編集できます。表情は入力して Enter でラベルとして追加され、各ラベルに使用回数（未使用かどうか）が表示されます。ラベルの鉛筆アイコンで名前変更（使用中の全セリフに自動反映）、×で削除。使用中の表情を削除して保存すると、該当セリフ行とシーン一覧に <span data-icon="triangle-alert"></span> アラートが表示され、赤いラベルをクリックすると候補に戻せます。「この表情をテンプレに保存」を押すと現在の表情一覧がテンプレートになり、以後の新規キャラクター（@名前 での自動登録も含む）に自動適用されます（「テンプレを適用」で既存キャラにも追加可能）。「新規プロジェクトにも引き継ぐ」にチェックすると、この表情テンプレートはプロジェクトを跨いで保存され、「新規」ボタンで作成した次のプロジェクトにも自動で適用されます。表情ラベルの画像アイコンから<b>表情画像</b>を任意で設定でき、セリフ一覧の行・セリフ編集画面・テストプレイ（セリフ左の正方形の顔画像）に表示されます。表情画像がない表情では<b>デフォルトイラスト</b>（「デフォルトイラスト」欄の画像）が使われ、ラベル内に薄いプレビューで示されます（画像類はゲーム出力には含まれません）。<span data-icon="chevron-right"></span> をクリックするとメモをその場で開いて確認・編集できます。キャラは内部IDで管理されるため、名前を変えても既存のセリフはそのまま追従します</td></tr>
       <tr><td>翻訳</td><td>ツールバーの <span data-icon="languages"></span> で翻訳専用画面を開きます。「＋言語」で翻訳先（en など）を追加し、セリフ・選択肢・キャラ名・タイトルの訳を入力できます。<kbd>Enter</kbd> で次の欄へ、「未翻訳のみ」で絞り込み、進捗表示つき。翻訳はゲーム出力に <code>tr</code> として含まれます</td></tr>
@@ -1100,17 +1100,17 @@ function renderScenes(){
     return;
   }
 
-  groups.forEach((g, gi) => {
-    box.appendChild(makeGroupHeadRow(g, gi));
+  groups.forEach(g => {
+    box.appendChild(makeGroupHeadRow(g));
     if(!collapsedGroups.has(g.id)) appendSceneRows(g.id, true);
   });
   if(sceneGroupCount(null) > 0){
-    box.appendChild(makeGroupHeadRow(null, -1));
+    box.appendChild(makeGroupHeadRow(null));
     if(!collapsedGroups.has("__ungrouped__")) appendSceneRows(null, true);
   }
 }
 
-function makeGroupHeadRow(g, gi){
+function makeGroupHeadRow(g){
   const isUngrouped = !g;
   const id = isUngrouped ? "__ungrouped__" : g.id;
   const collapsed = collapsedGroups.has(id);
@@ -1125,8 +1125,6 @@ function makeGroupHeadRow(g, gi){
     `<span class="s-count">${count}</span>` +
     (isUngrouped ? "" :
       `<span class="s-btns">` +
-        `<button class="mini-btn" data-act="up" title="上へ">${icon("chevron-up")}</button>` +
-        `<button class="mini-btn" data-act="down" title="下へ">${icon("chevron-down")}</button>` +
         `<button class="mini-btn" data-act="add" title="このグループにシーンを追加">${icon("plus")}</button>` +
         `<button class="mini-btn" data-act="ren" title="名前変更">${icon("pencil")}</button>` +
         `<button class="mini-btn" data-act="del" title="グループを削除（シーンは削除されず未分類になります）">${icon("trash-2")}</button>` +
@@ -1144,15 +1142,6 @@ function makeGroupHeadRow(g, gi){
     }
     if(!isUngrouped && act === "ren"){ startGroupRename(div, g); return; }
     if(!isUngrouped && act === "add"){ createScene(g.id); return; }
-    if(!isUngrouped && (act === "up" || act === "down")){
-      const j = gi + (act === "up" ? -1 : 1);
-      if(j < 0 || j >= project.sceneGroups.length) return;
-      mutate(() => {
-        const [gr] = project.sceneGroups.splice(gi, 1);
-        project.sceneGroups.splice(j, 0, gr);
-      });
-      return;
-    }
     // それ以外（見出し本体クリック）は折りたたみ切替
     if(collapsed) collapsedGroups.delete(id); else collapsedGroups.add(id);
     renderScenes();
@@ -1190,7 +1179,6 @@ function makeSceneRow(s, indented){
   const div = document.createElement("div");
   div.className = "scene-item" + (indented ? " grouped" : "") + (s.id === currentSceneId ? " active" : "");
   div.dataset.sceneId = s.id;
-  const hasGroups = project.sceneGroups.length > 0;
   div.innerHTML =
     `<span class="drag-handle" title="ドラッグで並べ替え">${icon("grip-vertical")}</span>` +
     `<span class="s-name">${esc(s.name)}</span>` +
@@ -1198,9 +1186,6 @@ function makeSceneRow(s, indented){
     `<span class="s-count">${s.commands.length}</span>` +
     `<button class="mini-btn s-caret" data-act="memo" title="あらすじメモを開閉">${expandedScenes.has(s.id) ? icon("chevron-down") : icon("chevron-right")}</button>` +
     `<span class="s-btns">` +
-      `<button class="mini-btn" data-act="up" title="上へ">${icon("chevron-up")}</button>` +
-      `<button class="mini-btn" data-act="down" title="下へ">${icon("chevron-down")}</button>` +
-      (hasGroups ? `<button class="mini-btn" data-act="grp" title="グループを変更">${icon("folder-open")}</button>` : "") +
       `<button class="mini-btn" data-act="ren" title="名前変更">${icon("pencil")}</button>` +
       `<button class="mini-btn" data-act="del" title="削除">${icon("trash-2")}</button>` +
     `</span>`;
@@ -1216,13 +1201,9 @@ function makeSceneRow(s, indented){
       });
     }else if(act === "ren"){
       startSceneRename(div, s);
-    }else if(act === "grp"){
-      openSceneGroupMenu(div, s);
     }else if(act === "memo"){
       if(expandedScenes.has(s.id)) expandedScenes.delete(s.id); else expandedScenes.add(s.id);
       renderScenes();
-    }else if(act === "up" || act === "down"){
-      moveSceneWithinSiblings(s.id, act === "up" ? -1 : 1);
     }else{
       if(currentSceneId !== s.id){
         currentSceneId = s.id; selIndex = null; editIndex = null;
@@ -1273,68 +1254,6 @@ function startSceneRename(div, s){
   inp.addEventListener("click", e => e.stopPropagation());
 }
 
-// シーンを同じグループ内の隣（前後）と入れ替える。グループ未使用時は従来どおり全体での並べ替えと同じ
-function moveSceneWithinSiblings(sceneId, dir){
-  const validGroup = gid => gid && project.sceneGroups.some(g => g.id === gid) ? gid : null;
-  const s = project.scenes.find(x => x.id === sceneId);
-  if(!s) return;
-  const gid = validGroup(s.groupId);
-  const siblings = project.scenes
-    .map((sc, i) => ({ sc, i }))
-    .filter(o => validGroup(o.sc.groupId) === gid);
-  const pos = siblings.findIndex(o => o.sc.id === sceneId);
-  const newPos = pos + dir;
-  if(newPos < 0 || newPos >= siblings.length) return;
-  const selfIdx = siblings[pos].i, otherIdx = siblings[newPos].i;
-  mutate(() => {
-    [project.scenes[selfIdx], project.scenes[otherIdx]] = [project.scenes[otherIdx], project.scenes[selfIdx]];
-  });
-}
-
-// シーンを指定グループへ移動（そのグループの末尾に配置）。groupId=null で未分類へ
-function moveSceneToGroup(sceneId, groupId){
-  const gname = groupId ? (project.sceneGroups.find(g => g.id === groupId) || {}).name : null;
-  mutate(() => {
-    const idx = project.scenes.findIndex(s => s.id === sceneId);
-    if(idx === -1) return;
-    const [s] = project.scenes.splice(idx, 1);
-    s.groupId = groupId || null;
-    let lastIdx = -1;
-    project.scenes.forEach((sc, i) => { if((sc.groupId || null) === (groupId || null)) lastIdx = i; });
-    project.scenes.splice(lastIdx + 1, 0, s);
-  });
-  toast(gname ? `「${gname}」に移動しました` : "未分類に移動しました");
-}
-
-let sceneGroupMenuEl = null;
-function closeSceneGroupMenu(){
-  if(sceneGroupMenuEl){ sceneGroupMenuEl.remove(); sceneGroupMenuEl = null; }
-  document.removeEventListener("mousedown", sceneGroupMenuOutside, true);
-}
-function sceneGroupMenuOutside(e){
-  if(sceneGroupMenuEl && !sceneGroupMenuEl.contains(e.target)) closeSceneGroupMenu();
-}
-function openSceneGroupMenu(div, s){
-  closeSceneGroupMenu();
-  const menu = document.createElement("div");
-  menu.className = "edit-menu";
-  menu.style.left = "0"; menu.style.top = "100%";
-  const items = [];
-  if(s.groupId) items.push({ label: "未分類", pick: () => moveSceneToGroup(s.id, null) });
-  for(const g of project.sceneGroups)
-    if(g.id !== s.groupId) items.push({ label: g.name, pick: () => moveSceneToGroup(s.id, g.id) });
-  for(const it of items){
-    const el = document.createElement("div");
-    el.className = "em-item";
-    el.textContent = it.label;
-    el.addEventListener("mousedown", e => e.preventDefault());
-    el.addEventListener("click", e => { e.stopPropagation(); closeSceneGroupMenu(); it.pick(); });
-    menu.appendChild(el);
-  }
-  div.appendChild(menu);
-  sceneGroupMenuEl = menu;
-  document.addEventListener("mousedown", sceneGroupMenuOutside, true);
-}
 
 const expandedChars = new Set();   // メモを開いているキャラid
 function renderChars(){
