@@ -80,7 +80,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 #charList{max-height:35%;overflow-y:auto;padding:2px 6px 8px;border-top:1px solid var(--border)}
 .scene-item,.char-item{
   display:flex;align-items:center;gap:6px;padding:5px 8px;margin:2px 0;
-  border-radius:6px;cursor:pointer;border:1px solid transparent;
+  border-radius:6px;cursor:pointer;border:1px solid transparent;position:relative;
 }
 .scene-item:hover,.char-item:hover{background:var(--bg3)}
 .scene-item.active{background:var(--accent-dim);border-color:var(--accent)}
@@ -88,6 +88,21 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 .scene-item .s-count{color:var(--text-dim);font-size:11px}
 .scene-item .s-btns,.char-item .c-btns{display:none;gap:2px}
 .scene-item:hover .s-btns,.char-item:hover .c-btns{display:flex}
+.scene-item.grouped{margin-left:16px}
+/* シーングループ（章）見出し */
+.scene-group-head{
+  display:flex;align-items:center;gap:4px;padding:5px 6px;margin:6px 0 0;
+  border-radius:6px;cursor:pointer;color:var(--text-dim);font-size:12px;font-weight:700;
+  position:relative;
+}
+.scene-group-head:hover{background:var(--bg3);color:var(--text)}
+.scene-group-head .g-caret{display:inline-flex;flex-shrink:0}
+.scene-group-head .g-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.scene-group-head .s-count{color:var(--text-dim);font-size:11px}
+.scene-group-head .s-btns{display:none;gap:2px}
+.scene-group-head:hover .s-btns{display:flex}
+.scene-group-head.ungrouped{cursor:default}
+.scene-group-head.ungrouped:hover{background:transparent;color:var(--text-dim)}
 .mini-btn{
   padding:0 5px;font-size:11px;border:none;background:transparent;color:var(--text-dim);
 }
@@ -177,8 +192,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 .drag-handle:active{cursor:grabbing}
 .cmd-row .drag-handle{visibility:hidden;padding-top:4px}
 .cmd-row:hover .drag-handle{visibility:visible}
-.scene-item .drag-handle,.char-item .drag-handle{visibility:hidden;margin-left:-4px}
-.scene-item:hover .drag-handle,.char-item:hover .drag-handle{visibility:visible}
+.scene-item .drag-handle,.char-item .drag-handle,.scene-group-head .drag-handle{visibility:hidden;margin-left:-4px}
+.scene-item:hover .drag-handle,.char-item:hover .drag-handle,.scene-group-head:hover .drag-handle{visibility:visible}
 .dragging{opacity:.4}
 .drop-indicator{height:2px;background:var(--accent);border-radius:1px;margin:1px 6px;pointer-events:none}
 .speaker-name{font-weight:700;margin-right:2px}
@@ -297,6 +312,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 .popup-item.hl,.popup-item:hover{background:var(--accent-dim)}
 .popup-item .p-cmd{font-weight:700;color:var(--sys);width:150px;flex-shrink:0}
 .popup-item .p-desc{color:var(--text-dim);font-size:12px}
+.popup-section{padding:6px 14px 3px;color:var(--text-dim);font-size:11px;font-weight:700;border-top:1px solid #ffffff10}
+.popup-section:first-child{border-top:none}
 
 /* modal */
 .modal-back{
@@ -439,7 +456,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
   </div>
   <div id="main">
     <div id="sidebar">
-      <div class="side-head"><span>シーン</span><button id="btnAddScene" title="シーンを追加"><span data-icon="plus"></span></button></div>
+      <div class="side-head"><span>シーン</span><span style="display:flex;gap:4px">
+        <button id="btnAddGroup" title="グループ（章）を追加"><span data-icon="plus"></span>章</button>
+        <button id="btnAddScene" title="シーンを追加"><span data-icon="plus"></span></button>
+      </span></div>
       <div id="sceneList"></div>
       <div class="side-head" style="border-top:1px solid var(--border);padding-top:8px"><span>キャラクター</span><button id="btnAddChar" title="キャラクターを追加"><span data-icon="plus"></span></button></div>
       <div id="charList"></div>
@@ -599,6 +619,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
       <tr><td>行の編集</td><td>行をダブルクリック、または行選択中に Enter。セリフ行では話者・表情がボタン（チップ）になり、クリックで切替できます。入力欄の文頭で <kbd>Backspace</kbd> を押すと表情→話者の順にチップごと削除（地の文に）。<code>/bg …</code> や <code>@名前 …</code> の記法もそのまま使えます</td></tr>
       <tr><td>選択肢・ジャンプ</td><td>入力欄右の「選択肢」「ジャンプ」ボタンからもクリックで挿入できます（<code>/choice</code> <code>/jump</code> と同じ）</td></tr>
       <tr><td>並べ替え</td><td>行・シーン・キャラクターの左端にホバーすると表示されるハンドル（⋮⋮）をドラッグして順番を変えられます（行は <kbd>Ctrl</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd>、シーンは▲▼ボタンでも可）。キャラクターの並び順は <kbd>Ctrl</kbd>+<kbd>1</kbd>〜<kbd>9</kbd> の割り当てに対応します</td></tr>
+      <tr><td>シーンのグループ分け</td><td>シーン一覧の「＋章」ボタンでグループ（章・状況・キャラ別など、名前は自由）を作成できます。シーンをグループの見出しにドラッグ&ドロップするか、シーン行にホバーして表示されるフォルダアイコン <span data-icon="folder-open"></span> から移動先を選ぶと、そのグループに割り当てられます。グループ見出しをクリックすると折りたたみ、ハンドルをドラッグ（または▲▼）で並べ替え、鉛筆で名前変更、ゴミ箱で削除（中のシーンは未分類に戻るだけで削除されません）。ジャンプ・選択肢の飛び先一覧もグループごとに表示されます。グループはゲーム出力には含まれません</td></tr>
       <tr><td>キャラクター設定</td><td>キャラ一覧の鉛筆アイコン <span data-icon="pencil"></span> から名前・色・デフォルトイラスト・表情候補・設定メモを編集できます。表情は入力して Enter でラベルとして追加され、各ラベルに使用回数（未使用かどうか）が表示されます。ラベルの鉛筆アイコンで名前変更（使用中の全セリフに自動反映）、×で削除。使用中の表情を削除して保存すると、該当セリフ行とシーン一覧に <span data-icon="triangle-alert"></span> アラートが表示され、赤いラベルをクリックすると候補に戻せます。「この表情をテンプレに保存」を押すと現在の表情一覧がテンプレートになり、以後の新規キャラクター（@名前 での自動登録も含む）に自動適用されます（「テンプレを適用」で既存キャラにも追加可能）。表情ラベルの画像アイコンから<b>表情画像</b>を任意で設定でき、セリフ一覧の行・セリフ編集画面・テストプレイ（セリフ左の正方形の顔画像）に表示されます。表情画像がない表情では<b>デフォルトイラスト</b>（「デフォルトイラスト」欄の画像）が使われ、ラベル内に薄いプレビューで示されます（画像類はゲーム出力には含まれません）。<span data-icon="chevron-right"></span> をクリックするとメモをその場で開いて確認・編集できます。キャラは内部IDで管理されるため、名前を変えても既存のセリフはそのまま追従します</td></tr>
       <tr><td>翻訳</td><td>ツールバーの <span data-icon="languages"></span> で翻訳専用画面を開きます。「＋言語」で翻訳先（en など）を追加し、セリフ・選択肢・キャラ名・タイトルの訳を入力できます。<kbd>Enter</kbd> で次の欄へ、「未翻訳のみ」で絞り込み、進捗表示つき。翻訳はゲーム出力に <code>tr</code> として含まれます</td></tr>
       <tr><td>ゲーム出力</td><td>「ゲーム出力」ボタンで、ゲーム実装用JSONを書き出せます。設定メモ・デフォルトイラスト・表情画像は常に除外され、表情・シーン名・キャラ色・コメント行を含めるかは出力時の設定画面で選べます（設定はプロジェクトに保存）</td></tr>
@@ -708,7 +729,8 @@ function defaultProject(){
   return {
     title: "新規プロジェクト",
     characters: [],
-    scenes: [{ id: uid(), name: "オープニング", commands: [] }],
+    scenes: [{ id: uid(), name: "オープニング", commands: [], groupId: null }],
+    sceneGroups: [],    // シーンのグループ（章など）: { id, name }
     exportSettings: { ...EXPORT_DEFAULTS },
     exprTemplate: [],   // 新規キャラクターに自動適用する表情テンプレート
     languages: [],      // 翻訳先の言語コード（例: ["en","zh-CN"]）。ベース言語は日本語
@@ -725,7 +747,7 @@ function findOrCreateScene(name){
   name = name.trim();
   let s = project.scenes.find(s => s.name === name);
   if(!s){
-    s = { id: uid(), name, commands: [] };
+    s = { id: uid(), name, commands: [], groupId: null };
     project.scenes.push(s);
     toast(`シーン「${name}」を作成しました`);
   }
@@ -754,6 +776,13 @@ function normalizeProject(p){
   }
   if(!Array.isArray(p.exprTemplate)) p.exprTemplate = [];
   if(!Array.isArray(p.languages)) p.languages = [];
+  if(!Array.isArray(p.sceneGroups)) p.sceneGroups = [];
+  if(!Array.isArray(p.scenes)) p.scenes = [];
+  for(const s of p.scenes){
+    if(s.groupId !== undefined && s.groupId !== null && !p.sceneGroups.some(g => g.id === s.groupId))
+      s.groupId = null;   // 参照先グループが存在しない場合は未分類に戻す
+    if(s.groupId === undefined) s.groupId = null;
+  }
   p.exportSettings = Object.assign({}, EXPORT_DEFAULTS,
     (p.exportSettings && typeof p.exportSettings === "object") ? p.exportSettings : {});
   return p;
@@ -962,54 +991,161 @@ function renderAll(){
   $("#projectTitle").value = project.title;
 }
 
+/* ---------- シーングループ（章など） ---------- */
+const collapsedGroups = new Set();   // 折りたたみ中のグループid（"__ungrouped__"含む）。セッション内のみ
+let sceneRowMap = [];                 // renderScenes()時点の可視シーン行の並び（ドラッグ&ドロップで参照）
+
+const sceneGroupCount = groupId => project.scenes.filter(s => (s.groupId || null) === groupId).length;
+
 function renderScenes(){
   const box = $("#sceneList");
   box.innerHTML = "";
-  project.scenes.forEach((s, i) => {
-    const div = document.createElement("div");
-    div.className = "scene-item" + (s.id === currentSceneId ? " active" : "");
-    div.innerHTML =
-      `<span class="drag-handle" title="ドラッグで並べ替え">${icon("grip-vertical")}</span>` +
-      `<span class="s-name">${esc(s.name)}</span>` +
-      (sceneHasAlert(s) ? `<span class="s-alert" title="削除済みのシーンやキャラへの参照があります">${icon("triangle-alert")}</span>` : "") +
-      `<span class="s-count">${s.commands.length}</span>` +
+  sceneRowMap = [];
+  const groups = project.sceneGroups;
+
+  const appendSceneRows = (groupId, indented) => {
+    for(const s of project.scenes){
+      if((s.groupId || null) !== groupId) continue;
+      box.appendChild(makeSceneRow(s, indented));
+      sceneRowMap.push({ sceneId: s.id, groupId });
+    }
+  };
+
+  if(!groups.length){
+    appendSceneRows(null, false);
+    return;
+  }
+
+  groups.forEach((g, gi) => {
+    box.appendChild(makeGroupHeadRow(g, gi));
+    if(!collapsedGroups.has(g.id)) appendSceneRows(g.id, true);
+  });
+  if(sceneGroupCount(null) > 0){
+    box.appendChild(makeGroupHeadRow(null, -1));
+    if(!collapsedGroups.has("__ungrouped__")) appendSceneRows(null, true);
+  }
+}
+
+function makeGroupHeadRow(g, gi){
+  const isUngrouped = !g;
+  const id = isUngrouped ? "__ungrouped__" : g.id;
+  const collapsed = collapsedGroups.has(id);
+  const count = sceneGroupCount(isUngrouped ? null : g.id);
+  const div = document.createElement("div");
+  div.className = "scene-group-head" + (isUngrouped ? " ungrouped" : "");
+  div.innerHTML =
+    (isUngrouped ? "" : `<span class="drag-handle" title="ドラッグで並べ替え">${icon("grip-vertical")}</span>`) +
+    `<span class="g-caret">${collapsed ? icon("chevron-right") : icon("chevron-down")}</span>` +
+    `<span class="g-name">${isUngrouped ? "未分類" : esc(g.name)}</span>` +
+    `<span class="s-count">${count}</span>` +
+    (isUngrouped ? "" :
       `<span class="s-btns">` +
         `<button class="mini-btn" data-act="up" title="上へ">${icon("chevron-up")}</button>` +
         `<button class="mini-btn" data-act="down" title="下へ">${icon("chevron-down")}</button>` +
+        `<button class="mini-btn" data-act="add" title="このグループにシーンを追加">${icon("plus")}</button>` +
         `<button class="mini-btn" data-act="ren" title="名前変更">${icon("pencil")}</button>` +
-        `<button class="mini-btn" data-act="del" title="削除">${icon("trash-2")}</button>` +
-      `</span>`;
-    div.addEventListener("click", e => {
-      const act = e.target.dataset.act;
-      if(act === "del"){
-        if(project.scenes.length <= 1){ toast("最後のシーンは削除できません", true); return; }
-        if(!confirm(`シーン「${s.name}」を削除しますか？`)) return;
-        mutate(() => {
-          project.scenes.splice(i, 1);
-          if(currentSceneId === s.id) currentSceneId = project.scenes[0].id;
-        });
-      }else if(act === "ren"){
-        startSceneRename(div, s);
-      }else if(act === "up" || act === "down"){
-        const j = i + (act === "up" ? -1 : 1);
-        if(j < 0 || j >= project.scenes.length) return;
-        mutate(() => {
-          const [sc] = project.scenes.splice(i, 1);
-          project.scenes.splice(j, 0, sc);
-        });
-      }else{
-        if(currentSceneId !== s.id){
-          currentSceneId = s.id; selIndex = null; editIndex = null;
-          renderAll();
-          $("#mainInput").focus();
-        }
-      }
-    });
-    div.addEventListener("dblclick", e => {
-      if(!e.target.dataset.act) startSceneRename(div, s);
-    });
-    box.appendChild(div);
+        `<button class="mini-btn" data-act="del" title="グループを削除（シーンは削除されず未分類になります）">${icon("trash-2")}</button>` +
+      `</span>`);
+  div.addEventListener("click", e => {
+    const act = e.target.dataset.act;
+    if(!isUngrouped && act === "del"){
+      if(!confirm(`グループ「${g.name}」を削除しますか？\n（含まれるシーンは削除されず、未分類になります）`)) return;
+      mutate(() => {
+        const idx = project.sceneGroups.findIndex(x => x.id === g.id);
+        project.sceneGroups.splice(idx, 1);
+        for(const s of project.scenes) if(s.groupId === g.id) s.groupId = null;
+      });
+      return;
+    }
+    if(!isUngrouped && act === "ren"){ startGroupRename(div, g); return; }
+    if(!isUngrouped && act === "add"){ createScene(g.id); return; }
+    if(!isUngrouped && (act === "up" || act === "down")){
+      const j = gi + (act === "up" ? -1 : 1);
+      if(j < 0 || j >= project.sceneGroups.length) return;
+      mutate(() => {
+        const [gr] = project.sceneGroups.splice(gi, 1);
+        project.sceneGroups.splice(j, 0, gr);
+      });
+      return;
+    }
+    // それ以外（見出し本体クリック）は折りたたみ切替
+    if(collapsed) collapsedGroups.delete(id); else collapsedGroups.add(id);
+    renderScenes();
   });
+  div.addEventListener("dblclick", e => {
+    if(!isUngrouped && !e.target.dataset.act) startGroupRename(div, g);
+  });
+  return div;
+}
+
+function startGroupRename(div, g){
+  const inp = document.createElement("input");
+  inp.type = "text"; inp.value = g.name;
+  inp.style.cssText = "width:100%;padding:2px 6px;font-size:13px";
+  div.innerHTML = ""; div.appendChild(inp);
+  inp.focus(); inp.select();
+  let done = false;
+  const commit = ok => {
+    if(done) return; done = true;
+    const v = inp.value.trim();
+    if(ok && v && v !== g.name) mutate(() => { g.name = v; });
+    else renderAll();
+  };
+  inp.addEventListener("keydown", e => {
+    if(e.isComposing) return;
+    if(e.key === "Enter") commit(true);
+    if(e.key === "Escape") commit(false);
+    e.stopPropagation();
+  });
+  inp.addEventListener("blur", () => commit(true));
+  inp.addEventListener("click", e => e.stopPropagation());
+}
+
+function makeSceneRow(s, indented){
+  const div = document.createElement("div");
+  div.className = "scene-item" + (indented ? " grouped" : "") + (s.id === currentSceneId ? " active" : "");
+  div.dataset.sceneId = s.id;
+  const hasGroups = project.sceneGroups.length > 0;
+  div.innerHTML =
+    `<span class="drag-handle" title="ドラッグで並べ替え">${icon("grip-vertical")}</span>` +
+    `<span class="s-name">${esc(s.name)}</span>` +
+    (sceneHasAlert(s) ? `<span class="s-alert" title="削除済みのシーンやキャラへの参照があります">${icon("triangle-alert")}</span>` : "") +
+    `<span class="s-count">${s.commands.length}</span>` +
+    `<span class="s-btns">` +
+      `<button class="mini-btn" data-act="up" title="上へ">${icon("chevron-up")}</button>` +
+      `<button class="mini-btn" data-act="down" title="下へ">${icon("chevron-down")}</button>` +
+      (hasGroups ? `<button class="mini-btn" data-act="grp" title="グループを変更">${icon("folder-open")}</button>` : "") +
+      `<button class="mini-btn" data-act="ren" title="名前変更">${icon("pencil")}</button>` +
+      `<button class="mini-btn" data-act="del" title="削除">${icon("trash-2")}</button>` +
+    `</span>`;
+  div.addEventListener("click", e => {
+    const act = e.target.dataset.act;
+    if(act === "del"){
+      if(project.scenes.length <= 1){ toast("最後のシーンは削除できません", true); return; }
+      if(!confirm(`シーン「${s.name}」を削除しますか？`)) return;
+      mutate(() => {
+        const idx = project.scenes.findIndex(x => x.id === s.id);
+        project.scenes.splice(idx, 1);
+        if(currentSceneId === s.id) currentSceneId = project.scenes[0].id;
+      });
+    }else if(act === "ren"){
+      startSceneRename(div, s);
+    }else if(act === "grp"){
+      openSceneGroupMenu(div, s);
+    }else if(act === "up" || act === "down"){
+      moveSceneWithinSiblings(s.id, act === "up" ? -1 : 1);
+    }else{
+      if(currentSceneId !== s.id){
+        currentSceneId = s.id; selIndex = null; editIndex = null;
+        renderAll();
+        $("#mainInput").focus();
+      }
+    }
+  });
+  div.addEventListener("dblclick", e => {
+    if(!e.target.dataset.act) startSceneRename(div, s);
+  });
+  return div;
 }
 
 function startSceneRename(div, s){
@@ -1033,6 +1169,69 @@ function startSceneRename(div, s){
   });
   inp.addEventListener("blur", () => commit(true));
   inp.addEventListener("click", e => e.stopPropagation());
+}
+
+// シーンを同じグループ内の隣（前後）と入れ替える。グループ未使用時は従来どおり全体での並べ替えと同じ
+function moveSceneWithinSiblings(sceneId, dir){
+  const validGroup = gid => gid && project.sceneGroups.some(g => g.id === gid) ? gid : null;
+  const s = project.scenes.find(x => x.id === sceneId);
+  if(!s) return;
+  const gid = validGroup(s.groupId);
+  const siblings = project.scenes
+    .map((sc, i) => ({ sc, i }))
+    .filter(o => validGroup(o.sc.groupId) === gid);
+  const pos = siblings.findIndex(o => o.sc.id === sceneId);
+  const newPos = pos + dir;
+  if(newPos < 0 || newPos >= siblings.length) return;
+  const selfIdx = siblings[pos].i, otherIdx = siblings[newPos].i;
+  mutate(() => {
+    [project.scenes[selfIdx], project.scenes[otherIdx]] = [project.scenes[otherIdx], project.scenes[selfIdx]];
+  });
+}
+
+// シーンを指定グループへ移動（そのグループの末尾に配置）。groupId=null で未分類へ
+function moveSceneToGroup(sceneId, groupId){
+  const gname = groupId ? (project.sceneGroups.find(g => g.id === groupId) || {}).name : null;
+  mutate(() => {
+    const idx = project.scenes.findIndex(s => s.id === sceneId);
+    if(idx === -1) return;
+    const [s] = project.scenes.splice(idx, 1);
+    s.groupId = groupId || null;
+    let lastIdx = -1;
+    project.scenes.forEach((sc, i) => { if((sc.groupId || null) === (groupId || null)) lastIdx = i; });
+    project.scenes.splice(lastIdx + 1, 0, s);
+  });
+  toast(gname ? `「${gname}」に移動しました` : "未分類に移動しました");
+}
+
+let sceneGroupMenuEl = null;
+function closeSceneGroupMenu(){
+  if(sceneGroupMenuEl){ sceneGroupMenuEl.remove(); sceneGroupMenuEl = null; }
+  document.removeEventListener("mousedown", sceneGroupMenuOutside, true);
+}
+function sceneGroupMenuOutside(e){
+  if(sceneGroupMenuEl && !sceneGroupMenuEl.contains(e.target)) closeSceneGroupMenu();
+}
+function openSceneGroupMenu(div, s){
+  closeSceneGroupMenu();
+  const menu = document.createElement("div");
+  menu.className = "edit-menu";
+  menu.style.left = "0"; menu.style.top = "100%";
+  const items = [];
+  if(s.groupId) items.push({ label: "未分類", pick: () => moveSceneToGroup(s.id, null) });
+  for(const g of project.sceneGroups)
+    if(g.id !== s.groupId) items.push({ label: g.name, pick: () => moveSceneToGroup(s.id, g.id) });
+  for(const it of items){
+    const el = document.createElement("div");
+    el.className = "em-item";
+    el.textContent = it.label;
+    el.addEventListener("mousedown", e => e.preventDefault());
+    el.addEventListener("click", e => { e.stopPropagation(); closeSceneGroupMenu(); it.pick(); });
+    menu.appendChild(el);
+  }
+  div.appendChild(menu);
+  sceneGroupMenuEl = menu;
+  document.addEventListener("mousedown", sceneGroupMenuOutside, true);
 }
 
 const expandedChars = new Set();   // メモを開いているキャラid
@@ -1666,8 +1865,15 @@ $("#btnJumpCmd").addEventListener("click", () => {
   hideSpeakerPopup(); hideSlashPopup();
   const inner = $("#jumpPopupInner");
   let h = "";
-  for(const s of project.scenes)
+  const grouped = project.sceneGroups.length > 0;
+  let lastGroup;
+  for(const { scene: s, groupName } of scenesInGroupOrder()){
+    if(grouped && groupName !== lastGroup){
+      h += `<div class="popup-section">${esc(groupName || "未分類")}</div>`;
+      lastGroup = groupName;
+    }
     h += `<div class="popup-item" data-id="${s.id}"><span class="p-cmd">${esc(s.name)}</span><span class="p-desc">このシーンへジャンプ</span></div>`;
+  }
   h += `<div class="popup-item" data-id="__new__"><span class="p-cmd">${icon("plus")} 新規シーン…</span><span class="p-desc">シーンを作成してジャンプ</span></div>`;
   inner.innerHTML = h;
   inner.querySelectorAll(".popup-item").forEach(el => {
@@ -1968,12 +2174,33 @@ $("#charNameInput").addEventListener("keydown", e => {
   if(e.key === "Enter") $("#charSaveBtn").click();
 });
 
+// シーンをグループ順（各グループ→最後に未分類）で列挙。{scene, groupName} の配列
+function scenesInGroupOrder(){
+  const groups = project.sceneGroups;
+  if(!groups.length) return project.scenes.map(s => ({ scene: s, groupName: null }));
+  const out = [];
+  for(const g of groups)
+    for(const s of project.scenes) if(s.groupId === g.id) out.push({ scene: s, groupName: g.name });
+  for(const s of project.scenes)
+    if(!s.groupId || !groups.some(g => g.id === s.groupId)) out.push({ scene: s, groupName: null });
+  return out;
+}
+
 /* ---------- 選択肢モーダル ---------- */
 let editingChoiceIndex = null;   // null=新規
 function sceneSelectHtml(selected){
   let h = `<option value="">（続行 — 飛ばない）</option>`;
-  for(const s of project.scenes)
+  const grouped = project.sceneGroups.length > 0;
+  let lastGroup, openGroup = false;
+  for(const { scene: s, groupName } of scenesInGroupOrder()){
+    if(grouped && groupName !== lastGroup){
+      if(openGroup) h += `</optgroup>`;
+      h += `<optgroup label="${esc(groupName || "未分類")}">`;
+      lastGroup = groupName; openGroup = true;
+    }
     h += `<option value="${s.id}"${s.id === selected ? " selected" : ""}>${esc(s.name)}</option>`;
+  }
+  if(openGroup) h += `</optgroup>`;
   h += `<option value="__new__">＋ 新規シーン作成…</option>`;
   return h;
 }
@@ -2267,7 +2494,7 @@ $("#fileInput").addEventListener("change", e => {
       pushUndo();
       project = normalizeProject(p);
       currentSceneId = project.scenes[0]?.id;
-      if(!project.scenes.length) project.scenes.push({ id: uid(), name: "シーン1", commands: [] });
+      if(!project.scenes.length) project.scenes.push({ id: uid(), name: "シーン1", commands: [], groupId: null });
       currentSceneId = project.scenes[0].id;
       speakerId = null; selIndex = null; editIndex = null;
       scheduleSave(); renderAll();
@@ -2292,19 +2519,29 @@ $("#btnNew").addEventListener("click", () => {
 $("#projectTitle").addEventListener("change", e => {
   mutate(() => { project.title = e.target.value.trim() || "無題"; });
 });
-$("#btnAddScene").addEventListener("click", () => {
+function createScene(groupId){
   let n = project.scenes.length + 1;
   while(project.scenes.some(s => s.name === "シーン" + n)) n++;
+  let newScene;
   mutate(() => {
-    const s = { id: uid(), name: "シーン" + n, commands: [] };
-    project.scenes.push(s);
-    currentSceneId = s.id;
+    newScene = { id: uid(), name: "シーン" + n, commands: [], groupId: groupId || null };
+    project.scenes.push(newScene);
+    currentSceneId = newScene.id;
     selIndex = null;
   });
   // すぐ名前変更できるように
-  const items = document.querySelectorAll("#sceneList .scene-item");
-  const div = items[items.length - 1];
-  if(div) startSceneRename(div, project.scenes[project.scenes.length - 1]);
+  const div = document.querySelector(`#sceneList .scene-item[data-scene-id="${newScene.id}"]`);
+  if(div) startSceneRename(div, newScene);
+}
+$("#btnAddScene").addEventListener("click", () => createScene(null));
+$("#btnAddGroup").addEventListener("click", () => {
+  let n = project.sceneGroups.length + 1;
+  while(project.sceneGroups.some(g => g.name === "グループ" + n)) n++;
+  let newGroup;
+  mutate(() => { newGroup = { id: uid(), name: "グループ" + n }; project.sceneGroups.push(newGroup); });
+  const heads = [...document.querySelectorAll("#sceneList .scene-group-head:not(.ungrouped)")];
+  const div = heads[heads.length - 1];
+  if(div) startGroupRename(div, newGroup);
 });
 $("#btnAddChar").addEventListener("click", () => openCharModal(null));
 $("#btnPlay").addEventListener("click", openPlay);
@@ -2401,9 +2638,10 @@ function makeListDraggable(container, itemSelector, scroller, onDrop){
       indicator.remove();
       document.body.style.cursor = "";
       dndSuppressClick = Date.now() + 150;
+      const rawTo = toIdx;                   // 補正前（ドロップ直前の並びでの挿入位置）
       let to = toIdx;
       if(to > fromIdx) to--;                 // 自分を除いた後の挿入位置に補正
-      if(to !== fromIdx) onDrop(fromIdx, to);
+      if(to !== fromIdx) onDrop(fromIdx, to, rawTo);
     };
     document.addEventListener("mousemove", move);
     document.addEventListener("mouseup", up);
@@ -2426,10 +2664,30 @@ makeListDraggable($("#cmdList"), ".cmd-row", $("#cmdListWrap"), (from, to) => {
     }
   });
 });
-makeListDraggable($("#sceneList"), ".scene-item", $("#sceneList"), (from, to) => {
+makeListDraggable($("#sceneList"), ".scene-item", $("#sceneList"), (from, to, rawTo) => {
+  const moved = sceneRowMap[from];
+  if(!moved) return;
+  // ドロップ位置の前後にある行が属するグループへ移動先を合わせる
+  const afterEntry = sceneRowMap[rawTo];
+  const beforeEntry = rawTo > 0 ? sceneRowMap[rawTo - 1] : null;
+  const targetGroupId = afterEntry ? afterEntry.groupId : (beforeEntry ? beforeEntry.groupId : null);
   mutate(() => {
-    const [s] = project.scenes.splice(from, 1);
-    project.scenes.splice(to, 0, s);
+    const idx = project.scenes.findIndex(x => x.id === moved.sceneId);
+    if(idx === -1) return;
+    const [s] = project.scenes.splice(idx, 1);
+    s.groupId = targetGroupId;
+    let insertAt;
+    if(afterEntry) insertAt = project.scenes.findIndex(x => x.id === afterEntry.sceneId);
+    else if(beforeEntry) insertAt = project.scenes.findIndex(x => x.id === beforeEntry.sceneId) + 1;
+    else insertAt = project.scenes.length;
+    if(insertAt === -1) insertAt = project.scenes.length;
+    project.scenes.splice(insertAt, 0, s);
+  });
+});
+makeListDraggable($("#sceneList"), ".scene-group-head:not(.ungrouped)", $("#sceneList"), (from, to) => {
+  mutate(() => {
+    const [g] = project.sceneGroups.splice(from, 1);
+    project.sceneGroups.splice(to, 0, g);
   });
 });
 makeListDraggable($("#charList"), ".char-item", $("#charList"), (from, to) => {
@@ -2704,7 +2962,7 @@ $("#transDelLang").addEventListener("click", () => {
 
 /* ---------- 起動 ---------- */
 project = loadLocal() || defaultProject();
-if(!project.scenes.length) project.scenes.push({ id: uid(), name: "シーン1", commands: [] });
+if(!project.scenes.length) project.scenes.push({ id: uid(), name: "シーン1", commands: [], groupId: null });
 currentSceneId = project.scenes[0].id;
 renderAll();
 mainInput.focus();
