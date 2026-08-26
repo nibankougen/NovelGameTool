@@ -209,6 +209,7 @@ body:not(.dnd-dragging) .scene-item:hover .drag-handle,body:not(.dnd-dragging) .
 .dragging{opacity:.4}
 .drop-indicator{height:2px;background:var(--accent);border-radius:1px;margin:1px 6px;pointer-events:none}
 .speaker-name{font-weight:700;margin-right:2px}
+.text-mention{font-weight:600}
 .face-tag{color:var(--text-dim);font-size:12px;font-weight:400;margin-right:2px}
 .serif-text{}
 .narration{color:var(--narration);font-style:normal}
@@ -223,6 +224,12 @@ body:not(.dnd-dragging) .scene-item:hover .drag-handle,body:not(.dnd-dragging) .
   display:block;margin:2px 0 2px 14px;color:var(--text);
 }
 .choice-opt .opt-arrow{color:var(--text-dim);font-size:12px;margin-left:8px}
+.opt-goto{
+  display:inline-flex;align-items:center;padding:0 3px;margin-left:4px;border:none;
+  background:transparent;color:var(--text-dim);border-radius:4px;vertical-align:middle;
+}
+.opt-goto:hover{color:var(--accent);background:var(--bg3)}
+.opt-goto svg.lucide{width:12px;height:12px}
 .broken-ref{color:var(--danger)}
 .broken-ref svg.lucide{margin-right:3px}
 /* 整合性アラート: 削除済みシーン/キャラを参照している行とシーン */
@@ -230,6 +237,11 @@ body:not(.dnd-dragging) .scene-item:hover .drag-handle,body:not(.dnd-dragging) .
 .cmd-row.alert:hover{background:#ff5f6b1f}
 .cmd-row.alert .row-num{color:var(--danger)}
 .scene-item .s-alert{display:inline-flex;color:var(--danger);flex-shrink:0;font-size:13px}
+/* 人称チェック（簡易）: 登録と異なる一人称・呼び方が出てきた行に小さく通知マーク */
+.honor-badge{
+  display:inline-flex;align-items:center;flex-shrink:0;color:#e0b84c;
+  font-size:12px;padding-top:4px;cursor:help;
+}
 
 /* キャラ編集: 表情タグ（追加・リネーム・削除） */
 #charExprTags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;font-size:12px;line-height:1.6}
@@ -253,8 +265,9 @@ body:not(.dnd-dragging) .scene-item:hover .drag-handle,body:not(.dnd-dragging) .
 }
 .expr-tag .et-img.et-def{opacity:.35}   /* デフォルトイラスト使用中（表情画像なし）は薄く表示 */
 .edit-thumb{
-  width:30px;height:30px;border-radius:6px;object-fit:cover;flex-shrink:0;
-  background:var(--bg3);border:1px solid var(--border);
+  /* .row-face（表示時の顔画像）とサイズ・余白を揃え、編集開始時の位置ずれを抑える */
+  width:26px;height:26px;border-radius:5px;object-fit:cover;flex-shrink:0;
+  vertical-align:middle;margin-right:1px;background:var(--bg3);
 }
 #charExprTags .expr-none{color:var(--text-dim)}
 .expr-tmpl-row{display:flex;gap:6px;margin-top:6px;align-items:center;min-width:0}
@@ -265,15 +278,24 @@ body:not(.dnd-dragging) .scene-item:hover .drag-handle,body:not(.dnd-dragging) .
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 
-/* 行編集（セリフ）: 話者・表情チップ */
+/* 行編集（セリフ）: 話者・表情チップ／本文入力を、表示時のレイアウトになるべく近づける */
 .edit-wrap{display:flex;gap:6px;align-items:center;width:100%;position:relative}
-.edit-wrap .edit-text{flex:1;min-width:0;font-size:14px;padding:4px 8px}
-.edit-chip{
-  display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:6px;
-  background:var(--bg3);border:1px solid var(--border);cursor:pointer;flex-shrink:0;
-  font-weight:600;font-size:13px;line-height:1.5;user-select:none;
+.edit-text-group{display:flex;align-items:center;flex:1;min-width:0;order:1}
+.edit-quote{color:inherit;flex-shrink:0;user-select:none}
+/* border ではなく outline でフォーカス表示（レイアウト幅に影響させない） */
+.edit-wrap .edit-text{
+  flex:1;min-width:0;font-size:14px;padding:1px 2px;
+  background:transparent;border:none;border-radius:4px;
 }
-.edit-chip:hover,.edit-chip:focus{border-color:var(--accent);background:var(--bg3);outline:none}
+.edit-wrap .edit-text:focus{background:var(--bg2);outline:1px solid var(--accent);outline-offset:-1px}
+.edit-chip{
+  display:inline-flex;align-items:center;gap:4px;padding:1px 3px;border-radius:4px;
+  background:transparent;border:none;cursor:pointer;flex-shrink:0;
+  line-height:1.5;user-select:none;
+}
+.edit-chip:hover,.edit-chip:focus{background:var(--bg3);outline:1px solid var(--accent);outline-offset:-1px}
+.edit-chip-spk{font-weight:700;font-size:14px}          /* .speaker-name と揃える */
+.edit-chip-face{font-weight:400;font-size:12px;color:var(--text-dim)}  /* .face-tag と揃える */
 .edit-menu{
   position:absolute;z-index:60;background:var(--bg3);border:1px solid var(--border);
   border-radius:8px;box-shadow:0 6px 24px #000a;min-width:150px;
@@ -281,6 +303,9 @@ body:not(.dnd-dragging) .scene-item:hover .drag-handle,body:not(.dnd-dragging) .
 }
 .edit-menu .em-item{padding:6px 14px;cursor:pointer;white-space:nowrap;font-size:13px}
 .edit-menu .em-item:hover{background:var(--accent-dim)}
+/* セリフ以外の行編集: 表示時の文字位置になるべく近づける */
+.plain-edit-text{padding:1px 2px;background:transparent;border:none;border-radius:4px}
+.plain-edit-text:focus{background:var(--bg2);outline:1px solid var(--accent);outline-offset:-1px}
 #emptyHint{
   color:var(--text-dim);text-align:center;padding:60px 20px;line-height:2;
 }
@@ -374,6 +399,34 @@ body:not(.dnd-dragging) .scene-item:hover .drag-handle,body:not(.dnd-dragging) .
 .tr-row input.tr-input:placeholder-shown{border-style:dashed;border-color:#6b5d33}
 .tr-empty{padding:30px 10px;color:var(--text-dim);font-size:13px;text-align:center;line-height:2}
 
+/* 人称チェック設定 */
+.honor-modal{
+  width:92vw;max-width:900px;height:86vh;max-height:86vh;
+  display:flex;flex-direction:column;padding:16px 20px;
+}
+.honor-desc{color:var(--text-dim);font-size:12px;line-height:1.6;margin-bottom:12px;flex-shrink:0}
+.honor-vocab-row{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:14px;flex-shrink:0}
+.honor-vocab-row label{flex:1 1 220px;display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--text-dim)}
+.honor-vocab-row input{font-size:13px}
+#honorRulesWrap{flex:1;overflow-y:auto;min-height:0;font-size:13px}
+.honor-head-row,.honor-row{
+  display:grid;grid-template-columns:20px 1fr 1fr 2fr 74px 30px;
+  gap:6px;align-items:center;padding:4px 6px;
+}
+.honor-head-row{
+  position:sticky;top:0;background:var(--bg2);color:var(--text-dim);
+  font-weight:400;font-size:11px;border-bottom:1px solid var(--border);z-index:1;
+}
+.honor-row{border-bottom:1px solid #ffffff08}
+body:not(.dnd-dragging) .honor-row:hover{background:var(--bg2)}
+.honor-row .drag-handle{visibility:hidden}
+body:not(.dnd-dragging) .honor-row:hover .drag-handle{visibility:visible}
+.honor-row select,.honor-row input[type=text]{width:100%;font-size:12px;padding:4px 7px}
+.honor-row input[type=checkbox]{accent-color:var(--accent);justify-self:center}
+.honor-row input.invalid{border-color:var(--danger)}
+.honor-row .hr-del{justify-self:center;padding:2px 6px}
+#honorAddRule{margin-top:10px;flex-shrink:0}
+
 /* あらすじビュー */
 .outline-modal{
   width:92vw;max-width:900px;height:86vh;max-height:86vh;
@@ -401,9 +454,14 @@ body:not(.dnd-dragging) .scene-item:hover .drag-handle,body:not(.dnd-dragging) .
 .chk-row{display:flex;align-items:baseline;gap:8px;margin-bottom:10px;cursor:pointer}
 .chk-row input{accent-color:var(--accent);flex-shrink:0;position:relative;top:2px}
 .chk-row .chk-desc{color:var(--text-dim);font-size:12px;flex:1}
-.opt-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+.opt-item{margin-bottom:8px}
+.opt-row{display:flex;gap:8px;align-items:center}
 .opt-row input{flex:1}
 .opt-row select{width:170px;flex-shrink:0}
+.opt-branch-row{display:flex;gap:6px;align-items:center;margin:4px 0 0 20px}
+.opt-branch-row.hidden{display:none}
+.opt-branch-arrow{color:var(--text-dim);font-size:12px;flex-shrink:0}
+.opt-branch-row input{flex:1;font-size:13px;padding:4px 8px}
 #charThumbPreview{
   width:64px;height:64px;border-radius:8px;object-fit:cover;
   border:1px solid var(--border);background:var(--bg3);
@@ -487,6 +545,7 @@ body:not(.dnd-dragging) .scene-item:hover .drag-handle,body:not(.dnd-dragging) .
     <button id="btnPlay" title="テストプレイ (Ctrl+P)"><span data-icon="play"></span>テストプレイ</button>
     <button id="btnOutline" title="あらすじビュー — 全体の流れ・大枠メモ・シーンごとのあらすじ"><span data-icon="book-open"></span></button>
     <button id="btnTrans" title="翻訳画面 — セリフ・選択肢・キャラ名を他言語に翻訳"><span data-icon="languages"></span></button>
+    <button id="btnHonor" title="人称チェック設定 — キャラごとの一人称・呼び方を登録して表記ゆれを検出"><span data-icon="circle-alert"></span></button>
     <button id="btnSearch" title="プロジェクト全体を全文検索 (Ctrl+F)"><span data-icon="search"></span></button>
     <button id="btnHelp" title="ヘルプ (F1)"><span data-icon="circle-help"></span></button>
     <input type="file" id="fileInput" accept=".json" style="display:none">
@@ -527,6 +586,7 @@ body:not(.dnd-dragging) .scene-item:hover .drag-handle,body:not(.dnd-dragging) .
         <div id="inputHint">
           <span><b>@名前␣</b>話者切替</span>
           <span><b>@␣</b>地の文</span>
+          <span><b>Alt+1〜9</b>本文へ名前挿入</span>
           <span><b>/</b>コマンド</span>
           <span><b>↑↓</b>行選択</span>
           <span><b>Enter</b>選択行を編集</span>
@@ -647,6 +707,7 @@ body:not(.dnd-dragging) .scene-item:hover .drag-handle,body:not(.dnd-dragging) .
       <tr><td><kbd>Delete</kbd>（入力欄が空のとき）</td><td>選択行を削除</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>1</kbd>〜<kbd>9</kbd></td><td>話者をキャラクター1〜9番に切替</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>0</kbd></td><td>話者を地の文に切替</td></tr>
+      <tr><td><kbd>Alt</kbd>+<kbd>1</kbd>〜<kbd>9</kbd></td><td>セリフ本文のカーソル位置へキャラクター1〜9番の名前を挿入。名前を変更すると本文中の表記も自動で追従し、台本TXT・ゲーム出力ではその時点の名前が埋め込まれます</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd></td><td>元に戻す／やり直し</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>JSONファイルとして保存</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>P</kbd></td><td>テストプレイ</td></tr>
@@ -663,6 +724,7 @@ body:not(.dnd-dragging) .scene-item:hover .drag-handle,body:not(.dnd-dragging) .
       <tr><td>あらすじメモ・あらすじビュー</td><td>シーン一覧の各シーン行にある <span data-icon="chevron-right"></span> をクリックすると、そのシーンの短いあらすじ・メモをその場で開いて編集できます。ツールバーの <span data-icon="book-open"></span>（あらすじビュー）を開くと、上部に物語全体の設定・伏線などを書ける<b>大枠メモ</b>、その下にグループ（章）順に並んだ全シーンのあらすじが一覧表示され、話の流れを俯瞰しながら確認・編集できます。シーン名をクリックするとそのシーンへ移動します。あらすじ・大枠メモはいずれもゲーム出力には含まれません</td></tr>
       <tr><td>キャラクター設定</td><td>キャラ一覧の鉛筆アイコン <span data-icon="pencil"></span> から名前・色・デフォルトイラスト・表情候補・設定メモを編集できます。表情は入力して Enter でラベルとして追加され、各ラベルに使用回数（未使用かどうか）が表示されます。ラベルの鉛筆アイコンで名前変更（使用中の全セリフに自動反映）、×で削除。使用中の表情を削除して保存すると、該当セリフ行とシーン一覧に <span data-icon="triangle-alert"></span> アラートが表示され、赤いラベルをクリックすると候補に戻せます。「この表情をテンプレに保存」を押すと現在の表情一覧がテンプレートになり、以後の新規キャラクター（@名前 での自動登録も含む）に自動適用されます（「テンプレを適用」で既存キャラにも追加可能）。「新規プロジェクトにも引き継ぐ」にチェックすると、この表情テンプレートはプロジェクトを跨いで保存され、「新規」ボタンで作成した次のプロジェクトにも自動で適用されます。表情ラベルの画像アイコンから<b>表情画像</b>を任意で設定でき、セリフ一覧の行・セリフ編集画面・テストプレイ（セリフ左の正方形の顔画像）に表示されます。表情画像がない表情では<b>デフォルトイラスト</b>（「デフォルトイラスト」欄の画像）が使われ、ラベル内に薄いプレビューで示されます（画像類はゲーム出力には含まれません）。<span data-icon="chevron-right"></span> をクリックするとメモをその場で開いて確認・編集できます。キャラは内部IDで管理されるため、名前を変えても既存のセリフはそのまま追従します</td></tr>
       <tr><td>翻訳</td><td>ツールバーの <span data-icon="languages"></span> で翻訳専用画面を開きます。「＋言語」で翻訳先（en など）を追加し、セリフ・選択肢・キャラ名・タイトルの訳を入力できます。<kbd>Enter</kbd> で次の欄へ、「未翻訳のみ」で絞り込み、進捗表示つき。翻訳はゲーム出力に <code>tr</code> として含まれます</td></tr>
+      <tr><td>人称チェック（簡易）</td><td>ツールバーの <span data-icon="circle-alert"></span> で設定画面を開きます。キャラごとに「一人称（自分の呼び方）」「二人称（名前を伴わない相手の呼び方。キミ・あなた等）」「他キャラの呼び方（名前＋敬称）」を正規表現で登録すると、共通の候補語リスト（一人称・二人称・敬称、編集可）と照らし合わせて、登録と異なる言い回しがセリフに出てきた行へ小さく <span data-icon="circle-alert" style="color:#e0b84c;display:inline-flex;vertical-align:-2px"></span> が付きます（ホバーで詳細表示）。ルールの行はドラッグハンドルで並べ替え可能。あくまで簡易的な表記ゆれチェックです</td></tr>
       <tr><td>ゲーム出力</td><td>「ゲーム出力」ボタンで、ゲーム実装用JSONを書き出せます。設定メモ・デフォルトイラスト・表情画像は常に除外され、表情・シーン名・キャラ色・コメント行を含めるかは出力時の設定画面で選べます（設定はプロジェクトに保存）</td></tr>
     </table>
     <div class="m-foot"><button data-close class="primary">閉じる</button></div>
@@ -697,6 +759,35 @@ body:not(.dnd-dragging) .scene-item:hover .drag-handle,body:not(.dnd-dragging) .
       <button data-close style="margin-left:auto">閉じる (Esc)</button>
     </div>
     <div id="transList"></div>
+  </div>
+</div>
+
+<!-- 人称チェック設定 -->
+<div class="modal-back" id="honorModal">
+  <div class="modal honor-modal">
+    <div class="trans-head">
+      <h3 style="margin-bottom:0"><span data-icon="circle-alert"></span> 人称チェック設定</h3>
+      <button data-close style="margin-left:auto">閉じる (Esc)</button>
+    </div>
+    <p class="honor-desc">キャラクターごとに「自分をどう呼ぶか（一人称）」「相手をどう呼ぶか（二人称・名前を伴わない呼びかけ）」「他のキャラをどう呼ぶか（名前＋敬称）」を登録しておくと、登録と異なる言い回しが本文に出てきた行に小さく <span data-icon="circle-alert" style="color:#e0b84c;display:inline-flex;vertical-align:-2px"></span> が付きます。簡易チェックのため参考程度にご利用ください。</p>
+    <div class="honor-vocab-row">
+      <label>一人称の候補語（読点・カンマ区切り）
+        <input type="text" id="honorVocabSelf" placeholder="私, わたし, わたくし, 僕, ぼく, 俺, おれ, 自分, うち, あたし">
+      </label>
+      <label>二人称の候補語（読点・カンマ区切り）
+        <input type="text" id="honorVocabSecond" placeholder="キミ, 君, あなた, あんた, お前, おまえ, 貴様, てめえ">
+      </label>
+      <label>敬称・呼び方の候補語（読点・カンマ区切り）
+        <input type="text" id="honorVocabSuffix" placeholder="さん, くん, 君, ちゃん, 様, 殿, 氏, 先輩, 先生">
+      </label>
+    </div>
+    <div id="honorRulesWrap">
+      <div class="honor-head-row">
+        <span></span><span>話者</span><span>相手</span><span>許可パターン（正規表現）</span><span>呼び捨てOK</span><span></span>
+      </div>
+      <div id="honorRulesBody"></div>
+    </div>
+    <button id="honorAddRule" type="button"><span data-icon="plus"></span>行を追加</button>
   </div>
 </div>
 
@@ -736,6 +827,12 @@ const LS_KEY = "novelGameTool.project.v1";
 const EXPR_TMPL_LS_KEY = "novelGameTool.exprTemplateCarryOver.v1";   // プロジェクトを跨いだ表情テンプレート引き継ぎ設定
 const PALETTE = ["#ff7a7a","#ffb35c","#ffe066","#8ce99a","#66d9e8","#74a8ff","#b197fc","#faa2c1","#c0a98a","#9aa5b1"];
 const EXPORT_DEFAULTS = { face: true, sceneName: true, color: true, comment: false, pretty: true };
+const HONOR_VOCAB_DEFAULTS = {
+  self: ["私","わたし","わたくし","僕","ぼく","ボク","俺","おれ","オレ","自分","うち","あたし","あたい"],
+  second: ["キミ","君","あなた","あんた","お前","おまえ","貴様","きさま","てめえ","そなた"],
+  suffix: ["さん","くん","君","ちゃん","様","殿","氏","先輩","先生"],
+};
+const HONOR_SECOND = "__second__";   // 人称チェックの「相手（二人称、名前を伴わない）」を表す targetId の特別値
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -765,6 +862,7 @@ const ICONS = {
   "search":       `<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>`,
   "grip-vertical": `<circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/>`,
   "languages":    `<path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>`,
+  "circle-alert": `<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>`,
 };
 const icon = name =>
   `<svg class="lucide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`;
@@ -777,6 +875,7 @@ let project = null;
 let currentSceneId = null;
 let selIndex = null;        // 選択中の行 index（null=末尾に挿入）
 let editIndex = null;       // インライン編集中の行 index
+let pendingEditClick = null; // 編集開始直前のクリック位置情報（カーソル位置/チップ自動展開に使用）
 let speakerId = null;       // 現在の話者（null=地の文）
 let speakerFace = null;     // 現在の表情（話者に付随。話者切替でリセット）
 let undoStack = [], redoStack = [];
@@ -792,6 +891,8 @@ function defaultProject(){
     exprTemplate: [],   // 新規キャラクターに自動適用する表情テンプレート
     languages: [],      // 翻訳先の言語コード（例: ["en","zh-CN"]）。ベース言語は日本語
     overview: "",       // 大枠メモ（設定・プロット全体・伏線など）。ゲーム用出力には含まれません
+    honorificRules: [],       // 人称チェックのルール: { id, speakerId, targetId(null=一人称), pattern, allowBare }
+    honorificVocab: { ...HONOR_VOCAB_DEFAULTS },   // 一人称・敬称の候補語（チェック対象の語彙、編集可）
   };
 }
 
@@ -823,6 +924,73 @@ const cmds     = () => curScene().commands;
 const charById = id => project.characters.find(c => c.id === id) || null;
 const sceneById = id => project.scenes.find(s => s.id === id) || null;
 
+/* ---------- セリフ本文中のキャラ名参照（Alt+1〜9で挿入） ----------
+   保存形式では id という不可視トークンで参照を持ち、名前を変更しても自動で追従する。
+   編集欄では読みやすいよう《名前》の形で表示・入力し、確定時にトークンへ変換する。
+   台本TXT・ゲーム出力など「書き出し」時だけは、その時点の名前を平文として埋め込む。 */
+const MENTION_RE = /([^]*)/g;
+const mentionToken = id => `${id}`;
+function textToDisplay(text){
+  return String(text ?? "").replace(MENTION_RE, (_, id) => `《${(charById(id) || {}).name || "？"}》`);
+}
+function textToStorage(text){
+  return String(text ?? "").replace(/《([^《》]*)》/g, (whole, name) => {
+    const c = project.characters.find(c => c.name === name);
+    return c ? mentionToken(c.id) : whole;
+  });
+}
+function textToResolved(text){
+  return String(text ?? "").replace(MENTION_RE, (_, id) => (charById(id) || {}).name || "？");
+}
+function textToHtml(text){
+  return esc(text).replace(MENTION_RE, (_, id) => {
+    const c = charById(id);
+    return c
+      ? `<span class="text-mention" style="color:${esc(c.color)}">${esc(c.name)}</span>`
+      : `<span class="broken-ref">${icon("triangle-alert")}（削除済キャラ）</span>`;
+  });
+}
+// 解決済み表示（名前そのまま）上の文字位置を、編集欄の表示形式（《名前》）上の文字位置に変換
+// クリック位置から編集開始時のカーソル位置を推定する際に使用
+function resolvedOffsetToDisplayOffset(text, target){
+  let dPos = 0, rPos = 0, sPos = 0, m;
+  MENTION_RE.lastIndex = 0;
+  while((m = MENTION_RE.exec(text))){
+    const plainLen = m.index - sPos;
+    if(target <= rPos + plainLen) return dPos + (target - rPos);
+    rPos += plainLen; dPos += plainLen; sPos = m.index;
+    const name = (charById(m[1]) || {}).name || "？";
+    const dispLen = name.length + 2;   // 《名前》
+    if(target <= rPos + name.length){
+      const within = target - rPos;
+      return within * 2 >= name.length ? dPos + dispLen : dPos;   // トークン内は前後どちらか近い方の境界へ
+    }
+    rPos += name.length; dPos += dispLen; sPos = m.index + m[0].length;
+  }
+  const remain = text.length - sPos;   // 最後のトークン以降はそのまま平文
+  return dPos + Math.max(0, Math.min(target - rPos, remain));
+}
+// input要素のカーソル位置（選択範囲があれば置換）へキャラ名の参照表示を挿入する
+function insertMentionAtCursor(inputEl, charIndex){
+  const c = project.characters[charIndex];
+  if(!c) return;
+  const token = `《${c.name}》`;
+  const start = inputEl.selectionStart ?? inputEl.value.length;
+  const end = inputEl.selectionEnd ?? inputEl.value.length;
+  const v = inputEl.value;
+  inputEl.value = v.slice(0, start) + token + v.slice(end);
+  const pos = start + token.length;
+  inputEl.setSelectionRange(pos, pos);
+  inputEl.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function uniqueSceneName(base){
+  base = (base || "シーン").trim() || "シーン";
+  if(!project.scenes.some(s => s.name === base)) return base;
+  let n = 2;
+  while(project.scenes.some(s => s.name === `${base}${n}`)) n++;
+  return `${base}${n}`;
+}
 function findOrCreateScene(name){
   name = name.trim();
   let s = project.scenes.find(s => s.name === name);
@@ -867,6 +1035,16 @@ function normalizeProject(p){
   if(typeof p.overview !== "string") p.overview = "";
   p.exportSettings = Object.assign({}, EXPORT_DEFAULTS,
     (p.exportSettings && typeof p.exportSettings === "object") ? p.exportSettings : {});
+  if(!Array.isArray(p.honorificRules)) p.honorificRules = [];
+  p.honorificRules = p.honorificRules.filter(r => r && typeof r === "object" && r.speakerId)
+    .map(r => ({ id: r.id || uid(), speakerId: r.speakerId, targetId: r.targetId || null,
+                 pattern: typeof r.pattern === "string" ? r.pattern : "", allowBare: !!r.allowBare }));
+  const hv = (p.honorificVocab && typeof p.honorificVocab === "object") ? p.honorificVocab : {};
+  p.honorificVocab = {
+    self: Array.isArray(hv.self) ? hv.self.filter(w => typeof w === "string" && w) : [...HONOR_VOCAB_DEFAULTS.self],
+    second: Array.isArray(hv.second) ? hv.second.filter(w => typeof w === "string" && w) : [...HONOR_VOCAB_DEFAULTS.second],
+    suffix: Array.isArray(hv.suffix) ? hv.suffix.filter(w => typeof w === "string" && w) : [...HONOR_VOCAB_DEFAULTS.suffix],
+  };
   return p;
 }
 
@@ -1032,11 +1210,11 @@ function parseInput(raw, { sticky = true } = {}){
         if(sticky) setSpeaker(c.id, face);   // 表情もスティッキーに（なしなら解除）
       }
       if(body === undefined) return { handled: true };  // 切替のみ
-      return { cmd: { type: "serif", chara, face: chara ? face : null, text: body } };
+      return { cmd: { type: "serif", chara, face: chara ? face : null, text: textToStorage(body) } };
     }
   }
 
-  return { cmd: { type: "serif", chara: speakerId, face: speakerId ? speakerFace : null, text } };
+  return { cmd: { type: "serif", chara: speakerId, face: speakerId ? speakerFace : null, text: textToStorage(text) } };
 }
 
 /* ---------- 話者 ---------- */
@@ -1313,6 +1491,67 @@ function cmdBroken(c){
 }
 const sceneHasAlert = s => s.commands.some(cmdBroken);
 
+/* ---------- 人称チェック（簡易） ----------
+   キャラごとに登録した一人称・他キャラの呼び方（正規表現）と、
+   プロジェクト共通の候補語リストを突き合わせ、登録と異なる言い回しを検出する。
+   あくまで簡易チェック（誤検出・見逃しはあり得る）。narration（地の文）は話者がいないため対象外。 */
+function honorificIssues(c){
+  if(c.type !== "serif" || !c.chara) return [];
+  const rules = (project.honorificRules || []).filter(r => r.speakerId === c.chara);
+  if(!rules.length) return [];
+  const text = textToResolved(c.text);
+  const vocab = project.honorificVocab || {};
+  const issues = [];
+
+  // 一人称: 候補語のうち、登録パターンに一致しないものが本文に出てきたら通知
+  const selfRules = rules.filter(r => !r.targetId && r.pattern);
+  if(selfRules.length){
+    let re = null;
+    try{ re = new RegExp(selfRules.map(r => `(?:${r.pattern})`).join("|")); }catch(e){}
+    if(re) for(const w of vocab.self || [])
+      if(w && text.includes(w) && !re.test(w)) issues.push(`一人称「${w}」`);
+  }
+
+  // 二人称（名前を伴わない呼びかけ: キミ・あなた等）: 一人称と同様に候補語と照合
+  const secondRules = rules.filter(r => r.targetId === HONOR_SECOND && r.pattern);
+  if(secondRules.length){
+    let re = null;
+    try{ re = new RegExp(secondRules.map(r => `(?:${r.pattern})`).join("|")); }catch(e){}
+    if(re) for(const w of vocab.second || [])
+      if(w && text.includes(w) && !re.test(w)) issues.push(`二人称「${w}」`);
+  }
+
+  // 呼び方（対他キャラ）: 対象名＋敬称候補が出てきたとき、登録パターン（＋呼び捨て許可）に一致しなければ通知
+  const byTarget = new Map();
+  for(const r of rules) if(r.targetId && r.targetId !== HONOR_SECOND){
+    if(!byTarget.has(r.targetId)) byTarget.set(r.targetId, []);
+    byTarget.get(r.targetId).push(r);
+  }
+  for(const [targetId, rs] of byTarget){
+    const target = charById(targetId);
+    if(!target || !target.name) continue;
+    const pat = rs.map(r => r.pattern).filter(Boolean).join("|");
+    let re = null;
+    if(pat){ try{ re = new RegExp("^(?:" + pat + ")"); }catch(e){} }
+    const allowBare = rs.some(r => r.allowBare);
+    const name = target.name;
+    let idx = 0;
+    while(true){
+      const p = text.indexOf(name, idx);
+      if(p === -1) break;
+      idx = p + name.length;
+      const rest = text.slice(idx);
+      const suffix = (vocab.suffix || []).find(s => s && rest.startsWith(s));
+      if(suffix){
+        if(!re || !re.test(rest)) issues.push(`「${name}${suffix}」`);
+      }else if(!allowBare){
+        issues.push(`「${name}」を呼び捨て`);
+      }
+    }
+  }
+  return [...new Set(issues)];
+}
+
 function cmdHtml(c){
   switch(c.type){
     case "serif": {
@@ -1329,9 +1568,9 @@ function cmdHtml(c){
         // 顔画像: 表情画像 > デフォルトイラスト（なければ非表示）
         const img = ch ? ((c.face && (ch.exprImages || {})[c.face]) || ch.thumb) : null;
         const imgH = img ? `<img class="row-face" src="${esc(img)}" alt="">` : "";
-        return `${imgH}<span class="speaker-name" style="color:${color}">${name}</span>${face}「${esc(c.text)}」`;
+        return `${imgH}<span class="speaker-name" style="color:${color}">${name}</span>${face}<span class="serif-text">「${textToHtml(c.text)}」</span>`;
       }
-      return `<span class="narration">${esc(c.text)}</span>`;
+      return `<span class="narration">${textToHtml(c.text)}</span>`;
     }
     case "bg":   return `<span class="sys-cmd"><span class="sys-tag">背景</span>${esc(c.value)}</span>`;
     case "bgm":  return `<span class="sys-cmd"><span class="sys-tag">BGM</span>${c.value ? esc(c.value) : "（停止）"}</span>`;
@@ -1339,14 +1578,19 @@ function cmdHtml(c){
     case "wait": return `<span class="sys-cmd"><span class="sys-tag">待機</span>${esc(c.value)}ms</span>`;
     case "jump": {
       const s = sceneById(c.target);
-      return `<span class="sys-cmd"><span class="sys-tag">ジャンプ</span>${s ? "→ " + esc(s.name) : `<span class="broken-ref">${icon("triangle-alert")}→（削除済シーン）</span>`}</span>`;
+      const dest = s
+        ? `→ ${esc(s.name)}<button type="button" class="opt-goto" data-act="goto-scene" data-scene-id="${s.id}" title="このシーンへ移動">${icon("corner-down-right")}</button>`
+        : `<span class="broken-ref">${icon("triangle-alert")}→（削除済シーン）</span>`;
+      return `<span class="sys-cmd"><span class="sys-tag">ジャンプ</span>${dest}</span>`;
     }
     case "choice": {
       let h = `<span class="choice-cmd"><span class="sys-tag">選択肢</span></span>`;
       for(const o of c.options){
         const s = o.target ? sceneById(o.target) : null;
         const dest = o.target
-          ? (s ? `<span class="opt-arrow">→ ${esc(s.name)}</span>` : `<span class="opt-arrow broken-ref">${icon("triangle-alert")}→（削除済シーン）</span>`)
+          ? (s
+              ? `<span class="opt-arrow">→ ${esc(s.name)}<button type="button" class="opt-goto" data-act="goto-scene" data-scene-id="${s.id}" title="このシーンへ移動">${icon("corner-down-right")}</button></span>`
+              : `<span class="opt-arrow broken-ref">${icon("triangle-alert")}→（削除済シーン）</span>`)
           : `<span class="opt-arrow">→ 続行</span>`;
         h += `<span class="choice-opt">◆ ${esc(o.text)}${dest}</span>`;
       }
@@ -1371,9 +1615,13 @@ function renderCmds(){
     const row = document.createElement("div");
     row.className = "cmd-row" + (cmdBroken(c) ? " alert" : "") + (i === selIndex ? " selected" : "");
     row.dataset.idx = i;
+    const hIssues = honorificIssues(c);
     row.innerHTML =
       `<span class="drag-handle" title="ドラッグで並べ替え">${icon("grip-vertical")}</span>` +
       `<span class="row-num">${i + 1}</span>` +
+      (hIssues.length
+        ? `<span class="honor-badge" title="${esc("人称の表記ゆれ: " + hIssues.join("、"))}">${icon("circle-alert")}</span>`
+        : "") +
       `<span class="row-body">${cmdHtml(c)}</span>` +
       `<span class="row-actions">` +
         `<button data-act="up" title="上へ移動 (Ctrl+↑)">${icon("chevron-up")}</button>` +
@@ -1389,17 +1637,23 @@ function renderCmds(){
       else if(act === "edit") startEdit(i);
       else if(act === "up") moveCmd(i, -1);
       else if(act === "down") moveCmd(i, 1);
+      else if(act === "goto-scene") gotoScene(e.target.dataset.sceneId);
       else {
-        selIndex = (selIndex === i) ? null : i;   // 再クリックで解除
-        renderCmds();
+        selIndex = i;   // 選択状態にして矢印キー等の操作対象にする
+        pendingEditClick = computeClickInfo(e, c);   // クリック位置→カーソル位置/チップ自動展開に使用
+        startEdit(i);   // 行の文字部分クリックで即編集開始
       }
-    });
-    row.addEventListener("dblclick", e => {
-      if(!e.target.dataset.act) startEdit(i);
     });
     box.appendChild(row);
   });
   if(editIndex !== null) mountEditRow();
+}
+
+function gotoScene(sceneId){
+  const s = sceneById(sceneId);
+  if(!s) return;
+  currentSceneId = s.id; selIndex = null; editIndex = null;
+  renderAll();
 }
 
 function scrollToInsertPoint(){
@@ -1437,6 +1691,54 @@ function cmdToInputText(c){
   }
 }
 
+/* 非編集時のクリック位置から、編集開始時のカーソル位置や操作対象（話者/表情チップ）を推定 */
+function computeClickInfo(e, c){
+  let node = null, offset = 0;
+  if(document.caretRangeFromPoint){
+    const r = document.caretRangeFromPoint(e.clientX, e.clientY);
+    if(r){ node = r.startContainer; offset = r.startOffset; }
+  }else if(document.caretPositionFromPoint){
+    const p = document.caretPositionFromPoint(e.clientX, e.clientY);
+    if(p){ node = p.offsetNode; offset = p.offset; }
+  }
+  if(!node || node.nodeType !== Node.TEXT_NODE) return null;
+  const parent = node.parentElement;
+  if(!parent) return null;
+  if(parent.closest(".speaker-name")) return { zone: "speaker" };
+  if(parent.closest(".face-tag")) return { zone: "face" };
+  if(c.type === "serif"){
+    // 本文中に名前参照（《名前》）があると1つのテキストノードに収まらないため、
+    // 「」または地の文全体を囲うコンテナ内での絶対位置（解決済み表示上の位置）から算出する
+    const container = parent.closest(".serif-text") || parent.closest(".narration");
+    let resolvedOff;
+    if(container){
+      const range = document.createRange();
+      range.selectNodeContents(container);
+      range.setEnd(node, offset);
+      resolvedOff = range.toString().length;
+      if(container.classList.contains("serif-text")) resolvedOff -= 1;   // 先頭の「 を除外
+    }else{
+      const raw = node.data;
+      resolvedOff = raw.charAt(0) === "「" ? offset - 1 : offset;
+    }
+    resolvedOff = Math.max(0, resolvedOff);
+    // 編集欄は《名前》表示のため、その文字位置に変換してから返す
+    const off = Math.max(0, Math.min(resolvedOffsetToDisplayOffset(c.text, resolvedOff), textToDisplay(c.text).length));
+    return { zone: "text", offset: off };
+  }
+  if(parent.classList.contains("sys-tag")) return null;   // ラベル部分（背景/BGM等の見出し語）は対象外
+  if(!(parent.classList.contains("sys-cmd") || parent.classList.contains("comment-cmd"))) return null;
+  if(cmdBroken(c)) return null;                            // 壊れた参照は表示文字列が値と一致しないため対象外
+  if(c.type === "bgm" && !c.value) return null;             // 「（停止）」表示は値と一致しない
+  const inputText = cmdToInputText(c) ?? "";
+  if(!inputText) return null;
+  let off = offset;
+  if(c.type === "wait") off = Math.min(off, String(c.value).length);   // 末尾の "ms" 分を除外
+  const distFromEnd = Math.max(0, node.data.length - off);
+  const pos = Math.max(0, Math.min(inputText.length, inputText.length - distFromEnd));
+  return { zone: "text", offset: pos };
+}
+
 function startEdit(i){
   const c = cmds()[i];
   if(c.type === "choice"){ openChoiceModal(i); return; }
@@ -1449,23 +1751,25 @@ function mountEditRow(){
   const row = $(`.cmd-row[data-idx="${i}"]`);
   if(!row) { editIndex = null; return; }
   const c = cmds()[i];
+  const clickInfo = pendingEditClick; pendingEditClick = null;
   row.querySelector(".row-actions").style.display = "none";
   row.addEventListener("dblclick", e => e.stopPropagation());
-  if(c.type === "serif") mountSerifEditRow(row, i, c);
-  else mountPlainEditRow(row, i, c);
+  if(c.type === "serif") mountSerifEditRow(row, i, c, clickInfo);
+  else mountPlainEditRow(row, i, c, clickInfo);
 }
 
 /* セリフ以外の行: 従来どおりテキストで編集 */
-function mountPlainEditRow(row, i, c){
+function mountPlainEditRow(row, i, c, clickInfo){
   const body = row.querySelector(".row-body");
   const inp = document.createElement("input");
   inp.type = "text";
+  inp.className = "plain-edit-text";
   inp.value = cmdToInputText(c) ?? "";
-  inp.style.cssText = "width:100%;font-size:14px;padding:4px 8px";
+  inp.style.cssText = "width:100%;font-size:14px";
   body.innerHTML = ""; body.appendChild(inp);
   inp.focus();
-  // カーソルを末尾へ
-  inp.setSelectionRange(inp.value.length, inp.value.length);
+  const pos = (clickInfo && clickInfo.zone === "text") ? clickInfo.offset : inp.value.length;
+  inp.setSelectionRange(pos, pos);
   let done = false;
   const finish = commit => {
     if(done) return; done = true;
@@ -1495,7 +1799,7 @@ function mountPlainEditRow(row, i, c){
 }
 
 /* セリフ行: 話者・表情はチップ（クリックで切替、Backspace/Deleteで丸ごと削除） */
-function mountSerifEditRow(row, i, c){
+function mountSerifEditRow(row, i, c, clickInfo){
   const body = row.querySelector(".row-body");
   body.innerHTML = "";
   const wrap = document.createElement("div");
@@ -1510,14 +1814,22 @@ function mountSerifEditRow(row, i, c){
   editThumb.alt = "";
   editThumb.title = "話者のサムネイル（表情画像がない場合はデフォルトイラスト）";
   const spkChip = document.createElement("button");
-  spkChip.type = "button"; spkChip.className = "edit-chip";
+  spkChip.type = "button"; spkChip.className = "edit-chip edit-chip-spk";
   spkChip.title = "クリックで話者切替／Backspaceで削除（地の文に）";
   const faceChip = document.createElement("button");
-  faceChip.type = "button"; faceChip.className = "edit-chip";
+  faceChip.type = "button"; faceChip.className = "edit-chip edit-chip-face";
   faceChip.title = "クリックで表情切替／Backspaceで表情削除";
+  // 表示時の「」を編集中も残し、本文の見た目位置をなるべく変えない
+  const textGroup = document.createElement("span");
+  textGroup.className = "edit-text-group";
+  const qOpen = document.createElement("span");
+  qOpen.className = "edit-quote"; qOpen.textContent = "「";
+  const qClose = document.createElement("span");
+  qClose.className = "edit-quote"; qClose.textContent = "」";
   const inp = document.createElement("input");
-  inp.type = "text"; inp.className = "edit-text"; inp.value = c.text;
-  wrap.append(editThumb, spkChip, faceChip, inp);
+  inp.type = "text"; inp.className = "edit-text"; inp.value = textToDisplay(c.text);
+  textGroup.append(qOpen, inp, qClose);
+  wrap.append(editThumb, spkChip, faceChip, textGroup);
 
   function renderChips(){
     const ch = charById(spk);
@@ -1526,15 +1838,19 @@ function mountSerifEditRow(row, i, c){
     if(src){ editThumb.src = src; editThumb.style.display = ""; }
     else { editThumb.style.display = "none"; editThumb.removeAttribute("src"); }
     if(ch){
-      spkChip.innerHTML = `<span class="char-chip" style="background:${esc(ch.color)}"></span>${esc(ch.name)}`;
+      spkChip.textContent = ch.name;   // 表示時の .speaker-name（色文字のみ）に合わせ、色ドットは付けない
       spkChip.style.color = ch.color;
       faceChip.style.display = "";
       faceChip.innerHTML = face ? esc(`（${face}）`) : `${icon("plus")}表情`;
       faceChip.style.color = face ? "" : "var(--text-dim)";
+      // 表情未設定時は本文の後ろへ回し、本文の開始位置がズレないようにする
+      faceChip.style.order = face ? "" : "2";
+      qOpen.style.display = ""; qClose.style.display = "";
     }else{
       spkChip.textContent = "地の文";
       spkChip.style.color = "var(--narration)";
       faceChip.style.display = "none";
+      qOpen.style.display = "none"; qClose.style.display = "none";
     }
   }
   renderChips();
@@ -1629,7 +1945,7 @@ function mountSerifEditRow(row, i, c){
         else renderCmds();
       }else if(t){
         editIndex = null;
-        mutate(() => { cmds()[i] = carryTr(cmds()[i], { type: "serif", chara: spk, face: spk ? face : null, text: t }); });
+        mutate(() => { cmds()[i] = carryTr(cmds()[i], { type: "serif", chara: spk, face: spk ? face : null, text: textToStorage(t) }); });
       }else{
         editIndex = null;
         renderCmds();
@@ -1652,6 +1968,11 @@ function mountSerifEditRow(row, i, c){
       else if(spk){ spk = null; }
       renderChips();
     }
+    else if(e.altKey && /^[1-9]$/.test(e.key)){
+      // Alt+1〜9: カーソル位置へキャラクター1〜9番の名前を挿入
+      e.preventDefault();
+      insertMentionAtCursor(inp, +e.key - 1);
+    }
     e.stopPropagation();
   });
   // チップ上のキー操作でもグローバルショートカットを発火させない
@@ -1671,8 +1992,15 @@ function mountSerifEditRow(row, i, c){
     }, 0);
   });
 
-  inp.focus();
-  inp.setSelectionRange(inp.value.length, inp.value.length);
+  if(clickInfo && clickInfo.zone === "speaker"){
+    spkChip.focus(); spkChip.click();          // 話者名クリック → すぐ話者変更メニュー
+  }else if(clickInfo && clickInfo.zone === "face" && faceChip.style.display !== "none"){
+    faceChip.focus(); faceChip.click();        // 表情クリック → すぐ表情変更メニュー
+  }else{
+    inp.focus();
+    const pos = (clickInfo && clickInfo.zone === "text") ? clickInfo.offset : inp.value.length;
+    inp.setSelectionRange(pos, pos);
+  }
 }
 
 /* ---------- メイン入力欄 ---------- */
@@ -1690,6 +2018,13 @@ function submitInput(){
 
 mainInput.addEventListener("keydown", e => {
   if(e.isComposing || e.keyCode === 229) return;   // IME変換中は無視
+
+  // Alt+1〜9: カーソル位置へキャラクター1〜9番の名前を挿入
+  if(e.altKey && /^[1-9]$/.test(e.key)){
+    e.preventDefault();
+    insertMentionAtCursor(mainInput, +e.key - 1);
+    return;
+  }
 
   // スラッシュ候補ポップアップの操作
   if(slashPopupVisible()){
@@ -2198,6 +2533,7 @@ $("#charDeleteBtn").addEventListener("click", () => {
       for(const cmd of s.commands)
         if(cmd.type === "serif" && cmd.chara === editingCharId) cmd.chara = null;
     project.characters = project.characters.filter(x => x.id !== editingCharId);
+    project.honorificRules = project.honorificRules.filter(r => r.speakerId !== editingCharId && r.targetId !== editingCharId);
     if(speakerId === editingCharId) speakerId = null;
   });
   hideModal("#charModal");
@@ -2239,12 +2575,25 @@ function sceneSelectHtml(selected){
 }
 function addOptRow(text = "", target = null){
   const row = document.createElement("div");
-  row.className = "opt-row";
+  row.className = "opt-item";
   row.innerHTML =
-    `<input type="text" placeholder="選択肢の文" value="${esc(text)}">` +
-    `<select>${sceneSelectHtml(target)}</select>` +
-    `<button class="mini-btn" title="削除">${icon("trash-2")}</button>`;
-  row.querySelector("select").addEventListener("change", e => {
+    `<div class="opt-row">` +
+      `<input type="text" class="opt-text" placeholder="選択肢の文" value="${esc(text)}">` +
+      `<select>${sceneSelectHtml(target)}</select>` +
+      `<button class="mini-btn" title="削除">${icon("trash-2")}</button>` +
+    `</div>` +
+    `<div class="opt-branch-row">` +
+      `<span class="opt-branch-arrow">└</span>` +
+      `<input type="text" class="opt-branch" placeholder="この選択肢だけの短い返答（任意・自動で合流先へつながります）">` +
+    `</div>`;
+  const select = row.querySelector("select");
+  const branchRow = row.querySelector(".opt-branch-row");
+  const syncBranchVisibility = () => {
+    const show = select.value === "";                 // 明示的な行き先が無い（＝続行）選択肢だけ使える
+    branchRow.classList.toggle("hidden", !show);
+    if(!show) row.querySelector(".opt-branch").value = "";
+  };
+  select.addEventListener("change", e => {
     if(e.target.value === "__new__"){
       const name = prompt("新規シーン名:");
       if(name && name.trim()){
@@ -2260,7 +2609,9 @@ function addOptRow(text = "", target = null){
         e.target.value = "";
       }
     }
+    syncBranchVisibility();
   });
+  syncBranchVisibility();
   row.querySelector("button").addEventListener("click", () => row.remove());
   $("#choiceOptList").appendChild(row);
   return row;
@@ -2278,20 +2629,73 @@ function openChoiceModal(cmdIndex){
 }
 $("#btnAddOpt").addEventListener("click", () => addOptRow().querySelector("input").focus());
 $("#choiceSaveBtn").addEventListener("click", () => {
-  const options = [];
-  document.querySelectorAll("#choiceOptList .opt-row").forEach(row => {
-    const text = row.querySelector("input").value.trim();
-    const target = row.querySelector("select").value || null;
-    if(text) options.push({ text, target: target === "__new__" ? null : target });
+  const parsed = [];
+  document.querySelectorAll("#choiceOptList .opt-item").forEach(item => {
+    const text = item.querySelector(".opt-text").value.trim();
+    const selVal = item.querySelector("select").value;
+    const target = (selVal && selVal !== "__new__") ? selVal : null;
+    const branch = target ? "" : item.querySelector(".opt-branch").value.trim();
+    if(text) parsed.push({ text, target, branch });
   });
-  if(!options.length){ toast("選択肢を1つ以上入力してください", true); return; }
-  const cmd = { type: "choice", options };
-  if(editingChoiceIndex !== null){
-    const i = editingChoiceIndex;
-    mutate(() => { cmds()[i] = carryTr(cmds()[i], cmd); });
-  }else{
-    insertCmd(cmd);
-  }
+  if(!parsed.length){ toast("選択肢を1つ以上入力してください", true); return; }
+
+  // 「この選択肢だけの短い返答」が入力された分だけ、事前にパース＆検証しておく
+  let branchError = null;
+  const branchCmdList = parsed.map(o => {
+    if(o.target || !o.branch) return null;
+    const r = parseInput(o.branch, { sticky: false });
+    if(r.error){ branchError = `「${o.text}」の返答: ${r.error}`; return null; }
+    if(!r.cmd){ branchError = `「${o.text}」の返答の内容を入力してください`; return null; }
+    return r.cmd;
+  });
+  if(branchError){ toast(branchError, true); return; }
+  const needsSplit = branchCmdList.some(Boolean);
+
+  const cmd = { type: "choice", options: parsed.map(o => ({ text: o.text, target: o.target })) };
+
+  mutate(() => {
+    const scene = curScene();
+    let ci;                                              // 選択肢コマンドが配置されるインデックス
+    if(editingChoiceIndex !== null){
+      ci = editingChoiceIndex;
+      scene.commands[ci] = carryTr(scene.commands[ci], cmd);
+    }else{
+      ci = selIndex === null ? scene.commands.length : selIndex + 1;
+      scene.commands.splice(ci, 0, cmd);
+      if(selIndex !== null) selIndex = ci;
+    }
+
+    if(needsSplit){
+      const tail = scene.commands.splice(ci + 1);         // 選択肢より後ろ＝すべての分岐に共通する続き
+      let mergeId = null;
+      if(tail.length){
+        const mergeScene = {
+          id: uid(), name: uniqueSceneName(scene.name + "の続き"),
+          commands: tail, groupId: scene.groupId, synopsis: "",
+        };
+        project.scenes.push(mergeScene);
+        mergeId = mergeScene.id;
+      }
+      parsed.forEach((o, idx) => {
+        if(o.target) return;                              // 明示的な行き先はそのまま
+        const branchCmd = branchCmdList[idx];
+        if(branchCmd){
+          const branchCmds = [branchCmd];
+          if(mergeId) branchCmds.push({ type: "jump", target: mergeId });
+          const branchScene = {
+            id: uid(), name: uniqueSceneName(o.text || "分岐"),
+            commands: branchCmds, groupId: scene.groupId, synopsis: "",
+          };
+          project.scenes.push(branchScene);
+          cmd.options[idx].target = branchScene.id;
+        }else if(mergeId){
+          cmd.options[idx].target = mergeId;                // 短い返答なし＝そのまま合流先へ
+        }
+      });
+    }
+  });
+  scrollToInsertPoint();
+
   hideModal("#choiceModal");
   mainInput.focus();
 });
@@ -2346,7 +2750,7 @@ function playStep(){
           else img.style.display = "none";
         }
         const name = ch ? ch.name + (c.face ? `（${c.face}）` : "") : "";
-        playShowText(name, ch ? ch.color : "", c.text, false);
+        playShowText(name, ch ? ch.color : "", textToResolved(c.text), false);
         return;
       }
       case "bg":  $("#playBg").textContent = "背景: " + (c.value || "なし"); break;
@@ -2434,7 +2838,7 @@ function gameExportData(cfg){
       if(cfg.sceneName) o.name = s.name;
       o.commands = s.commands.filter(c => cfg.comment || c.type !== "comment").map(c => {
         if(c.type === "serif"){
-          const out = { type: "serif", chara: c.chara, text: c.text };
+          const out = { type: "serif", chara: c.chara, text: textToResolved(c.text) };
           if(cfg.face && c.face) out.face = c.face;
           const tr = pickTr(c.tr); if(tr) out.tr = tr;
           return out;
@@ -2489,8 +2893,8 @@ $("#btnExportTxt").addEventListener("click", () => {
         case "serif": {
           if(c.chara){
             const ch = charById(c.chara);
-            out += `${ch ? ch.name : "？"}${c.face ? `（${c.face}）` : ""}「${c.text}」\n`;
-          }else out += `　${c.text}\n`;
+            out += `${ch ? ch.name : "？"}${c.face ? `（${c.face}）` : ""}「${textToResolved(c.text)}」\n`;
+          }else out += `　${textToResolved(c.text)}\n`;
           break;
         }
         case "bg":   out += `【背景】${c.value}\n`; break;
@@ -2804,7 +3208,7 @@ function cmdSearchTexts(c){
   switch(c.type){
     case "serif": {
       const ch = c.chara ? charById(c.chara) : null;
-      return [c.text, ...Object.values(c.tr || {}), ch ? ch.name : "", c.face || ""];
+      return [textToResolved(c.text), ...Object.values(c.tr || {}), ch ? ch.name : "", c.face || ""];
     }
     case "bg": case "bgm": case "se": return [String(c.value ?? "")];
     case "wait":    return [String(c.value ?? "")];
@@ -2998,7 +3402,7 @@ function collectTransItems(){
         const ch = cmd.chara ? charById(cmd.chara) : null;
         const who = ch ? `<b style="color:${esc(ch.color)}">${esc(ch.name)}</b>` : `<span class="tr-label">地の文</span>`;
         const face = cmd.face ? `<span class="face-tag">（${esc(cmd.face)}）</span>` : "";
-        items.push({ src: `<span class="tr-label">${i + 1}</span>${who}${face} ${esc(cmd.text)}`, holder: cmd, key: "tr" });
+        items.push({ src: `<span class="tr-label">${i + 1}</span>${who}${face} ${textToHtml(cmd.text)}`, holder: cmd, key: "tr" });
       }else if(cmd.type === "choice"){
         for(const o of cmd.options)
           items.push({ src: `<span class="tr-label">${i + 1} 選択肢</span>◆ ${esc(o.text)}`, holder: o, key: "tr" });
@@ -3112,6 +3516,108 @@ $("#transDelLang").addEventListener("click", () => {
   renderTransLangSel();
   renderTransList(); updateTransProgress();
   toast(`言語「${lang}」を削除しました`);
+});
+
+/* ---------- 人称チェック設定 ---------- */
+function parseVocabInput(raw){
+  const seen = new Set(), out = [];
+  for(const w of String(raw ?? "").split(/[,，、\s]+/)){
+    const t = w.trim();
+    if(t && !seen.has(t)){ seen.add(t); out.push(t); }
+  }
+  return out;
+}
+function renderHonorVocab(){
+  $("#honorVocabSelf").value = (project.honorificVocab.self || []).join("、");
+  $("#honorVocabSecond").value = (project.honorificVocab.second || []).join("、");
+  $("#honorVocabSuffix").value = (project.honorificVocab.suffix || []).join("、");
+}
+function charOptionsHtml(selectedId){
+  return project.characters.map(c =>
+    `<option value="${esc(c.id)}"${c.id === selectedId ? " selected" : ""}>${esc(c.name)}</option>`).join("");
+}
+function renderHonorRules(){
+  const box = $("#honorRulesBody");
+  box.innerHTML = "";
+  if(!project.honorificRules.length){
+    box.innerHTML = `<div class="tr-empty">まだ登録がありません。「行を追加」から登録してください。</div>`;
+    return;
+  }
+  for(const r of project.honorificRules){
+    const row = document.createElement("div");
+    row.className = "honor-row";
+    row.dataset.id = r.id;
+    row.innerHTML =
+      `<span class="drag-handle" title="ドラッグで並べ替え">${icon("grip-vertical")}</span>` +
+      `<select class="hr-speaker">${charOptionsHtml(r.speakerId)}</select>` +
+      `<select class="hr-target">` +
+        `<option value=""${!r.targetId ? " selected" : ""}>（自分＝一人称）</option>` +
+        `<option value="${HONOR_SECOND}"${r.targetId === HONOR_SECOND ? " selected" : ""}>（相手＝二人称）</option>` +
+        `${charOptionsHtml(r.targetId)}` +
+      `</select>` +
+      `<input type="text" class="hr-pattern" value="${esc(r.pattern)}" placeholder="正規表現　例: くん|君">` +
+      `<input type="checkbox" class="hr-bare" ${r.allowBare ? "checked" : ""}>` +
+      `<button type="button" class="hr-del" data-act="del" title="この行を削除">${icon("trash-2")}</button>`;
+    box.appendChild(row);
+  }
+}
+function honorRuleById(id){ return project.honorificRules.find(r => r.id === id); }
+function openHonorModal(){
+  renderHonorVocab();
+  renderHonorRules();
+  showModal("#honorModal");
+}
+$("#btnHonor").addEventListener("click", openHonorModal);
+$("#honorVocabSelf").addEventListener("input", () => {
+  project.honorificVocab.self = parseVocabInput($("#honorVocabSelf").value);
+  scheduleSave(); renderCmds();
+});
+$("#honorVocabSecond").addEventListener("input", () => {
+  project.honorificVocab.second = parseVocabInput($("#honorVocabSecond").value);
+  scheduleSave(); renderCmds();
+});
+$("#honorVocabSuffix").addEventListener("input", () => {
+  project.honorificVocab.suffix = parseVocabInput($("#honorVocabSuffix").value);
+  scheduleSave(); renderCmds();
+});
+$("#honorAddRule").addEventListener("click", () => {
+  if(!project.characters.length){ toast("先にキャラクターを登録してください", true); return; }
+  project.honorificRules.push({ id: uid(), speakerId: project.characters[0].id, targetId: null, pattern: "", allowBare: false });
+  scheduleSave(); renderHonorRules();
+});
+$("#honorRulesBody").addEventListener("change", e => {
+  const row = e.target.closest(".honor-row");
+  if(!row) return;
+  const r = honorRuleById(row.dataset.id);
+  if(!r) return;
+  if(e.target.classList.contains("hr-speaker")) r.speakerId = e.target.value;
+  else if(e.target.classList.contains("hr-target")) r.targetId = e.target.value || null;
+  else if(e.target.classList.contains("hr-bare")) r.allowBare = e.target.checked;
+  else return;
+  scheduleSave(); renderCmds();
+});
+$("#honorRulesBody").addEventListener("input", e => {
+  if(!e.target.classList.contains("hr-pattern")) return;
+  const row = e.target.closest(".honor-row");
+  const r = row && honorRuleById(row.dataset.id);
+  if(!r) return;
+  r.pattern = e.target.value;
+  try{ new RegExp(r.pattern); e.target.classList.remove("invalid"); }
+  catch(err){ e.target.classList.add("invalid"); }
+  scheduleSave(); renderCmds();
+});
+$("#honorRulesBody").addEventListener("click", e => {
+  if(e.target.closest("[data-act='del']")){
+    const row = e.target.closest(".honor-row");
+    project.honorificRules = project.honorificRules.filter(r => r.id !== row.dataset.id);
+    scheduleSave(); renderHonorRules(); renderCmds();
+  }
+});
+makeListDraggable($("#honorRulesBody"), ".honor-row", $("#honorRulesWrap"), (from, to) => {
+  if(from === to) return;
+  const [r] = project.honorificRules.splice(from, 1);
+  project.honorificRules.splice(to, 0, r);
+  scheduleSave(); renderHonorRules();
 });
 
 /* ---------- 起動 ---------- */
