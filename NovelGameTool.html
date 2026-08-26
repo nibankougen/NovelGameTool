@@ -565,7 +565,7 @@ body:not(.dnd-dragging) .stat-row:hover{background:var(--bg2)}
     <button id="btnOutline" title="あらすじビュー — 全体の流れ・大枠メモ・シーンごとのあらすじ"><span data-icon="book-open"></span></button>
     <button id="btnStats" title="統計情報 — シーン・章・全体のセリフ数と文字数"><span data-icon="chart-column"></span></button>
     <button id="btnTrans" title="翻訳画面 — セリフ・選択肢・キャラ名を他言語に翻訳"><span data-icon="languages"></span></button>
-    <button id="btnHonor" title="人称チェック設定 — キャラごとの一人称・呼び方を登録して表記ゆれを検出"><span data-icon="circle-alert"></span></button>
+    <button id="btnHonor" title="人称チェック設定 — キャラごとの一人称・呼び方を登録して表記ゆれを検出"><span data-icon="users"></span></button>
     <button id="btnSearch" title="プロジェクト全体を全文検索 (Ctrl+F)"><span data-icon="search"></span></button>
     <button id="btnHelp" title="ヘルプ (F1)"><span data-icon="circle-help"></span></button>
     <input type="file" id="fileInput" accept=".json" style="display:none">
@@ -799,7 +799,7 @@ body:not(.dnd-dragging) .stat-row:hover{background:var(--bg2)}
 <div class="modal-back" id="honorModal">
   <div class="modal honor-modal">
     <div class="trans-head">
-      <h3 style="margin-bottom:0"><span data-icon="circle-alert"></span> 人称チェック設定</h3>
+      <h3 style="margin-bottom:0"><span data-icon="users"></span> 人称チェック設定</h3>
       <button data-close style="margin-left:auto">閉じる (Esc)</button>
     </div>
     <p class="honor-desc">キャラクターごとに「自分をどう呼ぶか（一人称）」「相手をどう呼ぶか（二人称・名前を伴わない呼びかけ）」「他のキャラをどう呼ぶか（名前＋敬称）」を登録しておくと、登録と異なる言い回しが本文に出てきた行に小さく <span data-icon="circle-alert" style="color:#e0b84c;display:inline-flex;vertical-align:-2px"></span> が付きます。簡易チェックのため参考程度にご利用ください。</p>
@@ -897,6 +897,7 @@ const ICONS = {
   "languages":    `<path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>`,
   "circle-alert": `<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>`,
   "chart-column": `<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>`,
+  "users": `<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`,
 };
 const icon = name =>
   `<svg class="lucide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`;
