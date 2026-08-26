@@ -451,6 +451,25 @@ body:not(.dnd-dragging) .honor-row:hover .drag-handle{visibility:visible}
 .ol-goto:hover{background:var(--bg3);color:var(--accent)}
 .ol-row textarea.ol-syn{width:100%;font-size:12px;padding:6px 8px;min-height:44px;resize:vertical;line-height:1.6}
 
+/* 統計情報 */
+.stats-modal{
+  width:92vw;max-width:640px;height:80vh;max-height:80vh;
+  display:flex;flex-direction:column;padding:16px 20px;
+}
+.stat-head-row,.stat-row,.stat-group-row,.stat-total-row{
+  display:grid;grid-template-columns:1fr 90px 90px;gap:8px;align-items:center;padding:6px 8px;
+}
+.stat-head-row{color:var(--text-dim);font-size:11px;border-bottom:1px solid var(--border);flex-shrink:0}
+.stat-num{text-align:right;font-variant-numeric:tabular-nums}
+#statsList{flex:1;overflow-y:auto;min-height:0}
+.stat-group-row{
+  position:sticky;top:0;background:var(--bg2);z-index:2;
+  font-size:12px;font-weight:700;color:var(--sys);border-bottom:1px solid var(--border);
+}
+.stat-row{border-bottom:1px solid #ffffff08;cursor:pointer}
+body:not(.dnd-dragging) .stat-row:hover{background:var(--bg2)}
+.stat-total-row{border-top:2px solid var(--border);margin-top:2px;font-weight:700;flex-shrink:0}
+
 .chk-row{display:flex;align-items:baseline;gap:8px;margin-bottom:10px;cursor:pointer}
 .chk-row input{accent-color:var(--accent);flex-shrink:0;position:relative;top:2px}
 .chk-row .chk-desc{color:var(--text-dim);font-size:12px;flex:1}
@@ -544,6 +563,7 @@ body:not(.dnd-dragging) .honor-row:hover .drag-handle{visibility:visible}
     <span id="saveStatus"></span>
     <button id="btnPlay" title="テストプレイ (Ctrl+P)"><span data-icon="play"></span>テストプレイ</button>
     <button id="btnOutline" title="あらすじビュー — 全体の流れ・大枠メモ・シーンごとのあらすじ"><span data-icon="book-open"></span></button>
+    <button id="btnStats" title="統計情報 — シーン・章・全体のセリフ数と文字数"><span data-icon="chart-column"></span></button>
     <button id="btnTrans" title="翻訳画面 — セリフ・選択肢・キャラ名を他言語に翻訳"><span data-icon="languages"></span></button>
     <button id="btnHonor" title="人称チェック設定 — キャラごとの一人称・呼び方を登録して表記ゆれを検出"><span data-icon="circle-alert"></span></button>
     <button id="btnSearch" title="プロジェクト全体を全文検索 (Ctrl+F)"><span data-icon="search"></span></button>
@@ -746,6 +766,19 @@ body:not(.dnd-dragging) .honor-row:hover .drag-handle{visibility:visible}
   </div>
 </div>
 
+<!-- 統計情報 -->
+<div class="modal-back" id="statsModal">
+  <div class="modal stats-modal">
+    <div class="trans-head">
+      <h3 style="margin-bottom:0"><span data-icon="chart-column"></span> 統計情報</h3>
+      <button data-close style="margin-left:auto">閉じる (Esc)</button>
+    </div>
+    <div class="stat-head-row"><span>シーン</span><span class="stat-num">セリフ数</span><span class="stat-num">文字数</span></div>
+    <div id="statsList"></div>
+    <div class="stat-total-row" id="statsTotalRow"></div>
+  </div>
+</div>
+
 <!-- 翻訳画面 -->
 <div class="modal-back" id="transModal">
   <div class="modal trans-modal">
@@ -863,6 +896,7 @@ const ICONS = {
   "grip-vertical": `<circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/>`,
   "languages":    `<path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>`,
   "circle-alert": `<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>`,
+  "chart-column": `<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>`,
 };
 const icon = name =>
   `<svg class="lucide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`;
@@ -3374,6 +3408,63 @@ $("#outlineOverviewInput").addEventListener("input", e => {
   scheduleSave();
 });
 $("#outlineOverviewInput").addEventListener("keydown", e => e.stopPropagation());
+
+/* ---------- 統計情報 ---------- */
+// シーンごとのセリフ数・文字数を集計。文字数はゲーム出力時と同じ解決済みテキスト（キャラ名参照を実名に変換）の長さ
+function sceneStats(s){
+  let count = 0, chars = 0;
+  for(const cmd of s.commands){
+    if(cmd.type !== "serif") continue;
+    count++;
+    chars += textToResolved(cmd.text).length;
+  }
+  return { count, chars };
+}
+function renderStats(){
+  const list = $("#statsList");
+  list.innerHTML = "";
+  const groups = [];
+  const byName = new Map();
+  for(const { scene: s, groupName } of scenesInGroupOrder()){
+    const key = groupName || "";
+    let g = byName.get(key);
+    if(!g){ g = { name: groupName, scenes: [], count: 0, chars: 0 }; byName.set(key, g); groups.push(g); }
+    const st = sceneStats(s);
+    g.scenes.push({ scene: s, ...st });
+    g.count += st.count; g.chars += st.chars;
+  }
+  const showGroupHeads = project.sceneGroups.length > 0;
+  let totalCount = 0, totalChars = 0;
+  for(const g of groups){
+    totalCount += g.count; totalChars += g.chars;
+    if(showGroupHeads){
+      const h = document.createElement("div");
+      h.className = "stat-group-row";
+      h.innerHTML = `<span>${esc(g.name || "未分類")}</span><span class="stat-num">${g.count}</span><span class="stat-num">${g.chars}</span>`;
+      list.appendChild(h);
+    }
+    for(const { scene: s, count, chars } of g.scenes){
+      const row = document.createElement("div");
+      row.className = "stat-row";
+      row.innerHTML = `<span>${esc(s.name)}</span><span class="stat-num">${count}</span><span class="stat-num">${chars}</span>`;
+      row.addEventListener("click", () => {
+        currentSceneId = s.id; selIndex = null; editIndex = null;
+        hideModal("#statsModal");
+        renderAll();
+        mainInput.focus();
+      });
+      list.appendChild(row);
+    }
+  }
+  if(!project.scenes.length)
+    list.innerHTML = `<div class="tr-empty">シーンがありません</div>`;
+  $("#statsTotalRow").innerHTML = `<span>合計</span><span class="stat-num">${totalCount}</span><span class="stat-num">${totalChars}</span>`;
+}
+function openStats(){
+  renderStats();
+  showModal("#statsModal");
+}
+$("#btnStats").addEventListener("click", openStats);
 
 /* ---------- 翻訳画面 ---------- */
 const transCurLang = () => $("#transLang").value || null;
