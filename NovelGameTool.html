@@ -199,6 +199,9 @@ body:not(.dnd-dragging) .cmd-row:hover .row-actions{display:flex}
   border-radius:5px;object-fit:cover;flex-shrink:0;
   vertical-align:middle;margin-right:7px;background:var(--bg3);
 }
+/* サムネイル付きセリフ行: サムネを左、本文（複数行）を右に分け、サムネを縦中央に揃える */
+.serif-row-inner{display:flex;align-items:center}
+.serif-content{flex:1;min-width:0}
 
 /* ドラッグ&ドロップ並べ替え */
 .drag-handle{
@@ -248,6 +251,9 @@ body:not(.dnd-dragging) .scene-item:hover .drag-handle,body:not(.dnd-dragging) .
   display:inline-flex;align-items:center;flex-shrink:0;color:#e0b84c;
   font-size:12px;padding-top:4px;cursor:help;
 }
+/* サムネイル付き（左右分割）行では、バッジを画像の右・セリフ本文の上に単独の行として配置 */
+.honor-badge-row{display:flex}
+.honor-badge-row .honor-badge{padding-top:0;padding-bottom:2px}
 
 /* キャラ編集: 表情タグ（追加・リネーム・削除） */
 #charExprTags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;font-size:12px;line-height:1.6}

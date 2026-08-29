@@ -310,7 +310,7 @@ function honorificIssues(c){
   return [...new Set(issues)];
 }
 
-function cmdHtml(c){
+function cmdHtml(c, hIssues){
   switch(c.type){
     case "serif": {
       if(c.chara){
@@ -325,8 +325,15 @@ function cmdHtml(c){
           : "";
         // 顔画像: 表情画像 > デフォルトイラスト（なければ非表示）
         const img = ch ? ((c.face && (ch.exprImages || {})[c.face]) || ch.thumb) : null;
+        const body = `<span class="speaker-name" style="color:${color}">${name}</span>${face}<span class="serif-text">「${textToHtml(c.text)}」</span>`;
+        const badgeH = (hIssues && hIssues.length)
+          ? `<div class="honor-badge-row"><span class="honor-badge" title="${esc("人称の表記ゆれ: " + hIssues.join("、"))}">${icon("circle-alert")}</span></div>`
+          : "";
         const imgH = img ? `<img class="row-face" src="${esc(img)}" alt="">` : "";
-        return `${imgH}<span class="speaker-name" style="color:${color}">${name}</span>${face}<span class="serif-text">「${textToHtml(c.text)}」</span>`;
+        // サムネイル付き、または人称バッジ付きは左右分割
+        // （サムネ固定・テキスト側が複数行に折り返してもサムネは縦中央／バッジは画像の右・セリフの上に配置）
+        if(img || badgeH) return `<div class="serif-row-inner">${imgH}<div class="serif-content">${badgeH}${body}</div></div>`;
+        return body;
       }
       return `<span class="narration">${textToHtml(c.text)}</span>`;
     }
@@ -377,10 +384,7 @@ function renderCmds(){
     row.innerHTML =
       `<span class="drag-handle" title="ドラッグで並べ替え">${icon("grip-vertical")}</span>` +
       `<span class="row-num">${i + 1}</span>` +
-      (hIssues.length
-        ? `<span class="honor-badge" title="${esc("人称の表記ゆれ: " + hIssues.join("、"))}">${icon("circle-alert")}</span>`
-        : "") +
-      `<span class="row-body">${cmdHtml(c)}</span>` +
+      `<div class="row-body">${cmdHtml(c, hIssues)}</div>` +
       `<span class="row-actions">` +
         `<button data-act="up" title="上へ移動 (Ctrl+↑)">${icon("chevron-up")}</button>` +
         `<button data-act="down" title="下へ移動 (Ctrl+↓)">${icon("chevron-down")}</button>` +
