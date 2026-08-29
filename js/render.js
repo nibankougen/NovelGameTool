@@ -12,7 +12,9 @@ function renderAll(){
 /* ---------- シーングループ（章など） ---------- */
 const collapsedGroups = new Set();   // 折りたたみ中のグループid（"__ungrouped__"含む）。セッション内のみ
 const expandedScenes = new Set();     // あらすじメモを開いているシーンid。セッション内のみ
-let sceneRowMap = [];                 // renderScenes()時点の可視シーン行の並び（ドラッグ&ドロップで参照）
+let sceneRowMap = [];                 // renderScenes()時点の可視シーン行の並び（ドラッグ&ドロップ・Shift範囲選択で参照）
+let selectedSceneIds = new Set();     // Shift+クリックで複数選択中のシーンid（結合などの一括操作用。セッション内のみ）
+let sceneSelectAnchorId = null;       // Shift+クリック範囲選択の起点
 
 const sceneGroupCount = groupId => project.scenes.filter(s => (s.groupId || null) === groupId).length;
 
@@ -113,7 +115,8 @@ function startGroupRename(div, g){
 
 function makeSceneRow(s, indented){
   const div = document.createElement("div");
-  div.className = "scene-item" + (indented ? " grouped" : "") + (s.id === currentSceneId ? " active" : "");
+  div.className = "scene-item" + (indented ? " grouped" : "") + (s.id === currentSceneId ? " active" : "")
+    + (selectedSceneIds.has(s.id) ? " msel" : "");
   div.dataset.sceneId = s.id;
   div.innerHTML =
     `<span class="drag-handle" title="ドラッグで並べ替え">${icon("grip-vertical")}</span>` +
@@ -140,18 +143,114 @@ function makeSceneRow(s, indented){
     }else if(act === "memo"){
       if(expandedScenes.has(s.id)) expandedScenes.delete(s.id); else expandedScenes.add(s.id);
       renderScenes();
+    }else if(e.shiftKey){
+      selectSceneRange(s.id);
     }else{
+      selectedSceneIds.clear();
+      sceneSelectAnchorId = s.id;
       if(currentSceneId !== s.id){
         currentSceneId = s.id; selIndex = null; editIndex = null;
         renderAll();
         $("#mainInput").focus();
+      }else{
+        renderScenes();   // 選択解除だけでも見た目に反映
       }
     }
   });
   div.addEventListener("dblclick", e => {
     if(!e.target.dataset.act) startSceneRename(div, s);
   });
+  div.addEventListener("contextmenu", e => {
+    e.preventDefault();
+    if(!selectedSceneIds.has(s.id)){
+      selectedSceneIds = new Set([s.id]);
+      sceneSelectAnchorId = s.id;
+      renderScenes();
+    }
+    openSceneContextMenu(e.clientX, e.clientY);
+  });
   return div;
+}
+
+/* ---------- シーンの複数選択（Shift+クリック）と右クリックメニュー ---------- */
+function selectSceneRange(clickedId){
+  const order = sceneRowMap.map(x => x.sceneId);
+  const anchor = (sceneSelectAnchorId && order.includes(sceneSelectAnchorId)) ? sceneSelectAnchorId : currentSceneId;
+  const ai = order.indexOf(anchor), ci = order.indexOf(clickedId);
+  if(ai === -1 || ci === -1) selectedSceneIds = new Set([clickedId]);
+  else{
+    const lo = Math.min(ai, ci), hi = Math.max(ai, ci);
+    selectedSceneIds = new Set(order.slice(lo, hi + 1));
+  }
+  renderScenes();
+}
+
+let sceneCtxMenu = null;
+function closeSceneCtxMenu(){
+  if(!sceneCtxMenu) return;
+  sceneCtxMenu.remove();
+  sceneCtxMenu = null;
+  document.removeEventListener("contextmenu", closeSceneCtxMenuOnOutside, true);
+  document.removeEventListener("keydown", closeSceneCtxMenuOnEsc);
+}
+function closeSceneCtxMenuOnOutside(e){
+  if(sceneCtxMenu && !sceneCtxMenu.contains(e.target)) closeSceneCtxMenu();
+}
+function closeSceneCtxMenuOnEsc(e){
+  if(e.key === "Escape") closeSceneCtxMenu();
+}
+function openSceneContextMenu(x, y){
+  closeSceneCtxMenu();
+  const n = selectedSceneIds.size;
+  const menu = document.createElement("div");
+  menu.className = "edit-menu ctx-menu";
+  const item = document.createElement("div");
+  item.className = "em-item" + (n < 2 ? " em-disabled" : "");
+  item.textContent = n >= 2 ? `選択した${n}件のシーンを結合` : "結合するには2件以上選択（Shift+クリック）";
+  if(n >= 2) item.addEventListener("click", () => { closeSceneCtxMenu(); mergeSelectedScenes(); });
+  menu.appendChild(item);
+  document.body.appendChild(menu);
+  const mw = menu.offsetWidth, mh = menu.offsetHeight;
+  menu.style.left = Math.max(4, Math.min(x, window.innerWidth - mw - 4)) + "px";
+  menu.style.top = Math.max(4, Math.min(y, window.innerHeight - mh - 4)) + "px";
+  sceneCtxMenu = menu;
+  // 開いた瞬間の click/contextmenu で即座に閉じないよう、リスナー登録を次ティックへ遅延
+  setTimeout(() => {
+    document.addEventListener("click", closeSceneCtxMenu, { once: true });
+    document.addEventListener("contextmenu", closeSceneCtxMenuOnOutside, true);
+    document.addEventListener("keydown", closeSceneCtxMenuOnEsc);
+  }, 0);
+}
+
+// jump/choiceの参照先が結合で消えるシーンを指していた場合、結合後のシーンIDへ付け替える
+function retargetSceneRefs(cmd, removedIds, newTargetId){
+  if(cmd.type === "jump" && removedIds.has(cmd.target)) cmd.target = newTargetId;
+  else if(cmd.type === "choice")
+    for(const o of cmd.options) if(o.target && removedIds.has(o.target)) o.target = newTargetId;
+}
+
+function mergeSelectedScenes(){
+  const order = sceneRowMap.map(x => x.sceneId);
+  const scenes = order.filter(id => selectedSceneIds.has(id)).map(sceneById).filter(Boolean);
+  if(scenes.length < 2) return;
+  const names = scenes.map(s => s.name).join("」「");
+  if(!confirm(`シーン「${names}」を1つに結合しますか？\n（先頭のシーンにセリフ等がまとめられ、残りのシーンは削除されます。ジャンプ・選択肢からの参照先は自動的に結合後のシーンへ付け替えられます）`)) return;
+
+  const target = scenes[0];
+  const removedIds = new Set(scenes.slice(1).map(s => s.id));
+  selectedSceneIds = new Set();
+  sceneSelectAnchorId = null;
+  mutate(() => {
+    for(const src of scenes.slice(1)){
+      target.commands.push(...src.commands);
+      if(src.synopsis && src.synopsis.trim())
+        target.synopsis = (target.synopsis ? target.synopsis + "\n\n" : "") + src.synopsis;
+    }
+    for(const sc of project.scenes) for(const cmd of sc.commands) retargetSceneRefs(cmd, removedIds, target.id);
+    project.scenes = project.scenes.filter(s => !removedIds.has(s.id));
+    if(removedIds.has(currentSceneId)) currentSceneId = target.id;
+  });
+  toast(`${scenes.length}件のシーンを「${target.name}」に結合しました`);
 }
 
 function makeSceneMemoPanel(s, indented){

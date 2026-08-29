@@ -89,6 +89,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 }
 body:not(.dnd-dragging) .scene-item:hover,body:not(.dnd-dragging) .char-item:hover{background:var(--bg3)}
 .scene-item.active{background:var(--accent-dim);border-color:var(--accent)}
+/* Shift+クリックによる複数選択（結合などの一括操作対象）。activeとは独立して重ねて表示できる */
+.scene-item.msel{background:#4f8cff22;outline:1px dashed var(--accent);outline-offset:-1px}
 .scene-item .s-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .scene-item .s-count{color:var(--text-dim);font-size:11px}
 .scene-item .s-btns,.char-item .c-btns{display:none;gap:2px}
@@ -317,6 +319,10 @@ body:not(.dnd-dragging) .scene-item:hover .drag-handle,body:not(.dnd-dragging) .
 }
 .edit-menu .em-item{padding:6px 14px;cursor:pointer;white-space:nowrap;font-size:13px}
 .edit-menu .em-item:hover{background:var(--accent-dim)}
+.edit-menu .em-item.em-disabled{color:var(--text-dim);cursor:default}
+.edit-menu .em-item.em-disabled:hover{background:transparent}
+/* 右クリックのコンテキストメニュー（シーン一覧など）: edit-menuと見た目を揃え、画面座標に固定配置 */
+.ctx-menu{position:fixed}
 /* セリフ以外の行編集: 表示時の文字位置になるべく近づける */
 .plain-edit-text{padding:1px 2px;background:transparent;border:none;border-radius:4px}
 .plain-edit-text:focus{background:var(--bg2);outline:1px solid var(--accent);outline-offset:-1px}
