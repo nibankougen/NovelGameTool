@@ -15,6 +15,8 @@ const expandedScenes = new Set();     // あらすじメモを開いているシ
 let sceneRowMap = [];                 // renderScenes()時点の可視シーン行の並び（ドラッグ&ドロップ・Shift範囲選択で参照）
 let selectedSceneIds = new Set();     // Shift+クリックで複数選択中のシーンid（結合などの一括操作用。セッション内のみ）
 let sceneSelectAnchorId = null;       // Shift+クリック範囲選択の起点
+let selectedCmdIndices = new Set();   // Shift+クリックで複数選択中の行index（シーン分離などの一括操作用。セッション内のみ）
+let cmdSelectAnchor = null;           // Shift+クリック範囲選択の起点（行index）
 
 const sceneGroupCount = groupId => project.scenes.filter(s => (s.groupId || null) === groupId).length;
 
@@ -185,41 +187,51 @@ function selectSceneRange(clickedId){
   renderScenes();
 }
 
-let sceneCtxMenu = null;
-function closeSceneCtxMenu(){
-  if(!sceneCtxMenu) return;
-  sceneCtxMenu.remove();
-  sceneCtxMenu = null;
-  document.removeEventListener("contextmenu", closeSceneCtxMenuOnOutside, true);
-  document.removeEventListener("keydown", closeSceneCtxMenuOnEsc);
+/* ---------- 汎用の右クリックコンテキストメニュー（シーン一覧・行一覧で共用） ---------- */
+let ctxMenuEl = null;
+function closeCtxMenu(){
+  if(!ctxMenuEl) return;
+  ctxMenuEl.remove();
+  ctxMenuEl = null;
+  document.removeEventListener("contextmenu", closeCtxMenuOnOutside, true);
+  document.removeEventListener("keydown", closeCtxMenuOnEsc);
 }
-function closeSceneCtxMenuOnOutside(e){
-  if(sceneCtxMenu && !sceneCtxMenu.contains(e.target)) closeSceneCtxMenu();
+function closeCtxMenuOnOutside(e){
+  if(ctxMenuEl && !ctxMenuEl.contains(e.target)) closeCtxMenu();
 }
-function closeSceneCtxMenuOnEsc(e){
-  if(e.key === "Escape") closeSceneCtxMenu();
+function closeCtxMenuOnEsc(e){
+  if(e.key === "Escape") closeCtxMenu();
 }
-function openSceneContextMenu(x, y){
-  closeSceneCtxMenu();
-  const n = selectedSceneIds.size;
+function openCtxMenu(x, y, items){
+  closeCtxMenu();
   const menu = document.createElement("div");
   menu.className = "edit-menu ctx-menu";
-  const item = document.createElement("div");
-  item.className = "em-item" + (n < 2 ? " em-disabled" : "");
-  item.textContent = n >= 2 ? `選択した${n}件のシーンを結合` : "結合するには2件以上選択（Shift+クリック）";
-  if(n >= 2) item.addEventListener("click", () => { closeSceneCtxMenu(); mergeSelectedScenes(); });
-  menu.appendChild(item);
+  for(const it of items){
+    const el = document.createElement("div");
+    el.className = "em-item" + (it.disabled ? " em-disabled" : "");
+    el.textContent = it.label;
+    if(!it.disabled) el.addEventListener("click", () => { closeCtxMenu(); it.onClick(); });
+    menu.appendChild(el);
+  }
   document.body.appendChild(menu);
   const mw = menu.offsetWidth, mh = menu.offsetHeight;
   menu.style.left = Math.max(4, Math.min(x, window.innerWidth - mw - 4)) + "px";
   menu.style.top = Math.max(4, Math.min(y, window.innerHeight - mh - 4)) + "px";
-  sceneCtxMenu = menu;
+  ctxMenuEl = menu;
   // 開いた瞬間の click/contextmenu で即座に閉じないよう、リスナー登録を次ティックへ遅延
   setTimeout(() => {
-    document.addEventListener("click", closeSceneCtxMenu, { once: true });
-    document.addEventListener("contextmenu", closeSceneCtxMenuOnOutside, true);
-    document.addEventListener("keydown", closeSceneCtxMenuOnEsc);
+    document.addEventListener("click", closeCtxMenu, { once: true });
+    document.addEventListener("contextmenu", closeCtxMenuOnOutside, true);
+    document.addEventListener("keydown", closeCtxMenuOnEsc);
   }, 0);
+}
+function openSceneContextMenu(x, y){
+  const n = selectedSceneIds.size;
+  openCtxMenu(x, y, [{
+    label: n >= 2 ? `選択した${n}件のシーンを結合` : "結合するには2件以上選択（Shift+クリック）",
+    disabled: n < 2,
+    onClick: mergeSelectedScenes,
+  }]);
 }
 
 // jump/choiceの参照先が結合で消えるシーンを指していた場合、結合後のシーンIDへ付け替える
@@ -490,7 +502,8 @@ function renderCmds(){
   }
   list.forEach((c, i) => {
     const row = document.createElement("div");
-    row.className = "cmd-row" + (cmdBroken(c) ? " alert" : "") + (i === selIndex ? " selected" : "");
+    row.className = "cmd-row" + (cmdBroken(c) ? " alert" : "") + (i === selIndex ? " selected" : "")
+      + (selectedCmdIndices.has(i) ? " msel" : "");
     row.dataset.idx = i;
     const hIssues = honorificIssues(c);
     row.innerHTML =
@@ -513,15 +526,69 @@ function renderCmds(){
       else if(act === "down") moveCmd(i, 1);
       else if(act === "goto-scene") gotoScene(e.target.dataset.sceneId);
       else if(act === "honor-ack") toggleHonorAck(i);
-      else {
+      else if(e.shiftKey){
+        editIndex = null;
+        selectCmdRange(i);   // Shift+クリックで範囲選択（シーン分離などの一括操作用）
+      }else{
+        selectedCmdIndices = new Set();
+        cmdSelectAnchor = i;
         selIndex = i;   // 選択状態にして矢印キー等の操作対象にする
         pendingEditClick = computeClickInfo(e, c);   // クリック位置→カーソル位置/チップ自動展開に使用
         startEdit(i);   // 行の文字部分クリックで即編集開始
       }
     });
+    row.addEventListener("contextmenu", e => {
+      e.preventDefault();
+      if(!selectedCmdIndices.has(i)){
+        selectedCmdIndices = new Set([i]);
+        cmdSelectAnchor = i;
+        renderCmds();
+      }
+      openCmdContextMenu(e.clientX, e.clientY);
+    });
     box.appendChild(row);
   });
   if(editIndex !== null) mountEditRow();
+}
+
+function selectCmdRange(clickedIdx){
+  const len = cmds().length;
+  const anchor = (cmdSelectAnchor !== null && cmdSelectAnchor < len) ? cmdSelectAnchor : (selIndex !== null ? selIndex : clickedIdx);
+  const lo = Math.min(anchor, clickedIdx), hi = Math.max(anchor, clickedIdx);
+  selectedCmdIndices = new Set();
+  for(let k = lo; k <= hi; k++) selectedCmdIndices.add(k);
+  selIndex = clickedIdx;
+  renderCmds();
+}
+
+function openCmdContextMenu(x, y){
+  const n = selectedCmdIndices.size;
+  openCtxMenu(x, y, [{
+    label: n >= 1 ? `選択した${n}行を新しいシーンとして分離` : "分離する行を選択してください（Shift+クリック）",
+    disabled: n < 1,
+    onClick: splitSelectedCmdsToScene,
+  }]);
+}
+
+// 選択した行を、現在のシーンから抜き出して新しいシーンにする（結合の逆操作）。
+// jump/choiceはシーン単位の参照なので、分離しても既存の参照先は変わらない
+function splitSelectedCmdsToScene(){
+  const idxs = [...selectedCmdIndices].sort((a, b) => a - b);
+  if(!idxs.length) return;
+  if(!confirm(`選択した${idxs.length}行を新しいシーンとして分離しますか？`)) return;
+  const removedSet = new Set(idxs);
+  let newSceneName = "";
+  mutate(() => {
+    const scene = curScene();
+    const moved = scene.commands.filter((_, i) => removedSet.has(i));
+    scene.commands = scene.commands.filter((_, i) => !removedSet.has(i));
+    newSceneName = scene.name + "（分離）";
+    const newScene = { id: uid(), name: newSceneName, commands: moved, groupId: scene.groupId, synopsis: "" };
+    const pos = project.scenes.findIndex(x => x.id === scene.id);
+    project.scenes.splice(pos + 1, 0, newScene);
+    selIndex = null; editIndex = null;
+  });
+  toast(`選択した行を新しいシーン「${newSceneName}」として分離しました`);
 }
 
 function gotoScene(sceneId){

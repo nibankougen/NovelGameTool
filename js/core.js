@@ -297,6 +297,8 @@ function loadLocal(){
 function mutate(fn){          // pushUndo → 変更 → 保存 → 再描画
   pushUndo();
   fn();
+  // 行の増減・並べ替えでインデックスがずれるため、行の複数選択（Shift+クリック）は都度クリア
+  selectedCmdIndices = new Set(); cmdSelectAnchor = null;
   scheduleSave();
   renderAll();
 }
