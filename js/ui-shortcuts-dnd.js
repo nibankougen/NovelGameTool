@@ -1,5 +1,10 @@
 "use strict";
 /* ---------- その他UI ---------- */
+// ページ内の指定ゾーン以外に画像ファイルをドロップした際、ブラウザが既定でファイルを開いて
+// アプリの状態を失わないようにする安全策（各ドロップゾーン側は個別に preventDefault 済み）
+window.addEventListener("dragover", e => e.preventDefault());
+window.addEventListener("drop", e => e.preventDefault());
+
 $("#projectTitle").addEventListener("change", e => {
   mutate(() => { project.title = e.target.value.trim() || "無題"; });
 });

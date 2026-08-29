@@ -56,6 +56,57 @@ $("#charThumbInput").addEventListener("change", e => {
   if(!file) return;
   loadImageAsThumb(file, url => { pendingThumb = url; renderThumbPreview(); });
 });
+
+/* ---------- 画像ファイルのドラッグ&ドロップ登録（デフォルトイラスト・表情ごとの画像） ---------- */
+const hasFileDrag = e => !!(e.dataTransfer && [...e.dataTransfer.types].includes("Files"));
+const firstImageFile = e => [...(e.dataTransfer.files || [])].find(f => f.type.startsWith("image/"));
+
+const charThumbRow = $("#charThumbRow");
+charThumbRow.addEventListener("dragover", e => {
+  if(!hasFileDrag(e)) return;
+  e.preventDefault();
+  charThumbRow.classList.add("drag-over");
+});
+charThumbRow.addEventListener("dragleave", e => {
+  if(!charThumbRow.contains(e.relatedTarget)) charThumbRow.classList.remove("drag-over");
+});
+charThumbRow.addEventListener("drop", e => {
+  charThumbRow.classList.remove("drag-over");
+  if(!hasFileDrag(e)) return;
+  e.preventDefault();
+  const file = firstImageFile(e);
+  if(!file){ toast("画像ファイルをドロップしてください", true); return; }
+  loadImageAsThumb(file, url => { pendingThumb = url; renderThumbPreview(); });
+});
+
+// 表情タグへのドロップ: どのタグの上にいるかで対象を切り替える（.missing タグは対象外）
+let exprDropHighlight = null;
+function clearExprDropHighlight(){
+  if(exprDropHighlight){ exprDropHighlight.classList.remove("drag-over"); exprDropHighlight = null; }
+}
+const charExprTagsEl = $("#charExprTags");
+charExprTagsEl.addEventListener("dragover", e => {
+  if(!hasFileDrag(e)) return;
+  const tag = e.target.closest(".expr-tag:not(.missing)");
+  if(tag !== exprDropHighlight){
+    clearExprDropHighlight();
+    if(tag){ tag.classList.add("drag-over"); exprDropHighlight = tag; }
+  }
+  if(tag) e.preventDefault();
+});
+charExprTagsEl.addEventListener("dragleave", e => {
+  if(!charExprTagsEl.contains(e.relatedTarget)) clearExprDropHighlight();
+});
+charExprTagsEl.addEventListener("drop", e => {
+  const tag = e.target.closest(".expr-tag:not(.missing)");
+  clearExprDropHighlight();
+  if(!tag || !hasFileDrag(e)) return;
+  e.preventDefault();
+  const file = firstImageFile(e);
+  if(!file){ toast("画像ファイルをドロップしてください", true); return; }
+  const i = +tag.dataset.i;
+  loadImageAsThumb(file, url => { if(exprStaged[i]){ exprStaged[i].img = url; renderExprTags(); } });
+});
 // 表情画像の選択（exprImgTarget = 対象の exprStaged index）
 let exprImgTarget = null;
 $("#exprImgInput").addEventListener("change", e => {

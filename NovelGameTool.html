@@ -508,6 +508,10 @@ body:not(.dnd-dragging) .stat-row:hover{background:var(--bg2)}
   border:1px solid var(--border);background:var(--bg3);
 }
 #charMemoInput{flex:1;resize:vertical;min-height:70px;line-height:1.6}
+.drop-hint{color:var(--text-dim);font-size:11px}
+/* 画像ファイルのドラッグ&ドロップ登録: ドラッグ中の受け入れ枠を強調表示 */
+#charThumbRow.drag-over{outline:2px dashed var(--accent);outline-offset:3px;border-radius:8px}
+.expr-tag.drag-over{outline:2px dashed var(--accent);outline-offset:-1px}
 
 /* help */
 #helpModal .modal{min-width:560px}
@@ -655,18 +659,19 @@ body:not(.dnd-dragging) .stat-row:hover{background:var(--bg2)}
     <div class="m-row"><label>名前</label><input type="text" id="charNameInput" style="flex:1"></div>
     <div class="m-row"><label>色</label><div class="color-pal" id="colorPal"></div></div>
     <div class="m-row"><label></label><input type="color" id="charColorInput" style="width:60px;height:30px;padding:2px"></div>
-    <div class="m-row">
+    <div class="m-row" id="charThumbRow" title="画像ファイルをドラッグ&amp;ドロップでも設定できます">
       <label>デフォルト<br>イラスト</label>
       <img id="charThumbPreview" alt="">
       <button id="charThumbBtn" title="キャラの基本イラスト。表情画像を設定していない表情ではこの画像が使われます"><span data-icon="image"></span>画像を選択…</button>
       <button id="charThumbDelBtn"><span data-icon="x"></span>画像を外す</button>
       <input type="file" id="charThumbInput" accept="image/*" style="display:none">
+      <span class="drop-hint">またはドラッグ&amp;ドロップ</span>
     </div>
     <div class="m-row" style="align-items:flex-start">
       <label style="padding-top:6px">表情</label>
       <div style="flex:1;min-width:0">
-        <div id="charExprTags"></div>
-        <input type="text" id="charExprInput" style="width:100%" placeholder="表情名を入力して Enter で追加（ラベルの鉛筆で名前変更、×で削除）">
+        <div id="charExprTags" title="各表情のタグに画像ファイルをドラッグ&amp;ドロップでも設定できます"></div>
+        <input type="text" id="charExprInput" style="width:100%" placeholder="表情名を入力して Enter で追加（ラベルの鉛筆で名前変更、×で削除／タグへ画像をドロップでも設定可）">
         <input type="file" id="exprImgInput" accept="image/*" style="display:none">
         <div class="expr-tmpl-row">
           <button type="button" id="exprTmplApply" title="保存済みテンプレートの表情をこのキャラクターに追加します">テンプレを適用</button>
