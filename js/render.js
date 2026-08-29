@@ -310,6 +310,16 @@ function honorificIssues(c){
   return [...new Set(issues)];
 }
 
+// 人称チェックのバッジをクリック確認済み（薄く表示）にする。undo対象外の軽量な表示状態のため scheduleSave のみ
+function toggleHonorAck(i){
+  const c = cmds()[i];
+  if(!c) return;
+  if(c.honorAckText === c.text) delete c.honorAckText;
+  else c.honorAckText = c.text;
+  scheduleSave();
+  renderCmds();
+}
+
 function cmdHtml(c, hIssues){
   switch(c.type){
     case "serif": {
@@ -326,8 +336,11 @@ function cmdHtml(c, hIssues){
         // 顔画像: 表情画像 > デフォルトイラスト（なければ非表示）
         const img = ch ? ((c.face && (ch.exprImages || {})[c.face]) || ch.thumb) : null;
         const body = `<span class="speaker-name" style="color:${color}">${name}</span>${face}<span class="serif-text">「${textToHtml(c.text)}」</span>`;
+        // クリックで確認済み（薄く表示）にできる。テキストが変わったら自動的に元の濃さに戻る
+        const acked = !!(hIssues && hIssues.length && c.honorAckText === c.text);
+        const ackTitle = acked ? "確認済み（クリックで戻す）" : "クリックで確認済みにする（薄く表示）";
         const badgeH = (hIssues && hIssues.length)
-          ? `<div class="honor-badge-row"><span class="honor-badge" title="${esc("人称の表記ゆれ: " + hIssues.join("、"))}">${icon("circle-alert")}</span></div>`
+          ? `<div class="honor-badge-row"><span class="honor-badge${acked ? " acked" : ""}" data-act="honor-ack" title="${esc(ackTitle + "\n人称の表記ゆれ: " + hIssues.join("、"))}">${icon("circle-alert")}</span></div>`
           : "";
         const imgH = img ? `<img class="row-face" src="${esc(img)}" alt="">` : "";
         // サムネイル付き、または人称バッジ付きは左右分割
@@ -400,6 +413,7 @@ function renderCmds(){
       else if(act === "up") moveCmd(i, -1);
       else if(act === "down") moveCmd(i, 1);
       else if(act === "goto-scene") gotoScene(e.target.dataset.sceneId);
+      else if(act === "honor-ack") toggleHonorAck(i);
       else {
         selIndex = i;   // 選択状態にして矢印キー等の操作対象にする
         pendingEditClick = computeClickInfo(e, c);   // クリック位置→カーソル位置/チップ自動展開に使用

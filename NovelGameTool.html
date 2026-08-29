@@ -249,8 +249,9 @@ body:not(.dnd-dragging) .scene-item:hover .drag-handle,body:not(.dnd-dragging) .
 /* 人称チェック（簡易）: 登録と異なる一人称・呼び方が出てきた行に小さく通知マーク */
 .honor-badge{
   display:inline-flex;align-items:center;flex-shrink:0;color:#e0b84c;
-  font-size:12px;padding-top:4px;cursor:help;
+  font-size:12px;padding-top:4px;cursor:pointer;
 }
+.honor-badge.acked{opacity:.35}   /* クリックで確認済み。テキストが変わると自動的に元の濃さに戻る */
 /* サムネイル付き（左右分割）行では、バッジを画像の右・セリフ本文の上に単独の行として配置 */
 .honor-badge-row{display:flex}
 .honor-badge-row .honor-badge{padding-top:0;padding-bottom:2px}
