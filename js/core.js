@@ -6,6 +6,7 @@
 
 const LS_KEY = "novelGameTool.project.v1";
 const EXPR_TMPL_LS_KEY = "novelGameTool.exprTemplateCarryOver.v1";   // プロジェクトを跨いだ表情テンプレート引き継ぎ設定
+const THUMB_SIZE_LS_KEY = "novelGameTool.thumbSizeStep.v1";   // 行サムネイルの拡大段階（0〜3 = 1〜4倍）
 const PALETTE = ["#ff7a7a","#ffb35c","#ffe066","#8ce99a","#66d9e8","#74a8ff","#b197fc","#faa2c1","#c0a98a","#9aa5b1"];
 const EXPORT_DEFAULTS = { face: true, sceneName: true, color: true, comment: false, pretty: true };
 const HONOR_VOCAB_DEFAULTS = {
@@ -93,6 +94,20 @@ function loadGlobalExprTemplate(){
 }
 function saveGlobalExprTemplate(state){
   try{ localStorage.setItem(EXPR_TMPL_LS_KEY, JSON.stringify(state)); }catch(e){}
+}
+
+/* 行サムネイルの拡大段階（表情を見ながら編集したい場合のための表示倍率、全プロジェクト共通設定） */
+function loadThumbSizeStep(){
+  const n = parseInt(localStorage.getItem(THUMB_SIZE_LS_KEY), 10);
+  return (Number.isInteger(n) && n >= 0 && n <= 3) ? n : 0;
+}
+function saveThumbSizeStep(step){
+  try{ localStorage.setItem(THUMB_SIZE_LS_KEY, String(step)); }catch(e){}
+}
+function applyThumbSizeStep(step){
+  document.documentElement.style.setProperty("--thumb-scale", String(step + 1));
+  $("#thumbSizeSlider").value = String(step);
+  $("#thumbSizeLabel").textContent = `${step + 1}倍`;
 }
 function createNewProject(){
   const p = defaultProject();

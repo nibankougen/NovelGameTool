@@ -21,6 +21,7 @@
   --sys:#8fd0ff;
   --comment:#7a8a6f;
   --radius:8px;
+  --thumb-scale:1;   /* サムネイルサイズ倍率（1〜4、スライダーで変更） */
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -63,6 +64,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 }
 #topbar .logo{font-weight:700;color:var(--accent);margin-right:4px;font-size:15px}
 #projectTitle{width:220px;font-weight:600}
+#thumbSizeCtrl{
+  display:flex;align-items:center;gap:5px;color:var(--text-dim);font-size:12px;flex-shrink:0;
+}
+#thumbSizeCtrl input[type=range]{width:64px;accent-color:var(--accent);cursor:pointer}
 #saveStatus{color:var(--text-dim);font-size:12px;margin-left:auto;margin-right:8px}
 #main{display:flex;flex:1;min-height:0}
 
@@ -190,7 +195,8 @@ body:not(.dnd-dragging) .cmd-row:hover .row-actions{display:flex}
 .row-actions button{padding:1px 7px;font-size:11px;border:none;background:transparent;color:var(--text-dim)}
 .row-actions button:hover{color:var(--text);background:#3d4354}
 .row-face{
-  width:26px;height:26px;border-radius:5px;object-fit:cover;flex-shrink:0;
+  width:calc(26px * var(--thumb-scale));height:calc(26px * var(--thumb-scale));
+  border-radius:5px;object-fit:cover;flex-shrink:0;
   vertical-align:middle;margin-right:7px;background:var(--bg3);
 }
 
@@ -266,7 +272,8 @@ body:not(.dnd-dragging) .scene-item:hover .drag-handle,body:not(.dnd-dragging) .
 .expr-tag .et-img.et-def{opacity:.35}   /* デフォルトイラスト使用中（表情画像なし）は薄く表示 */
 .edit-thumb{
   /* .row-face（表示時の顔画像）とサイズ・余白を揃え、編集開始時の位置ずれを抑える */
-  width:26px;height:26px;border-radius:5px;object-fit:cover;flex-shrink:0;
+  width:calc(26px * var(--thumb-scale));height:calc(26px * var(--thumb-scale));
+  border-radius:5px;object-fit:cover;flex-shrink:0;
   vertical-align:middle;margin-right:1px;background:var(--bg3);
 }
 #charExprTags .expr-none{color:var(--text-dim)}
@@ -560,6 +567,11 @@ body:not(.dnd-dragging) .stat-row:hover{background:var(--bg2)}
     <button id="btnExport" class="primary" title="JSONファイルとして保存 (Ctrl+S)"><span data-icon="save"></span>JSON保存</button>
     <button id="btnExportTxt" title="読みやすいテキスト台本として書き出し"><span data-icon="file-text"></span>台本TXT</button>
     <button id="btnExportGame" title="メモ・サムネイル・コメント行を除いたゲーム用データを書き出し"><span data-icon="gamepad-2"></span>ゲーム出力</button>
+    <span id="thumbSizeCtrl" title="行のサムネイル表示サイズ（表情を見ながら編集したいときに拡大できます）">
+      <span data-icon="image"></span>
+      <input type="range" id="thumbSizeSlider" min="0" max="3" step="1" value="0">
+      <span id="thumbSizeLabel">1倍</span>
+    </span>
     <span id="saveStatus"></span>
     <button id="btnPlay" title="テストプレイ (Ctrl+P)"><span data-icon="play"></span>テストプレイ</button>
     <button id="btnOutline" title="あらすじビュー — 全体の流れ・大枠メモ・シーンごとのあらすじ"><span data-icon="book-open"></span></button>
