@@ -7,6 +7,7 @@
 const LS_KEY = "novelGameTool.project.v1";
 const EXPR_TMPL_LS_KEY = "novelGameTool.exprTemplateCarryOver.v1";   // プロジェクトを跨いだ表情テンプレート引き継ぎ設定
 const THUMB_SIZE_LS_KEY = "novelGameTool.thumbSizeStep.v1";   // 行サムネイルの拡大段階（0〜3 = 1〜4倍）
+const SIDEBAR_LS_KEY = "novelGameTool.sidebarCollapsed.v1";   // サイドバーの開閉状態
 const PALETTE = ["#ff7a7a","#ffb35c","#ffe066","#8ce99a","#66d9e8","#74a8ff","#b197fc","#faa2c1","#c0a98a","#9aa5b1"];
 const EXPORT_DEFAULTS = { face: true, sceneName: true, color: true, comment: false, pretty: true };
 const HONOR_VOCAB_DEFAULTS = {
@@ -47,6 +48,8 @@ const ICONS = {
   "circle-alert": `<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>`,
   "chart-column": `<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>`,
   "users": `<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`,
+  "ellipsis": `<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>`,
+  "panel-left": `<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/>`,
 };
 const icon = name =>
   `<svg class="lucide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`;

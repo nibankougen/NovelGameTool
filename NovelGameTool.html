@@ -71,6 +71,54 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 #saveStatus{color:var(--text-dim);font-size:12px;margin-left:auto;margin-right:8px}
 #main{display:flex;flex:1;min-height:0}
 
+/* ===== ヘッダのレスポンシブ対応 =====
+   画面幅が狭いとき: ラベルを隠してアイコンのみ → 2段に折り返し → 「…」メニューへ集約、
+   の順で段階的に省スペース化し、ボタンがなるべく見える状態を保つ */
+#topbar{flex-wrap:wrap;position:relative}
+.tb-collapsible{display:contents}   /* 通常時はラッパを透過させ #topbar 直下のボタンとして並べる */
+#topbar .tb-sep{width:1px;align-self:stretch;background:var(--border);margin:0 2px;flex-shrink:0}
+#topbar button.icon-only .lbl{display:none}
+#btnMore{display:none}
+
+#moreMenu{
+  display:none;position:absolute;top:calc(100% + 4px);right:8px;z-index:80;
+  background:var(--bg3);border:1px solid var(--border);border-radius:10px;
+  box-shadow:0 12px 32px #000a;padding:6px;min-width:190px;
+  max-height:calc(100vh - 60px);overflow-y:auto;
+}
+#moreMenu.show{display:block}
+#moreMenu #tbMain{display:flex;flex-direction:column;gap:2px}
+#moreMenu #tbMain button{
+  justify-content:flex-start;width:100%;background:transparent;border:1px solid transparent;padding:8px 12px;
+}
+#moreMenu #tbMain button:hover{background:var(--accent-dim);border-color:transparent}
+#moreMenu #tbMain .lbl{display:inline}
+#moreMenu #tbMain .tb-sep{width:auto;height:1px;align-self:auto;margin:5px 2px}
+/* 「…」メニューへ移動したサムネイルサイズ調整（狭幅でも変更可能に） */
+#moreMenu #thumbSizeCtrl{display:flex;width:100%;padding:8px 12px;gap:8px;margin-top:2px;border-top:1px solid var(--border)}
+#moreMenu #thumbSizeCtrl input[type=range]{flex:1;width:auto}
+#moreMenu #thumbSizeLabel{display:inline}
+
+@media (max-width:1180px){          /* 中幅: すべてアイコンのみに */
+  #topbar{gap:6px;padding:8px 10px}
+  #projectTitle{width:150px}
+  #tbMain .lbl{display:none}
+  #thumbSizeLabel{display:none}
+}
+@media (max-width:1000px){
+  #topbar .logo{display:none}
+  #projectTitle{width:120px}
+}
+@media (max-width:720px){           /* 狭幅: メインのボタン群を「…」メニューへ集約 */
+  #projectTitle{flex:1;width:auto;min-width:80px}
+  #saveStatus{display:none}
+  #btnMore{display:inline-flex}
+}
+
+/* サイドバーの開閉 */
+#btnToggleSidebar{flex-shrink:0}
+body.sidebar-collapsed #sidebar{display:none}
+
 /* sidebar */
 #sidebar{
   width:230px;flex-shrink:0;display:flex;flex-direction:column;
@@ -351,7 +399,7 @@ body:not(.dnd-dragging) .scene-item:hover .drag-handle,body:not(.dnd-dragging) .
   flex-shrink:0;user-select:none;font-size:13px;
 }
 #faceChip:hover{border-color:var(--accent)}
-#mainInput{flex:1;padding:8px 12px;font-size:15px}
+#mainInput{flex:1;min-width:0;padding:8px 12px;font-size:15px}
 #inputHint{
   max-width:860px;margin:4px auto 0;color:#565d6e;font-size:11px;
   display:flex;gap:16px;flex-wrap:wrap;user-select:none;
@@ -574,31 +622,61 @@ body:not(.dnd-dragging) .stat-row:hover{background:var(--bg2)}
   box-shadow:0 4px 20px #0008;
 }
 .toast.err{border-color:var(--danger)}
+
+/* ===== 入力バー（下部）・セリフ一覧の狭幅対応 =====
+   これらの基本ルールはスタイルシート後半で定義されているため、確実に上書きできるよう末尾に置く */
+@media (max-width:900px){
+  #btnChoiceCmd .lbl,#btnJumpCmd .lbl{display:none}   /* 中幅: 選択肢／ジャンプはアイコンのみ・1行を維持 */
+}
+@media (max-width:720px){
+  /* 狭幅: キャラ選択 / セリフ入力 / 分岐ボタン をそれぞれ別の行に分けて横のはみ出しを防ぐ */
+  #inputBar{padding:8px 12px}
+  #inputInner{flex-wrap:wrap;gap:6px}
+  #speakerChip{min-width:0;padding:6px 10px;order:1}
+  #faceChip{order:1}
+  #mainInput{flex:1 1 100%;order:2;font-size:14px}
+  #btnChoiceCmd,#btnJumpCmd{order:3;flex:1}
+  #btnChoiceCmd .lbl,#btnJumpCmd .lbl{display:inline}   /* 専用行になるのでラベルを戻す */
+  #inputHint{display:none}                              /* 省スペースのためショートカット凡例は隠す */
+  /* セリフ一覧の左右マージンを詰める（狭幅では左右 8px ＋ 行番号ぶんのみに） */
+  #cmdListWrap{padding-left:8px;padding-right:8px}
+  #cmdList{max-width:none}
+  .cmd-row{padding-left:2px;padding-right:2px;gap:4px}
+  .cmd-row .drag-handle{display:none}   /* 並べ替えハンドルのぶんの余白も詰める（並べ替えは Ctrl+↑↓ で可能） */
+  .row-num{width:20px}
+  .cmd-row.selected::after{left:34px}
+}
 </style>
 </head>
 <body>
 <div id="app">
   <div id="topbar">
+    <button id="btnToggleSidebar" title="サイドバーの表示/非表示 (Ctrl+B)" aria-label="サイドバーの表示切替"><span data-icon="panel-left"></span></button>
     <span class="logo"><span data-icon="book-open"></span> NovelEdit</span>
     <input type="text" id="projectTitle" placeholder="プロジェクト名">
-    <button id="btnNew" title="新規プロジェクト"><span data-icon="file-plus"></span>新規</button>
-    <button id="btnImport" title="JSONファイルを読み込み"><span data-icon="folder-open"></span>読込</button>
-    <button id="btnExport" class="primary" title="JSONファイルとして保存 (Ctrl+S)"><span data-icon="save"></span>JSON保存</button>
-    <button id="btnExportTxt" title="読みやすいテキスト台本として書き出し"><span data-icon="file-text"></span>台本TXT</button>
-    <button id="btnExportGame" title="メモ・サムネイル・コメント行を除いたゲーム用データを書き出し"><span data-icon="gamepad-2"></span>ゲーム出力</button>
+    <div class="tb-collapsible" id="tbMain">
+      <button id="btnNew" title="新規プロジェクト"><span data-icon="file-plus"></span><span class="lbl">新規</span></button>
+      <button id="btnImport" title="JSONファイルを読み込み"><span data-icon="folder-open"></span><span class="lbl">読込</span></button>
+      <button id="btnExport" class="primary" title="JSONファイルとして保存 (Ctrl+S)"><span data-icon="save"></span><span class="lbl">JSON保存</span></button>
+      <button id="btnExportTxt" title="読みやすいテキスト台本として書き出し"><span data-icon="file-text"></span><span class="lbl">台本TXT</span></button>
+      <button id="btnExportGame" title="メモ・サムネイル・コメント行を除いたゲーム用データを書き出し"><span data-icon="gamepad-2"></span><span class="lbl">ゲーム出力</span></button>
+      <span class="tb-sep"></span>
+      <button id="btnPlay" title="テストプレイ (Ctrl+P)"><span data-icon="play"></span><span class="lbl">テストプレイ</span></button>
+      <button id="btnOutline" class="icon-only" title="あらすじビュー — 全体の流れ・大枠メモ・シーンごとのあらすじ"><span data-icon="book-open"></span><span class="lbl">あらすじ</span></button>
+      <button id="btnStats" class="icon-only" title="統計情報 — シーン・章・全体のセリフ数と文字数"><span data-icon="chart-column"></span><span class="lbl">統計情報</span></button>
+      <button id="btnTrans" class="icon-only" title="翻訳画面 — セリフ・選択肢・キャラ名を他言語に翻訳"><span data-icon="languages"></span><span class="lbl">翻訳</span></button>
+      <button id="btnHonor" class="icon-only" title="人称チェック設定 — キャラごとの一人称・呼び方を登録して表記ゆれを検出"><span data-icon="users"></span><span class="lbl">人称チェック</span></button>
+      <button id="btnSearch" class="icon-only" title="プロジェクト全体を全文検索 (Ctrl+F)"><span data-icon="search"></span><span class="lbl">検索</span></button>
+      <button id="btnHelp" class="icon-only" title="ヘルプ (F1)"><span data-icon="circle-help"></span><span class="lbl">ヘルプ</span></button>
+    </div>
     <span id="thumbSizeCtrl" title="行のサムネイル表示サイズ（表情を見ながら編集したいときに拡大できます）">
       <span data-icon="image"></span>
       <input type="range" id="thumbSizeSlider" min="0" max="3" step="1" value="0">
       <span id="thumbSizeLabel">1倍</span>
     </span>
     <span id="saveStatus"></span>
-    <button id="btnPlay" title="テストプレイ (Ctrl+P)"><span data-icon="play"></span>テストプレイ</button>
-    <button id="btnOutline" title="あらすじビュー — 全体の流れ・大枠メモ・シーンごとのあらすじ"><span data-icon="book-open"></span></button>
-    <button id="btnStats" title="統計情報 — シーン・章・全体のセリフ数と文字数"><span data-icon="chart-column"></span></button>
-    <button id="btnTrans" title="翻訳画面 — セリフ・選択肢・キャラ名を他言語に翻訳"><span data-icon="languages"></span></button>
-    <button id="btnHonor" title="人称チェック設定 — キャラごとの一人称・呼び方を登録して表記ゆれを検出"><span data-icon="users"></span></button>
-    <button id="btnSearch" title="プロジェクト全体を全文検索 (Ctrl+F)"><span data-icon="search"></span></button>
-    <button id="btnHelp" title="ヘルプ (F1)"><span data-icon="circle-help"></span></button>
+    <button id="btnMore" title="その他のメニュー" aria-label="その他のメニュー"><span data-icon="ellipsis"></span></button>
+    <div id="moreMenu"></div>
     <input type="file" id="fileInput" accept=".json" style="display:none">
   </div>
   <div id="main">
@@ -631,8 +709,8 @@ body:not(.dnd-dragging) .stat-row:hover{background:var(--bg2)}
           <div id="speakerChip" title="クリックで話者切替 (Ctrl+0〜9)">地の文</div>
           <div id="faceChip" title="クリックで表情切替">表情</div>
           <input type="text" id="mainInput" placeholder="セリフを入力して Enter （@名前 で話者切替、/ でコマンド）" autocomplete="off">
-          <button id="btnChoiceCmd" title="選択肢を挿入 (/choice)"><span data-icon="split"></span>選択肢</button>
-          <button id="btnJumpCmd" title="シーンへのジャンプを挿入 (/jump)"><span data-icon="corner-down-right"></span>ジャンプ</button>
+          <button id="btnChoiceCmd" title="選択肢を挿入 (/choice)"><span data-icon="split"></span><span class="lbl">選択肢</span></button>
+          <button id="btnJumpCmd" title="シーンへのジャンプを挿入 (/jump)"><span data-icon="corner-down-right"></span><span class="lbl">ジャンプ</span></button>
         </div>
         <div id="inputHint">
           <span><b>@名前␣</b>話者切替</span>
@@ -763,6 +841,7 @@ body:not(.dnd-dragging) .stat-row:hover{background:var(--bg2)}
       <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd></td><td>元に戻す／やり直し</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>JSONファイルとして保存</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>P</kbd></td><td>テストプレイ</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>B</kbd></td><td>サイドバー（シーン・キャラクター一覧）の表示／非表示。ツールバー左端の <span data-icon="panel-left"></span> でも切り替えできます</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>F</kbd></td><td>プロジェクト全体を全文検索。シーン名・セリフ・地の文・コメント・背景/BGM/効果音名・選択肢の文が対象。<kbd>↑</kbd><kbd>↓</kbd>で結果を選び <kbd>Enter</kbd>（またはクリック）で該当行へジャンプ</td></tr>
     </table>
     <h4>その他</h4>

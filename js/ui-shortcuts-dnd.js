@@ -36,6 +36,42 @@ $("#btnAddChar").addEventListener("click", () => openCharModal(null));
 $("#btnPlay").addEventListener("click", openPlay);
 $("#btnHelp").addEventListener("click", () => showModal("#helpModal"));
 
+/* ---------- サイドバーの開閉 ---------- */
+function setSidebarCollapsed(v){
+  document.body.classList.toggle("sidebar-collapsed", !!v);
+  try{ localStorage.setItem(SIDEBAR_LS_KEY, v ? "1" : "0"); }catch(e){}
+}
+function toggleSidebar(){ setSidebarCollapsed(!document.body.classList.contains("sidebar-collapsed")); }
+try{ if(localStorage.getItem(SIDEBAR_LS_KEY) === "1") document.body.classList.add("sidebar-collapsed"); }catch(e){}
+$("#btnToggleSidebar").addEventListener("click", toggleSidebar);
+
+/* ---------- ヘッダの「…」メニュー（狭幅時にボタン群を集約） ---------- */
+(function(){
+  const mq = window.matchMedia("(max-width:720px)");
+  const topbar = $("#topbar"), menu = $("#moreMenu"), moreBtn = $("#btnMore"),
+        tbMain = $("#tbMain"), thumbCtrl = $("#thumbSizeCtrl"), saveStatus = $("#saveStatus");
+  // 実DOMノードを移動する（クローンしない）ので、各操作のイベントリスナーはそのまま生きる。
+  // ボタン群に加えてサムネイルサイズ調整もメニューへ移し、狭幅でも変更できるようにする
+  function place(){
+    if(mq.matches){
+      if(tbMain.parentElement !== menu) menu.appendChild(tbMain);
+      if(thumbCtrl.parentElement !== menu) menu.appendChild(thumbCtrl);
+    }else{
+      if(thumbCtrl.parentElement !== topbar) topbar.insertBefore(thumbCtrl, saveStatus);
+      if(tbMain.parentElement !== topbar) topbar.insertBefore(tbMain, thumbCtrl);
+      menu.classList.remove("show");
+    }
+  }
+  mq.addEventListener("change", place);
+  moreBtn.addEventListener("click", e => { e.stopPropagation(); menu.classList.toggle("show"); });
+  menu.addEventListener("click", e => { if(e.target.closest("button")) menu.classList.remove("show"); });
+  document.addEventListener("click", e => {
+    if(menu.classList.contains("show") && !menu.contains(e.target) && !moreBtn.contains(e.target))
+      menu.classList.remove("show");
+  });
+  place();
+})();
+
 /* ---------- グローバルショートカット ---------- */
 document.addEventListener("keydown", e => {
   if(e.isComposing || e.keyCode === 229) return;
@@ -43,7 +79,7 @@ document.addEventListener("keydown", e => {
   // モーダル表示中は Esc で閉じるのみ
   if(anyModalOpen()){
     if(e.key === "Escape"){
-      document.querySelectorAll(".modal-back.show").forEach(m => m.classList.remove("show"));
+      document.querySelectorAll(".modal-back.show").forEach(m => { if(canCloseModal(m)) m.classList.remove("show"); });
       mainInput.focus();
     }
     return;
@@ -52,6 +88,7 @@ document.addEventListener("keydown", e => {
   if(e.ctrlKey && !e.shiftKey && (e.key === "z" || e.key === "Z")){ e.preventDefault(); undo(); return; }
   if(e.ctrlKey && ((e.key === "y" || e.key === "Y") || (e.shiftKey && (e.key === "z" || e.key === "Z")))){ e.preventDefault(); redo(); return; }
   if(e.ctrlKey && (e.key === "s" || e.key === "S")){ e.preventDefault(); $("#btnExport").click(); return; }
+  if(e.ctrlKey && !e.shiftKey && !e.altKey && (e.key === "b" || e.key === "B")){ e.preventDefault(); toggleSidebar(); return; }
   if(e.ctrlKey && (e.key === "p" || e.key === "P")){ e.preventDefault(); openPlay(); return; }
   if(e.ctrlKey && (e.key === "f" || e.key === "F")){ e.preventDefault(); openSearch(); return; }
   if(e.key === "F1"){ e.preventDefault(); showModal("#helpModal"); return; }

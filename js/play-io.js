@@ -2,10 +2,20 @@
 /* ---------- モーダル共通 ---------- */
 function showModal(sel){ $(sel).classList.add("show"); }
 function hideModal(sel){ $(sel).classList.remove("show"); }
+/* モーダルを閉じる前のガード（back要素のid => 閉じてよければ true）。
+   外側クリック / キャンセルボタン / Esc で閉じる経路だけを通し、保存・削除の hideModal は素通しする。 */
+const modalCloseGuards = {
+  charModal: () => !charModalDirty() ||
+    confirm("キャラクターの編集内容が保存されていません。破棄して閉じますか？"),
+};
+function canCloseModal(back){
+  const guard = modalCloseGuards[back.id];
+  return !guard || guard();
+}
 document.querySelectorAll(".modal-back").forEach(back => {
-  back.addEventListener("mousedown", e => { if(e.target === back) back.classList.remove("show"); });
+  back.addEventListener("mousedown", e => { if(e.target === back && canCloseModal(back)) back.classList.remove("show"); });
   back.querySelectorAll("[data-close]").forEach(b =>
-    b.addEventListener("click", () => back.classList.remove("show")));
+    b.addEventListener("click", () => { if(canCloseModal(back)) back.classList.remove("show"); }));
 });
 function anyModalOpen(){ return !!document.querySelector(".modal-back.show"); }
 

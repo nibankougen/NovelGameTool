@@ -2,6 +2,21 @@
 /* ---------- キャラクターモーダル ---------- */
 let editingCharId = null;
 let pendingThumb = null;          // モーダル内で編集中のサムネイル(dataURL)
+let charModalSnapshot = null;     // モーダルを開いた時点のフォーム状態（外側クリック等で閉じる前の変更検知用）
+/* 現在のフォーム内容を文字列化（打ちかけの表情入力欄も含める） */
+function charModalState(){
+  return JSON.stringify({
+    name:   $("#charNameInput").value,
+    color:  $("#charColorInput").value,
+    memo:   $("#charMemoInput").value,
+    thumb:  pendingThumb || null,
+    typing: $("#charExprInput").value.trim(),
+    expr:   exprStaged.map(x => ({ orig: x.orig, name: x.name, img: x.img || null })),
+  });
+}
+function charModalDirty(){
+  return charModalSnapshot !== null && charModalState() !== charModalSnapshot;
+}
 function openCharModal(c){
   editingCharId = c ? c.id : null;
   $("#charModalTitle").textContent = c ? "キャラクター編集" : "キャラクター追加";
@@ -20,6 +35,7 @@ function openCharModal(c){
   renderColorPal();
   showModal("#charModal");
   $("#charNameInput").focus();
+  charModalSnapshot = charModalState();
 }
 function renderThumbPreview(){
   const img = $("#charThumbPreview");
@@ -319,6 +335,7 @@ $("#charSaveBtn").addEventListener("click", () => {
     speakerFace = rn ? rn.name : (expressions.includes(speakerFace) ? speakerFace : null);
     renderSpeakerChip();
   }
+  charModalSnapshot = null;
   hideModal("#charModal");
   mainInput.focus();
 });
@@ -334,6 +351,7 @@ $("#charDeleteBtn").addEventListener("click", () => {
     project.honorificRules = project.honorificRules.filter(r => r.speakerId !== editingCharId && r.targetId !== editingCharId);
     if(speakerId === editingCharId) speakerId = null;
   });
+  charModalSnapshot = null;
   hideModal("#charModal");
 });
 $("#charNameInput").addEventListener("keydown", e => {
