@@ -9,12 +9,27 @@ $("#projectTitle").addEventListener("change", e => {
   mutate(() => { project.title = e.target.value.trim() || "無題"; });
 });
 function createScene(groupId){
+  // 現在開いているシーンがあれば、その直下（同じグループ内）に新規シーンを配置する。
+  // グループ未指定（全体の追加ボタン）の場合は現在開いているシーンの所属グループに従う。
+  const curScene = project.scenes.find(s => s.id === currentSceneId);
+  let effectiveGroupId = groupId || null;
+  let insertAfterId = null;
+  if(groupId == null){
+    if(curScene){ effectiveGroupId = curScene.groupId || null; insertAfterId = curScene.id; }
+  }else if(curScene && (curScene.groupId || null) === groupId){
+    insertAfterId = curScene.id;
+  }
   let n = project.scenes.length + 1;
   while(project.scenes.some(s => s.name === "シーン" + n)) n++;
   let newScene;
   mutate(() => {
-    newScene = { id: uid(), name: "シーン" + n, commands: [], groupId: groupId || null, synopsis: "" };
-    project.scenes.push(newScene);
+    newScene = { id: uid(), name: "シーン" + n, commands: [], groupId: effectiveGroupId, synopsis: "" };
+    if(insertAfterId){
+      const idx = project.scenes.findIndex(s => s.id === insertAfterId);
+      project.scenes.splice(idx + 1, 0, newScene);
+    }else{
+      project.scenes.push(newScene);
+    }
     currentSceneId = newScene.id;
     selIndex = null;
   });
