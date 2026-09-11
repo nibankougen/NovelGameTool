@@ -15,16 +15,21 @@ function PlayModalInner({ onClose }: { onClose: () => void }) {
   const findChar = useCharLookup();
   const { state, advance, restart } = usePlaySession(project, editorUi.currentSceneId, findChar);
 
+  // テストプレイの舞台は実際のゲーム画面（常に暗めのVNスタイル）を模したプレビューのため、
+  // エディタのライト／ダークテーマに関わらず常に読める配色で固定する（var(--text)等は使わない）。
   return (
     <Modal open={true} onRequestClose={onClose} bare className="w-[min(860px,92vw)] h-[min(560px,80vh)]">
       <div
-        className="w-full h-full relative flex flex-col rounded-xl border border-border overflow-hidden select-none"
-        style={{ background: "linear-gradient(180deg,#2a2f3a,#171a21)" }}
+        className="w-full h-full relative flex flex-col rounded-xl border overflow-hidden select-none"
+        style={{ background: "linear-gradient(180deg,#2a2f3a,#171a21)", borderColor: "#3a4050" }}
       >
-        <div className="px-3.5 py-2 flex items-center gap-3.5 text-xs text-text-dim" style={{ background: "rgba(0,0,0,.4)" }}>
+        <div
+          className="px-3.5 py-2 flex items-center gap-3.5 text-xs"
+          style={{ background: "rgba(0,0,0,.4)", color: "#aab0bf" }}
+        >
           <span className="bg-black/50 rounded px-2.5 py-0.5">背景: {state.bgLabel}</span>
           <span className="bg-black/50 rounded px-2.5 py-0.5">BGM: {state.bgmLabel}</span>
-          <ModalCloseButton onClick={onClose} className="ml-auto" />
+          <ModalCloseButton onClick={onClose} className="ml-auto text-[#aab0bf] hover:text-white" />
         </div>
         <div className="flex-1 relative cursor-pointer" onClick={() => advance()}>
           {state.bgImage && (
@@ -32,7 +37,7 @@ function PlayModalInner({ onClose }: { onClose: () => void }) {
           )}
           <div
             className="absolute left-3 right-3 bottom-3 min-h-[130px] rounded-[10px] border px-4.5 py-3 leading-loose text-base flex gap-3.5 items-start"
-            style={{ background: "rgba(15,17,22,.9)", borderColor: "#3a4050" }}
+            style={{ background: "rgba(15,17,22,.9)", borderColor: "#3a4050", color: "#eef0f4" }}
           >
             {state.faceImg && (
               <img
@@ -59,7 +64,7 @@ function PlayModalInner({ onClose }: { onClose: () => void }) {
               {state.choices.map((c, i) => (
                 <button
                   key={i}
-                  className="min-w-[300px] px-5 py-2.5 text-[15px]"
+                  className="min-w-[300px] px-5 py-2.5 text-[15px] text-[#eef0f4] hover:bg-[#2a2e38] hover:border-[#5a6275]"
                   style={{ background: "#1e2128ee", borderColor: "#4a5163" }}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -73,8 +78,15 @@ function PlayModalInner({ onClose }: { onClose: () => void }) {
           )}
         </div>
         <div className="flex gap-2 justify-between px-3.5 py-2.5" style={{ background: "rgba(0,0,0,.4)" }}>
-          <span className="text-text-dim text-xs self-center">{state.sceneName}</span>
-          <button onClick={restart}>最初から</button>
+          <span className="text-xs self-center" style={{ color: "#aab0bf" }}>
+            {state.sceneName}
+          </span>
+          <button
+            className="bg-[#262b35] text-[#eef0f4] border border-[#3a4050] hover:bg-[#2f3542] hover:border-[#5a6275]"
+            onClick={restart}
+          >
+            最初から
+          </button>
         </div>
       </div>
     </Modal>
