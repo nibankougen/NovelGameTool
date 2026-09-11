@@ -128,11 +128,20 @@ export function SceneList() {
     } else if (curScene && (curScene.groupId || null) === groupId) {
       insertAfterId = curScene.id;
     }
-    let n = project.scenes.length + 1;
-    while (project.scenes.some((s) => s.name === "シーン" + n)) n++;
+    const numMatch = curScene ? curScene.name.match(/^(.*)([0-9]+)$/) : null;
+    let namePrefix: string;
+    let n: number;
+    if (numMatch) {
+      namePrefix = numMatch[1];
+      n = parseInt(numMatch[2], 10) + 1;
+    } else {
+      namePrefix = "シーン";
+      n = project.scenes.length + 1;
+    }
+    while (project.scenes.some((s) => s.name === namePrefix + n)) n++;
     const newId = uid();
     mutate((d) => {
-      const newScene = { id: newId, name: "シーン" + n, commands: [], groupId: effectiveGroupId, synopsis: "" };
+      const newScene = { id: newId, name: namePrefix + n, commands: [], groupId: effectiveGroupId, synopsis: "" };
       if (insertAfterId) {
         const idx = d.scenes.findIndex((s) => s.id === insertAfterId);
         d.scenes.splice(idx + 1, 0, newScene);
