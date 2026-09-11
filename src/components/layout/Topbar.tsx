@@ -61,6 +61,10 @@ function ToolbarButtons({ showLabels }: { showLabels: boolean }) {
         <Icon name="circle-help" />
         <Lbl>ヘルプ</Lbl>
       </button>
+      <button onClick={a.openSettings} title="設定 — テーマ・サムネイルサイズなど">
+        <Icon name="settings" />
+        <Lbl>設定</Lbl>
+      </button>
     </>
   );
 }
@@ -86,38 +90,6 @@ function ImportButton({ showLabels }: { showLabels: boolean }) {
         }}
       />
     </>
-  );
-}
-
-function ThumbSizeControl() {
-  const a = useAppActions();
-  return (
-    <span className="flex items-center gap-1.5 text-text-dim text-xs shrink-0" title="行のサムネイル表示サイズ（表情を見ながら編集したいときに拡大できます）">
-      <Icon name="image" />
-      <input
-        type="range"
-        min={0}
-        max={3}
-        step={1}
-        value={a.thumbSizeStep}
-        onChange={(e) => a.setThumbSizeStep(parseInt(e.target.value, 10))}
-        className="w-16 accent-accent cursor-pointer"
-      />
-      <span>{a.thumbSizeStep + 1}倍</span>
-    </span>
-  );
-}
-
-function ThemeToggle() {
-  const a = useAppActions();
-  const next = a.theme === "dark" ? "light" : a.theme === "light" ? null : "dark";
-  const icon = a.theme === "dark" ? "moon" : a.theme === "light" ? "sun" : "sun";
-  const title =
-    a.theme === "dark" ? "ダーク表示中（クリックでライトへ）" : a.theme === "light" ? "ライト表示中（クリックでOS設定に従う）" : "OS設定に追従中（クリックでダークへ）";
-  return (
-    <button onClick={() => a.setTheme(next)} title={title} aria-label="テーマ切替">
-      <Icon name={icon} />
-    </button>
   );
 }
 
@@ -170,8 +142,6 @@ export function Topbar() {
           <ToolbarButtons showLabels={showLabels} />
         </div>
       )}
-      {!narrow && <ThumbSizeControl />}
-      <ThemeToggle />
       {!narrow && <span className="text-text-dim text-xs ml-auto mr-2">{saveStatus}</span>}
 
       {narrow && (
@@ -186,9 +156,6 @@ export function Topbar() {
         >
           <div className="flex flex-col gap-0.5 [&_button]:justify-start [&_button]:w-full [&_button]:bg-transparent [&_button]:border-transparent">
             <ToolbarButtons showLabels />
-          </div>
-          <div className="mt-1 pt-2 border-t border-border">
-            <ThumbSizeControl />
           </div>
         </div>
       )}

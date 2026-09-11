@@ -24,6 +24,7 @@ import {
   Plus,
   Save,
   Search,
+  Settings,
   Split,
   Sun,
   TriangleAlert,
@@ -67,6 +68,7 @@ const ICONS: Record<string, LucideIcon> = {
   moon: Moon,
   music: Music,
   upload: Upload,
+  settings: Settings,
 };
 
 export type IconName = keyof typeof ICONS;
