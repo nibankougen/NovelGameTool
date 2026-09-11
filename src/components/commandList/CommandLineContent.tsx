@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { Icon } from "../common/Icon";
 import { MentionText } from "../common/MentionText";
+import { ColumnResizeHandle } from "./ColumnResizeHandle";
+import { useSerifColumns } from "../../state/SerifColumnsContext";
 import type { CharLookup } from "../../lib/text";
 import type { Command, Scene } from "../../types/project";
 
@@ -40,39 +42,14 @@ function BrokenRef({ children }: { children: ReactNode }) {
 }
 
 export function CommandLineContent({ cmd, findChar, scenes, honorIssues, acked, onToggleHonorAck, onGotoScene }: Props) {
+  const { speakerColWidth, faceColWidth, setSpeakerColWidth, setFaceColWidth } = useSerifColumns();
   switch (cmd.type) {
     case "serif": {
-      if (!cmd.chara) {
-        return (
-          <span className="narration text-narration">
-            <MentionText text={cmd.text} findChar={findChar} />
-          </span>
-        );
-      }
-      const ch = findChar(cmd.chara);
+      const ch = cmd.chara ? findChar(cmd.chara) : null;
       const faceBroken = !!(cmd.face && ch && !ch.expressions.includes(cmd.face));
       const img = ch ? (cmd.face && ch.exprImages[cmd.face]) || ch.thumb : null;
       const badge = honorIssues.length > 0;
       const ackTitle = acked ? "確認済み（クリックで戻す）" : "クリックで確認済みにする（薄く表示）";
-      const body = (
-        <>
-          <span className="speaker-name font-bold mr-0.5" style={{ color: ch ? ch.color : "var(--danger)" }}>
-            {ch ? ch.name : <BrokenRef>（削除済キャラ）</BrokenRef>}
-          </span>
-          {cmd.face &&
-            (faceBroken ? (
-              <span className="face-tag broken-ref text-danger text-xs font-normal mr-0.5" title="表情候補から削除された表情です">
-                <Icon name="triangle-alert" />（{cmd.face}）
-              </span>
-            ) : (
-              <span className="face-tag text-text-dim text-xs font-normal mr-0.5">（{cmd.face}）</span>
-            ))}
-          <span className="serif-text">
-            「
-            <MentionText text={cmd.text} findChar={findChar} />」
-          </span>
-        </>
-      );
       const badgeEl = badge && (
         <div className="honor-badge-row flex">
           <span
@@ -88,18 +65,52 @@ export function CommandLineContent({ cmd, findChar, scenes, honorIssues, acked, 
           </span>
         </div>
       );
-      if (img || badge) {
-        return (
-          <div className="serif-row-inner flex items-center">
-            {img && <img className="row-face w-[26px] h-[26px] rounded object-cover shrink-0 align-middle mr-1.5 bg-bg-3" src={img} alt="" />}
-            <div className="serif-content flex-1 min-w-0">
-              {badgeEl}
-              {body}
-            </div>
+      return (
+        <div className="serif-row-inner flex items-start">
+          <div className="row-face-slot w-[26px] h-[26px] shrink-0 mr-1.5">
+            {img && <img className="row-face w-full h-full rounded object-cover align-middle bg-bg-3" src={img} alt="" />}
           </div>
-        );
-      }
-      return body;
+          <div className="speaker-col relative self-stretch shrink-0 mr-1.5" style={{ width: speakerColWidth }}>
+            <div className="h-[26px] flex items-center">
+              {cmd.chara && (
+                <span
+                  className="speaker-name font-bold text-sm truncate flex-1 min-w-0"
+                  style={{ color: ch ? ch.color : "var(--danger)" }}
+                  title={ch ? ch.name : undefined}
+                >
+                  {ch ? ch.name : <BrokenRef>（削除済キャラ）</BrokenRef>}
+                </span>
+              )}
+            </div>
+            <ColumnResizeHandle width={speakerColWidth} onResize={setSpeakerColWidth} />
+          </div>
+          <div className="face-col relative self-stretch shrink-0 mr-1.5" style={{ width: faceColWidth }}>
+            <div className="h-[26px] flex items-center">
+              {cmd.chara &&
+                cmd.face &&
+                (faceBroken ? (
+                  <span
+                    className="face-tag broken-ref text-danger text-xs font-normal truncate flex-1 min-w-0"
+                    title="表情候補から削除された表情です"
+                  >
+                    <Icon name="triangle-alert" />（{cmd.face}）
+                  </span>
+                ) : (
+                  <span className="face-tag text-text-dim text-xs font-normal truncate flex-1 min-w-0" title={cmd.face}>
+                    （{cmd.face}）
+                  </span>
+                ))}
+            </div>
+            <ColumnResizeHandle width={faceColWidth} onResize={setFaceColWidth} />
+          </div>
+          <div className="serif-content flex-1 min-w-0">
+            {badgeEl}
+            <span className={cmd.chara ? "serif-text" : "narration text-narration"}>
+              <MentionText text={cmd.text} findChar={findChar} />
+            </span>
+          </div>
+        </div>
+      );
     }
     case "bg":
       return (

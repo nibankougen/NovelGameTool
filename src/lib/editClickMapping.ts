@@ -8,7 +8,7 @@ export type ClickInfo = { zone: "speaker" } | { zone: "face" } | { zone: "text";
 /**
  * 表示行のクリック位置から、インライン編集欄でカーソルを置くべき位置を推定する。
  * 話者名／表情タグをクリックした場合はそのチップのドロップダウンを開く指示を返す。
- * serif行は「」または地の文コンテナ内での絶対文字位置（解決済み表示上の位置）から算出し、
+ * serif行はセリフ本文または地の文コンテナ内での絶対文字位置（解決済み表示上の位置）から算出し、
  * 《名前》表示形式のオフセットへ変換する。それ以外の行は「文末からの距離」ヒューリスティックで近似する。
  */
 export function computeClickInfo(
@@ -44,7 +44,7 @@ export function computeClickInfo(
 
   if (c.type === "serif") {
     // 本文中に名前参照（《名前》）があると1つのテキストノードに収まらないため、
-    // 「」または地の文全体を囲うコンテナ内での絶対位置（解決済み表示上の位置）から算出する
+    // セリフ本文または地の文全体を囲うコンテナ内での絶対位置（解決済み表示上の位置）から算出する
     const container = parent.closest(".serif-text") || parent.closest(".narration");
     let resolvedOff: number;
     if (container) {
@@ -52,10 +52,8 @@ export function computeClickInfo(
       range.selectNodeContents(container);
       range.setEnd(node, offset);
       resolvedOff = range.toString().length;
-      if (container.classList.contains("serif-text")) resolvedOff -= 1; // 先頭の「 を除外
     } else {
-      const raw = (node as Text).data;
-      resolvedOff = raw.charAt(0) === "「" ? offset - 1 : offset;
+      resolvedOff = offset;
     }
     resolvedOff = Math.max(0, resolvedOff);
     const off = Math.max(

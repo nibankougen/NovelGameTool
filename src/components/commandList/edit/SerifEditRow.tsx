@@ -9,6 +9,8 @@ import { textToDisplay, textToStorage, insertTextAtCursor } from "../../../lib/t
 import { parseInput } from "../../../lib/parseInput";
 import { parseInputDry, makeDraftParseEnv } from "../../../lib/parseEnvDraft";
 import { carryTr } from "../../../lib/carryTr";
+import { ColumnResizeHandle } from "../ColumnResizeHandle";
+import { useSerifColumns } from "../../../state/SerifColumnsContext";
 import type { Scene, SerifCommand } from "../../../types/project";
 import type { ClickInfo } from "../../../lib/editClickMapping";
 
@@ -25,6 +27,7 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
   const appActions = useAppActions();
   const findChar = useCharLookup();
   const toast = useToast();
+  const { speakerColWidth, faceColWidth, setSpeakerColWidth, setFaceColWidth } = useSerifColumns();
 
   const clickInfoRef = useRef<ClickInfo | null>(null);
   const [initialized] = useState(() => {
@@ -201,11 +204,14 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
 
   return (
     <div className="cmd-row flex items-start gap-2 px-2 py-1 my-px">
+      <span className="drag-handle invisible pt-1">
+        <Icon name="grip-vertical" />
+      </span>
       <span className="w-8 shrink-0" />
       <div className="row-body flex-1 min-w-0">
         <div
           ref={wrapRef}
-          className="edit-wrap flex gap-1.5 items-center w-full relative"
+          className="edit-wrap flex items-center w-full relative"
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => {
             if ((e.target as HTMLElement) !== inputRef.current && e.key === "Escape") {
@@ -222,62 +228,72 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
             }, 0);
           }}
         >
-          {thumbSrc && (
-            <img
-              className="edit-thumb w-[26px] h-[26px] rounded object-cover shrink-0 align-middle mr-px bg-bg-3"
-              src={thumbSrc}
-              alt=""
-              title="話者のサムネイル（表情画像がない場合はデフォルトイラスト）"
-            />
-          )}
-          <button
-            ref={spkChipRef}
-            type="button"
-            className="edit-chip edit-chip-spk inline-flex items-center gap-1 px-1 py-0.5 min-h-0 rounded font-bold text-sm hover:bg-bg-3 hover:outline hover:outline-1 hover:outline-accent"
-            style={{ color: ch ? ch.color : "var(--narration)" }}
-            title="クリックで話者切替／Backspaceで削除（地の文に）"
-            onClick={(e) => {
-              e.stopPropagation();
-              openSpeakerMenu();
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Delete" || e.key === "Backspace") {
-                e.preventDefault();
-                setSpk(null);
-                setFace(null);
-                inputRef.current?.focus();
-              }
-            }}
-          >
-            {ch ? ch.name : "地の文"}
-          </button>
-          {ch && faceChipVisible && (
+          <div className="row-face-slot w-[26px] h-[26px] shrink-0 mr-1.5">
+            {thumbSrc && (
+              <img
+                className="edit-thumb w-full h-full rounded object-cover bg-bg-3"
+                src={thumbSrc}
+                alt=""
+                title="話者のサムネイル（表情画像がない場合はデフォルトイラスト）"
+              />
+            )}
+          </div>
+          <div className="speaker-col relative self-stretch shrink-0 mr-1.5" style={{ width: speakerColWidth }}>
             <button
-              ref={faceChipRef}
+              ref={spkChipRef}
               type="button"
-              className="edit-chip edit-chip-face inline-flex items-center gap-1 px-1 py-0.5 min-h-0 rounded font-normal text-xs hover:bg-bg-3 hover:outline hover:outline-1 hover:outline-accent"
-              style={{ color: face ? undefined : "var(--text-dim)", order: face ? undefined : 2 }}
-              title="クリックで表情切替／Backspaceで表情削除"
+              className="edit-chip edit-chip-spk flex items-center gap-1 px-1 h-[26px] w-full min-h-0 rounded font-bold text-sm hover:bg-bg-3 hover:outline hover:outline-1 hover:outline-accent"
+              style={{ color: ch ? ch.color : "var(--narration)" }}
+              title="クリックで話者切替／Backspaceで削除（地の文に）"
               onClick={(e) => {
                 e.stopPropagation();
-                openFaceMenu();
+                openSpeakerMenu();
               }}
               onKeyDown={(e) => {
                 if (e.key === "Delete" || e.key === "Backspace") {
                   e.preventDefault();
+                  setSpk(null);
                   setFace(null);
                   inputRef.current?.focus();
                 }
               }}
             >
-              {face ? `（${face}）` : (
-                <>
-                  <Icon name="plus" />表情
-                </>
-              )}
+              <span className="truncate flex-1 min-w-0 text-left">{ch ? ch.name : "地の文"}</span>
             </button>
-          )}
-          {ch && <span className="edit-quote select-none">「</span>}
+            <ColumnResizeHandle width={speakerColWidth} onResize={setSpeakerColWidth} />
+          </div>
+          <div className="face-col relative self-stretch shrink-0 mr-1.5" style={{ width: faceColWidth }}>
+            {faceChipVisible && (
+              <button
+                ref={faceChipRef}
+                type="button"
+                className="edit-chip edit-chip-face flex items-center gap-1 px-1 h-[26px] w-full min-h-0 rounded font-normal text-xs hover:bg-bg-3 hover:outline hover:outline-1 hover:outline-accent"
+                style={{ color: face ? undefined : "var(--text-dim)" }}
+                title="クリックで表情切替／Backspaceで表情削除"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openFaceMenu();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Delete" || e.key === "Backspace") {
+                    e.preventDefault();
+                    setFace(null);
+                    inputRef.current?.focus();
+                  }
+                }}
+              >
+                {face ? (
+                  <span className="truncate flex-1 min-w-0 text-left">（{face}）</span>
+                ) : (
+                  <>
+                    <Icon name="plus" />
+                    <span className="truncate flex-1 min-w-0 text-left">表情</span>
+                  </>
+                )}
+              </button>
+            )}
+            <ColumnResizeHandle width={faceColWidth} onResize={setFaceColWidth} />
+          </div>
           <input
             ref={inputRefCallback}
             type="text"
@@ -310,14 +326,22 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
               e.stopPropagation();
             }}
           />
-          {ch && <span className="edit-quote select-none">」</span>}
           {menu && (
             <div
               className="edit-menu absolute z-60 bg-bg-3 border border-border rounded-lg shadow-2xl min-w-[150px] max-h-[250px] overflow-y-auto"
-              style={{
-                left: Math.max(0, Math.min((menu.for === "speaker" ? spkChipRef : faceChipRef).current?.offsetLeft ?? 0, (wrapRef.current?.clientWidth ?? 160) - 160)),
-                top: (((menu.for === "speaker" ? spkChipRef : faceChipRef).current?.offsetTop ?? 0) + ((menu.for === "speaker" ? spkChipRef : faceChipRef).current?.offsetHeight ?? 0) + 4),
-              }}
+              style={(() => {
+                const chipEl = (menu.for === "speaker" ? spkChipRef : faceChipRef).current;
+                const wrapEl = wrapRef.current;
+                let left = 0;
+                let top = 0;
+                if (chipEl && wrapEl) {
+                  const cr = chipEl.getBoundingClientRect();
+                  const wr = wrapEl.getBoundingClientRect();
+                  left = Math.max(0, Math.min(cr.left - wr.left, wrapEl.clientWidth - 160));
+                  top = cr.bottom - wr.top + 4;
+                }
+                return { left, top };
+              })()}
             >
               {menu.items.map((it, i) => (
                 <div

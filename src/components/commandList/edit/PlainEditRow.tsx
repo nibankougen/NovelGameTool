@@ -4,6 +4,7 @@ import { useEditorUi } from "../../../state/EditorUiContext";
 import { useAppActions } from "../../../state/AppActionsContext";
 import { useCharLookup } from "../../../hooks/useCharLookup";
 import { useToast } from "../../common/ToastProvider";
+import { Icon } from "../../common/Icon";
 import { cmdToInputText } from "../../../lib/commandSerialize";
 import { parseInput } from "../../../lib/parseInput";
 import { parseInputDry, makeDraftParseEnv } from "../../../lib/parseEnvDraft";
@@ -70,6 +71,9 @@ export function PlainEditRow({ index, cmd, scene }: { index: number; cmd: Comman
 
   return (
     <div className="cmd-row flex items-start gap-2 px-2 py-1 my-px">
+      <span className="drag-handle invisible pt-1">
+        <Icon name="grip-vertical" />
+      </span>
       <span className="w-8 shrink-0" />
       <div className="row-body flex-1 min-w-0">
         <input
