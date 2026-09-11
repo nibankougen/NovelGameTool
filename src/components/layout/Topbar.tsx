@@ -9,34 +9,32 @@ function ToolbarButtons({ showLabels }: { showLabels: boolean }) {
   const a = useAppActions();
   const Lbl = ({ children }: { children: string }) =>
     showLabels ? <span className="lbl">{children}</span> : null;
+
+  const fileItems: DropdownMenuItem[] = [
+    { label: "新規プロジェクト", icon: "file-plus", onClick: a.newProject },
+    { label: "バックアップから開く", icon: "folder-open", title: "JSONファイルを読み込み", onClick: a.openImportPicker },
+    { label: "バックアップをダウンロード", icon: "save", title: "JSONファイルとして保存 (Ctrl+S)", onClick: a.exportJson },
+    { label: "台本ファイルとして書き出し", icon: "file-text", title: "読みやすいテキスト台本として書き出し", onClick: a.exportTxt },
+    { label: "ゲーム用ファイルとして書き出し", icon: "gamepad-2", title: "メモ・サムネイル・コメント行を除いたゲーム用データを書き出し", onClick: a.openExportModal },
+  ];
+
+  const toolItems: DropdownMenuItem[] = [
+    { label: "あらすじ", icon: "book-open", title: "あらすじビュー — 全体の流れ・大枠メモ・シーンごとのあらすじ", onClick: a.openOutline },
+    { label: "統計", icon: "chart-column", title: "統計 — シーン・章・全体のセリフ数と文字数", onClick: a.openStats },
+    { label: "翻訳", icon: "languages", title: "翻訳画面 — セリフ・選択肢・キャラ名を他言語に翻訳", onClick: a.openTranslation },
+    { label: "人称チェック", icon: "users", title: "人称チェック設定 — キャラごとの一人称・呼び方を登録して表記ゆれを検出", onClick: a.openHonorific },
+    { label: "素材", icon: "music", title: "素材管理 — テストプレイで使う背景画像・BGM・効果音を登録", onClick: a.openAssets },
+  ];
+
   return (
     <>
-      <FileMenuButton showLabels={showLabels} />
+      <DropdownMenuButton label="ファイル" icon="files" showLabels={showLabels} items={fileItems} />
       <span className="w-px self-stretch bg-border mx-0.5" />
       <button onClick={a.openPlay} title="テストプレイ (Ctrl+P)">
         <Icon name="play" />
         <Lbl>テストプレイ</Lbl>
       </button>
-      <button onClick={a.openOutline} title="あらすじビュー — 全体の流れ・大枠メモ・シーンごとのあらすじ">
-        <Icon name="book-open" />
-        <Lbl>あらすじ</Lbl>
-      </button>
-      <button onClick={a.openStats} title="統計 — シーン・章・全体のセリフ数と文字数">
-        <Icon name="chart-column" />
-        <Lbl>統計</Lbl>
-      </button>
-      <button onClick={a.openTranslation} title="翻訳画面 — セリフ・選択肢・キャラ名を他言語に翻訳">
-        <Icon name="languages" />
-        <Lbl>翻訳</Lbl>
-      </button>
-      <button onClick={a.openHonorific} title="人称チェック設定 — キャラごとの一人称・呼び方を登録して表記ゆれを検出">
-        <Icon name="users" />
-        <Lbl>人称チェック</Lbl>
-      </button>
-      <button onClick={a.openAssets} title="素材管理 — テストプレイで使う背景画像・BGM・効果音を登録">
-        <Icon name="music" />
-        <Lbl>素材</Lbl>
-      </button>
+      <DropdownMenuButton label="ツール" icon="wrench" showLabels={showLabels} items={toolItems} />
       <button onClick={a.openSearch} title="プロジェクト全体を全文検索 (Ctrl+F)">
         <Icon name="search" />
         <Lbl>検索</Lbl>
@@ -53,16 +51,25 @@ function ToolbarButtons({ showLabels }: { showLabels: boolean }) {
   );
 }
 
-interface FileMenuItem {
+interface DropdownMenuItem {
   label: string;
   icon: IconName;
   title?: string;
   onClick: () => void;
 }
 
-function FileMenuButton({ showLabels }: { showLabels: boolean }) {
-  const a = useAppActions();
-  const fileRef = useRef<HTMLInputElement>(null);
+/** ヘッダの「ファイル」「ツール」等で使うホバー開閉式のドロップダウンメニューボタン。 */
+function DropdownMenuButton({
+  label,
+  icon,
+  showLabels,
+  items,
+}: {
+  label: string;
+  icon: IconName;
+  showLabels: boolean;
+  items: DropdownMenuItem[];
+}) {
   const [open, setOpen] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
   const closeTimer = useRef<number | undefined>(undefined);
@@ -79,19 +86,11 @@ function FileMenuButton({ showLabels }: { showLabels: boolean }) {
     closeTimer.current = window.setTimeout(() => setOpen(false), 150);
   };
 
-  const items: FileMenuItem[] = [
-    { label: "新規プロジェクト", icon: "file-plus", onClick: a.newProject },
-    { label: "バックアップから開く", icon: "folder-open", title: "JSONファイルを読み込み", onClick: () => fileRef.current?.click() },
-    { label: "バックアップをダウンロード", icon: "save", title: "JSONファイルとして保存 (Ctrl+S)", onClick: a.exportJson },
-    { label: "台本ファイルとして書き出し", icon: "file-text", title: "読みやすいテキスト台本として書き出し", onClick: a.exportTxt },
-    { label: "ゲーム用ファイルとして書き出し", icon: "gamepad-2", title: "メモ・サムネイル・コメント行を除いたゲーム用データを書き出し", onClick: a.openExportModal },
-  ];
-
   return (
     <div className="relative" onMouseEnter={() => { cancelClose(); setOpen(true); }} onMouseLeave={scheduleClose}>
-      <button ref={btnRef} onClick={() => setOpen(true)} title="ファイル">
-        <Icon name="files" />
-        {showLabels && <span className="lbl">ファイル</span>}
+      <button ref={btnRef} onClick={() => setOpen(true)} title={label}>
+        <Icon name={icon} />
+        {showLabels && <span className="lbl">{label}</span>}
         <Icon name="chevron-down" />
       </button>
       {open && (
@@ -116,17 +115,6 @@ function FileMenuButton({ showLabels }: { showLabels: boolean }) {
           </div>
         </div>
       )}
-      <input
-        ref={fileRef}
-        type="file"
-        accept=".json"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          e.target.value = "";
-          if (file) a.importJson(file);
-        }}
-      />
     </div>
   );
 }

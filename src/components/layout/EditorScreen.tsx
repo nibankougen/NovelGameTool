@@ -37,6 +37,7 @@ export function EditorScreen() {
   const toast = useToast();
   const findChar = useCharLookup();
   const mainInputRef = useRef<HTMLInputElement>(null);
+  const importFileRef = useRef<HTMLInputElement>(null);
   const { hasOpen, closeAll } = useModalRegistry();
 
   const [sidebarCollapsed, setSidebarCollapsed] = usePersistentState(SIDEBAR_LS_KEY, false);
@@ -136,12 +137,24 @@ export function EditorScreen() {
     exportJson,
     exportTxt,
     importJson,
+    openImportPicker: () => importFileRef.current?.click(),
     newProject: handleNewProject,
     focusMainInput: () => mainInputRef.current?.focus(),
   };
 
   return (
     <AppActionsProvider value={actions}>
+      <input
+        ref={importFileRef}
+        type="file"
+        accept=".json"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (file) importJson(file);
+        }}
+      />
       <div className="flex flex-col h-screen">
         <Topbar />
         <div className="flex flex-1 min-h-0">

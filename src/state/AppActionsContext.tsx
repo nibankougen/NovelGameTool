@@ -35,6 +35,7 @@ export interface AppActionsValue {
   exportJson: () => void;
   exportTxt: () => void;
   importJson: (file: File) => void;
+  openImportPicker: () => void;
   newProject: () => void;
   focusMainInput: () => void;
 }

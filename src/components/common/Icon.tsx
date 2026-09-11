@@ -33,6 +33,7 @@ import {
   Trash2,
   Upload,
   Users,
+  Wrench,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -73,6 +74,7 @@ const ICONS: Record<string, LucideIcon> = {
   music: Music,
   upload: Upload,
   settings: Settings,
+  wrench: Wrench,
 };
 
 export type IconName = keyof typeof ICONS;
