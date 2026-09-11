@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useEditorUi } from "../../state/EditorUiContext";
 import { useToast } from "../common/ToastProvider";
-import { Modal, ModalFoot, ModalTitle } from "./Modal";
+import { Modal, ModalFoot, ModalHeader } from "./Modal";
 import { Icon } from "../common/Icon";
 import { carryTr } from "../../lib/carryTr";
 import { parseInput } from "../../lib/parseInput";
@@ -149,7 +149,7 @@ function ChoiceModalInner({ cmdIndex, onClose }: { cmdIndex: number | null; onCl
 
   return (
     <Modal open={true} onRequestClose={onClose}>
-      <ModalTitle>選択肢の編集</ModalTitle>
+      <ModalHeader>選択肢の編集</ModalHeader>
       <div id="choiceOptList">
         {rows.map((r, i) => (
           <div key={r.key} className="opt-item mb-2">

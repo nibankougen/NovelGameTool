@@ -2,7 +2,7 @@ import { useProjectStore } from "../../state/ProjectProvider";
 import { useEditorUi } from "../../state/EditorUiContext";
 import { useCharLookup } from "../../hooks/useCharLookup";
 import { usePlaySession } from "../../hooks/usePlaySession";
-import { Modal } from "./Modal";
+import { Modal, ModalCloseButton } from "./Modal";
 import { Icon } from "../common/Icon";
 
 export function PlayModal({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -21,9 +21,10 @@ function PlayModalInner({ onClose }: { onClose: () => void }) {
         className="w-full h-full relative flex flex-col rounded-xl border border-border overflow-hidden select-none"
         style={{ background: "linear-gradient(180deg,#2a2f3a,#171a21)" }}
       >
-        <div className="px-3.5 py-2 flex gap-3.5 text-xs text-text-dim" style={{ background: "rgba(0,0,0,.4)" }}>
+        <div className="px-3.5 py-2 flex items-center gap-3.5 text-xs text-text-dim" style={{ background: "rgba(0,0,0,.4)" }}>
           <span className="bg-black/50 rounded px-2.5 py-0.5">背景: {state.bgLabel}</span>
           <span className="bg-black/50 rounded px-2.5 py-0.5">BGM: {state.bgmLabel}</span>
+          <ModalCloseButton onClick={onClose} className="ml-auto" />
         </div>
         <div className="flex-1 relative cursor-pointer" onClick={() => advance()}>
           {state.bgImage && (
@@ -73,10 +74,7 @@ function PlayModalInner({ onClose }: { onClose: () => void }) {
         </div>
         <div className="flex gap-2 justify-between px-3.5 py-2.5" style={{ background: "rgba(0,0,0,.4)" }}>
           <span className="text-text-dim text-xs self-center">{state.sceneName}</span>
-          <span className="flex gap-2">
-            <button onClick={restart}>最初から</button>
-            <button onClick={onClose}>閉じる (Esc)</button>
-          </span>
+          <button onClick={restart}>最初から</button>
         </div>
       </div>
     </Modal>

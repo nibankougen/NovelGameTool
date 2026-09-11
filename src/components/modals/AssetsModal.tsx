@@ -1,7 +1,7 @@
 import { useMemo, useRef } from "react";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useToast } from "../common/ToastProvider";
-import { Modal, ModalTitle } from "./Modal";
+import { Modal, ModalHeader } from "./Modal";
 import { Icon } from "../common/Icon";
 import { collectAssetNames } from "../../lib/assetUsage";
 import { loadImageAsThumb, fileToDataUrl, hasFileDrag, firstFile } from "../../lib/image";
@@ -117,16 +117,9 @@ export function AssetsModal({ open, onClose }: { open: boolean; onClose: () => v
 
   return (
     <Modal open={open} onRequestClose={onClose} className="w-[92vw] max-w-[700px] h-[80vh] max-h-[80vh] flex flex-col">
-      <div className="flex items-center gap-2.5 mb-3">
-        <ModalTitle>
-          <span className="inline-flex items-center gap-1.5">
-            <Icon name="music" /> 素材管理
-          </span>
-        </ModalTitle>
-        <button onClick={onClose} className="ml-auto">
-          閉じる (Esc)
-        </button>
-      </div>
+      <ModalHeader onClose={onClose}>
+        <Icon name="music" /> 素材管理
+      </ModalHeader>
       <p className="text-text-dim text-xs mb-3 shrink-0">
         シナリオ中で使われている背景・BGM・効果音の名前に、テストプレイで実際に描画・再生する画像/音声ファイルを紐付けます。未登録のものはラベル表示のみになります（プロジェクトに保存されます）。
       </p>

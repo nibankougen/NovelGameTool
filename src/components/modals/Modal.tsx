@@ -1,5 +1,6 @@
 import { useEffect, type MouseEvent, type ReactNode } from "react";
 import { useModalRegistry } from "./ModalRegistry";
+import { Icon } from "../common/Icon";
 
 export interface ModalProps {
   open: boolean;
@@ -49,9 +50,32 @@ export function Modal({ open, onRequestClose, canClose, className, children, bar
 }
 
 export function ModalTitle({ children }: { children: ReactNode }) {
-  return <h3 className="mb-3.5 text-base font-semibold flex items-center gap-1.5">{children}</h3>;
+  return <h3 className="text-base font-semibold flex items-center gap-1.5">{children}</h3>;
 }
 
 export function ModalFoot({ children }: { children: ReactNode }) {
   return <div className="flex gap-2 justify-end mt-4">{children}</div>;
+}
+
+export function ModalCloseButton({ onClick, className }: { onClick: () => void; className?: string }) {
+  return (
+    <button type="button" className={`mini-btn${className ? ` ${className}` : ""}`} onClick={onClick} title="閉じる (Esc)" aria-label="閉じる">
+      <Icon name="x" />
+    </button>
+  );
+}
+
+/**
+ * モーダル見出し行。タイトルと（あれば）右上の閉じるボタンを同じ行に並べる。
+ * 余白はこの行自身に持たせ、ModalTitle 側には持たせない
+ * （タイトルだけに margin-bottom を付けると、閉じるボタンとの flex 縦中央揃えが
+ * マージンの分だけずれてしまうため）。
+ */
+export function ModalHeader({ children, onClose, className }: { children: ReactNode; onClose?: () => void; className?: string }) {
+  return (
+    <div className={`flex items-center gap-2.5 mb-3.5${className ? ` ${className}` : ""}`}>
+      <ModalTitle>{children}</ModalTitle>
+      {onClose && <ModalCloseButton onClick={onClose} className="ml-auto" />}
+    </div>
+  );
 }

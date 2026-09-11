@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Modal, ModalFoot, ModalTitle } from "./Modal";
+import { Modal, ModalHeader } from "./Modal";
 import { Icon } from "../common/Icon";
 
 function Row({ k, v }: { k: ReactNode; v: ReactNode }) {
@@ -20,7 +20,7 @@ function Kbd({ children }: { children: ReactNode }) {
 export function HelpModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
     <Modal open={open} onRequestClose={onClose} className="min-w-[560px]">
-      <ModalTitle>ヘルプ — 入力方法とショートカット</ModalTitle>
+      <ModalHeader onClose={onClose}>ヘルプ — 入力方法とショートカット</ModalHeader>
       <h4 className="mt-3.5 mb-1 text-accent font-semibold">セリフ入力</h4>
       <table className="w-full border-collapse mb-4">
         <tbody>
@@ -105,11 +105,6 @@ export function HelpModal({ open, onClose }: { open: boolean; onClose: () => voi
           <Row k="ゲーム出力" v="「ゲーム出力」ボタンで、ゲーム実装用JSONを書き出せます" />
         </tbody>
       </table>
-      <ModalFoot>
-        <button className="btn-primary" onClick={onClose}>
-          閉じる
-        </button>
-      </ModalFoot>
     </Modal>
   );
 }

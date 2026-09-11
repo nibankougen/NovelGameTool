@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useProject } from "../../state/ProjectProvider";
 import { useEditorUi } from "../../state/EditorUiContext";
 import { useCharLookup } from "../../hooks/useCharLookup";
-import { Modal, ModalTitle } from "./Modal";
+import { Modal, ModalHeader } from "./Modal";
 import { Icon } from "../common/Icon";
 import { scenesInGroupOrder, sceneStats } from "../../lib/sceneUtils";
 
@@ -36,16 +36,9 @@ export function StatsModal({ open, onClose }: { open: boolean; onClose: () => vo
 
   return (
     <Modal open={open} onRequestClose={onClose} className="w-[92vw] max-w-[640px] h-[80vh] max-h-[80vh] flex flex-col">
-      <div className="flex items-center gap-2.5 mb-3 flex-wrap">
-        <ModalTitle>
-          <span className="inline-flex items-center gap-1.5">
-            <Icon name="chart-column" /> 統計情報
-          </span>
-        </ModalTitle>
-        <button onClick={onClose} className="ml-auto">
-          閉じる (Esc)
-        </button>
-      </div>
+      <ModalHeader onClose={onClose}>
+        <Icon name="chart-column" /> 統計情報
+      </ModalHeader>
       <div className="grid grid-cols-[1fr_90px_90px] gap-2 items-center px-2 py-1.5 text-text-dim text-[11px] border-b border-border shrink-0">
         <span>シーン</span>
         <span className="text-right tabular-nums">セリフ数</span>

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useToast } from "../common/ToastProvider";
 import { useDragReorder } from "../../hooks/useDragReorder";
-import { Modal, ModalTitle } from "./Modal";
+import { Modal, ModalHeader } from "./Modal";
 import { Icon } from "../common/Icon";
 import { uid } from "../../lib/id";
 import { HONOR_SECOND } from "../../types/project";
@@ -100,16 +100,9 @@ export function HonorificModal({ open, onClose }: { open: boolean; onClose: () =
 
   return (
     <Modal open={open} onRequestClose={onClose} className="w-[92vw] max-w-[900px] h-[86vh] max-h-[86vh] flex flex-col">
-      <div className="flex items-center gap-2.5 mb-3 flex-wrap">
-        <ModalTitle>
-          <span className="inline-flex items-center gap-1.5">
-            <Icon name="users" /> 人称チェック設定
-          </span>
-        </ModalTitle>
-        <button onClick={onClose} className="ml-auto">
-          閉じる (Esc)
-        </button>
-      </div>
+      <ModalHeader onClose={onClose}>
+        <Icon name="users" /> 人称チェック設定
+      </ModalHeader>
       <p className="text-text-dim text-xs leading-relaxed mb-3 shrink-0">
         キャラクターごとに「自分をどう呼ぶか（一人称）」「相手をどう呼ぶか（二人称・名前を伴わない呼びかけ）」「他のキャラをどう呼ぶか（名前＋敬称）」を登録しておくと、登録と異なる言い回しが本文に出てきた行に小さく
         <Icon name="circle-alert" className="inline text-warn align-[-2px]" /> が付きます。簡易チェックのため参考程度にご利用ください。

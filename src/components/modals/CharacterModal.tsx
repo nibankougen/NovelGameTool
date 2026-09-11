@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useEditorUi } from "../../state/EditorUiContext";
 import { useToast } from "../common/ToastProvider";
-import { Modal, ModalFoot, ModalTitle } from "./Modal";
+import { Modal, ModalFoot, ModalHeader } from "./Modal";
 import { Icon } from "../common/Icon";
 import { PALETTE } from "../../types/project";
 import { uid } from "../../lib/id";
@@ -129,7 +129,9 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
   const saveExprTemplate = () => {
     flushExprInput();
     const names = staged.map((s) => s.name);
-    mutate((d) => (d.exprTemplate = names));
+    mutate((d) => {
+      d.exprTemplate = names;
+    });
     if (globalTmpl.enabled) {
       const next = { enabled: true, template: names };
       setGlobalTmpl(next);
@@ -150,7 +152,7 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
 
   return (
     <Modal open={true} onRequestClose={onClose} canClose={canClose}>
-      <ModalTitle>{existing ? "キャラクター編集" : "キャラクター追加"}</ModalTitle>
+      <ModalHeader>{existing ? "キャラクター編集" : "キャラクター追加"}</ModalHeader>
       <div className="flex gap-2 items-center mb-2.5">
         <label className="w-[70px] shrink-0 text-text-dim">名前</label>
         <input

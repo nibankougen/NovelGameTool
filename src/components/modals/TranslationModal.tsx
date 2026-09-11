@@ -3,7 +3,7 @@ import { useProjectStore } from "../../state/ProjectProvider";
 import { useCharLookup } from "../../hooks/useCharLookup";
 import { useUndoableSession } from "../../hooks/useUndoableSession";
 import { useToast } from "../common/ToastProvider";
-import { Modal, ModalTitle } from "./Modal";
+import { Modal, ModalHeader } from "./Modal";
 import { Icon } from "../common/Icon";
 import { MentionText } from "../common/MentionText";
 import { collectTransItems, getTransValue, setTransValue, deleteLanguageEverywhere, type TransFieldRef } from "../../lib/translationItems";
@@ -85,7 +85,9 @@ export function TranslationModal({ open, onClose }: { open: boolean; onClose: ()
       toast("すでに追加されています", true);
       return;
     }
-    mutate((d) => d.languages.push(code));
+    mutate((d) => {
+      d.languages.push(code);
+    });
     setLang(code);
     toast(`言語「${code}」を追加しました`);
   };
@@ -116,12 +118,10 @@ export function TranslationModal({ open, onClose }: { open: boolean; onClose: ()
 
   return (
     <Modal open={open} onRequestClose={onClose} className="w-[92vw] max-w-[1100px] h-[86vh] max-h-[86vh] flex flex-col">
+      <ModalHeader onClose={onClose}>
+        <Icon name="languages" /> 翻訳
+      </ModalHeader>
       <div className="flex items-center gap-2.5 mb-3 flex-wrap">
-        <ModalTitle>
-          <span className="inline-flex items-center gap-1.5">
-            <Icon name="languages" /> 翻訳
-          </span>
-        </ModalTitle>
         {project.languages.length > 0 && (
           <>
             <select value={lang} onChange={(e) => setLang(e.target.value)} title="翻訳先の言語" className="min-w-[110px]">
@@ -147,9 +147,6 @@ export function TranslationModal({ open, onClose }: { open: boolean; onClose: ()
           </label>
         )}
         {lang && <span className="text-text-dim text-xs">翻訳済み {done} / {total}</span>}
-        <button onClick={onClose} className="ml-auto">
-          閉じる (Esc)
-        </button>
       </div>
       <div className="flex-1 overflow-y-auto min-h-0">
         {!project.languages.length && (

@@ -111,7 +111,10 @@ export function Topbar() {
 
   const commitTitle = () => {
     const t = title.trim() || "無題";
-    if (t !== project.title) mutate((d) => (d.title = t));
+    if (t !== project.title)
+      mutate((d) => {
+        d.title = t;
+      });
     setTitle(t);
   };
 

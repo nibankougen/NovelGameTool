@@ -1,7 +1,7 @@
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useEditorUi } from "../../state/EditorUiContext";
 import { useUndoableSession } from "../../hooks/useUndoableSession";
-import { Modal, ModalTitle } from "./Modal";
+import { Modal, ModalHeader } from "./Modal";
 import { Icon } from "../common/Icon";
 import { scenesInGroupOrder } from "../../lib/sceneUtils";
 
@@ -15,16 +15,9 @@ export function OutlineModal({ open, onClose }: { open: boolean; onClose: () => 
 
   return (
     <Modal open={open} onRequestClose={onClose} className="w-[92vw] max-w-[900px] h-[86vh] max-h-[86vh] flex flex-col">
-      <div className="flex items-center gap-2.5 mb-3 flex-wrap">
-        <ModalTitle>
-          <span className="inline-flex items-center gap-1.5">
-            <Icon name="book-open" /> あらすじ
-          </span>
-        </ModalTitle>
-        <button onClick={onClose} className="ml-auto">
-          閉じる (Esc)
-        </button>
-      </div>
+      <ModalHeader onClose={onClose}>
+        <Icon name="book-open" /> あらすじ
+      </ModalHeader>
       <div className="shrink-0 mb-3">
         <label className="block text-text-dim text-xs mb-1">大枠メモ（設定・プロット全体・伏線など）</label>
         <textarea
@@ -34,7 +27,9 @@ export function OutlineModal({ open, onClose }: { open: boolean; onClose: () => 
           onFocus={onFocus}
           onChange={(e) => {
             const v = e.target.value;
-            patch((d) => (d.overview = v));
+            patch((d) => {
+              d.overview = v;
+            });
           }}
           onKeyDown={(e) => e.stopPropagation()}
         />

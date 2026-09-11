@@ -1,5 +1,5 @@
 import { useAppActions, type ThemeChoice } from "../../state/AppActionsContext";
-import { Modal, ModalTitle } from "./Modal";
+import { Modal, ModalHeader } from "./Modal";
 import { Icon, type IconName } from "../common/Icon";
 
 const THEME_OPTIONS: { value: ThemeChoice; label: string; icon: IconName }[] = [
@@ -13,9 +13,9 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
 
   return (
     <Modal open={open} onRequestClose={onClose} className="min-w-[420px]">
-      <ModalTitle>
+      <ModalHeader>
         <Icon name="settings" /> 設定
-      </ModalTitle>
+      </ModalHeader>
 
       <div className="mb-5">
         <div className="text-text-dim text-xs mb-2">テーマ</div>
