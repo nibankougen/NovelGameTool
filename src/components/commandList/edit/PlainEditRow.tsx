@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useProjectStore } from "../../../state/ProjectProvider";
 import { useEditorUi } from "../../../state/EditorUiContext";
 import { useAppActions } from "../../../state/AppActionsContext";
@@ -10,7 +10,6 @@ import { parseInput } from "../../../lib/parseInput";
 import { parseInputDry, makeDraftParseEnv } from "../../../lib/parseEnvDraft";
 import { carryTr } from "../../../lib/carryTr";
 import type { Command, Scene } from "../../../types/project";
-import type { ClickInfo } from "../../../lib/editClickMapping";
 
 export function PlainEditRow({ index, cmd, scene }: { index: number; cmd: Command; scene: Scene }) {
   const { project, mutate } = useProjectStore();
@@ -19,27 +18,25 @@ export function PlainEditRow({ index, cmd, scene }: { index: number; cmd: Comman
   const findChar = useCharLookup();
   const toast = useToast();
 
-  const clickInfoRef = useRef<ClickInfo | null>(null);
-  const [initialized] = useState(() => {
-    clickInfoRef.current = editorUi.consumePendingEditClick();
-    return true;
-  });
-  void initialized;
-
   const initialValue = cmdToInputText(cmd, project.scenes, findChar) ?? "";
   const [value, setValue] = useState(initialValue);
   const inputRef = useRef<HTMLInputElement>(null);
   const doneRef = useRef(false);
+  const startedRef = useRef(false);
 
-  useEffect(() => {
-    const el = inputRef.current;
-    if (!el) return;
-    el.focus();
-    const info = clickInfoRef.current;
-    const pos = info?.zone === "text" ? info.offset : el.value.length;
-    el.setSelectionRange(pos, pos);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // pendingEditClickの消費はrender中ではなくref attach時（コミット後・一度だけ実行が保証される）に行う。
+  // StrictModeの開発時二重呼び出しでは、useStateの遅延初期化関数はrender中に2回評価されるため、
+  // ここでconsumePendingEditClick()（副作用で消費済みにする）を呼ぶと1回目の結果が2回目で失われる。
+  const inputRefCallback = (el: HTMLInputElement | null) => {
+    inputRef.current = el;
+    if (el && !startedRef.current) {
+      startedRef.current = true;
+      el.focus();
+      const info = editorUi.consumePendingEditClick();
+      const pos = info?.zone === "text" ? info.offset : el.value.length;
+      el.setSelectionRange(pos, pos);
+    }
+  };
 
   const finish = (commit: boolean) => {
     if (doneRef.current) return;
@@ -77,7 +74,7 @@ export function PlainEditRow({ index, cmd, scene }: { index: number; cmd: Comman
       <span className="w-8 shrink-0" />
       <div className="row-body flex-1 min-w-0">
         <input
-          ref={inputRef}
+          ref={inputRefCallback}
           type="text"
           className="plain-edit-text w-full text-sm px-0.5 py-px bg-transparent border-none rounded"
           value={value}

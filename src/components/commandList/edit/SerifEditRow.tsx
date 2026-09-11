@@ -12,7 +12,6 @@ import { carryTr } from "../../../lib/carryTr";
 import { ColumnResizeHandle } from "../ColumnResizeHandle";
 import { useSerifColumns } from "../../../state/SerifColumnsContext";
 import type { Scene, SerifCommand } from "../../../types/project";
-import type { ClickInfo } from "../../../lib/editClickMapping";
 
 interface ChipMenuItem {
   label: string;
@@ -28,13 +27,6 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
   const findChar = useCharLookup();
   const toast = useToast();
   const { speakerColWidth, faceColWidth, setSpeakerColWidth, setFaceColWidth } = useSerifColumns();
-
-  const clickInfoRef = useRef<ClickInfo | null>(null);
-  const [initialized] = useState(() => {
-    clickInfoRef.current = editorUi.consumePendingEditClick();
-    return true;
-  });
-  void initialized;
 
   const [spk, setSpk] = useState<string | null>(cmd.chara && findChar(cmd.chara) ? cmd.chara : null);
   const [face, setFace] = useState<string | null>(cmd.face || null);
@@ -183,11 +175,14 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
     appActions.focusMainInput();
   };
 
+  // pendingEditClickの消費はrender中ではなくref attach時（コミット後・一度だけ実行が保証される）に行う。
+  // StrictModeの開発時二重呼び出しでは、useStateの遅延初期化関数はrender中に2回評価されるため、
+  // ここでconsumePendingEditClick()（副作用で消費済みにする）を呼ぶと1回目の結果が2回目で失われる。
   const inputRefCallback = (el: HTMLInputElement | null) => {
     inputRef.current = el;
     if (el && !startedRef.current) {
       startedRef.current = true;
-      const info = clickInfoRef.current;
+      const info = editorUi.consumePendingEditClick();
       if (info?.zone === "speaker") {
         spkChipRef.current?.focus();
         openSpeakerMenu();
