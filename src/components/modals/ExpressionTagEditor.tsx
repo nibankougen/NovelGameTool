@@ -174,7 +174,6 @@ export function ExpressionTagEditor({ staged, setStaged, usageCounts, thumb, inp
       <input
         type="text"
         className="w-full"
-        placeholder="表情名を入力して Enter で追加（ラベルの鉛筆で名前変更、×で削除／タグへ画像をドロップでも設定可）"
         value={inputText}
         onChange={(e) => setInputText(e.target.value)}
         onKeyDown={(e) => {

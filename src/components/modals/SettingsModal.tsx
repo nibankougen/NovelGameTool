@@ -29,9 +29,8 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
                 role="radio"
                 aria-checked={active}
                 onClick={() => a.setTheme(opt.value)}
-                className={`flex-1 flex flex-col items-center gap-1 py-2.5 rounded-lg border text-xs ${
-                  active ? "bg-accent-dim border-accent text-text" : "border-border text-text-dim hover:bg-bg-3"
-                }`}
+                className={`flex-1 flex flex-col items-center gap-1 py-2.5 rounded-lg border text-xs ${active ? "bg-accent-dim border-accent text-text" : "border-border text-text-dim hover:bg-bg-3"
+                  }`}
               >
                 <Icon name={opt.icon} />
                 {opt.label}
@@ -39,9 +38,6 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
             );
           })}
         </div>
-        <p className="text-text-dim text-[11px] mt-2">
-          「OS設定に従う」を選んでいる間は、OS／ブラウザのダークモード設定に合わせて自動的に切り替わります。
-        </p>
       </div>
 
       <div className="mb-1">
@@ -59,7 +55,7 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
           />
           <span className="text-xs text-text-dim w-8 text-right">{a.thumbSizeStep + 1}倍</span>
         </div>
-        <p className="text-text-dim text-[11px] mt-2">セリフ一覧・編集欄に表示するキャラクター画像の大きさです（表情を見ながら編集したいときに拡大できます）。</p>
+        <p className="text-text-dim text-[11px] mt-2">セリフ一覧・編集欄に表示するキャラクター画像の大きさです。</p>
       </div>
     </Modal>
   );
