@@ -19,7 +19,7 @@ export interface GlobalExprTemplateState {
 export function loadGlobalExprTemplate(): GlobalExprTemplateState {
   const raw = readLocalStorage<Partial<GlobalExprTemplateState>>(EXPR_TMPL_LS_KEY);
   return {
-    enabled: !!raw?.enabled,
+    enabled: raw?.enabled ?? true,
     template: Array.isArray(raw?.template) ? raw.template : [],
   };
 }

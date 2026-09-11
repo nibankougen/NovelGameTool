@@ -32,7 +32,6 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
   );
   const [exprInputText, setExprInputText] = useState("");
   const [dragOverThumb, setDragOverThumb] = useState(false);
-  const [globalTmpl, setGlobalTmpl] = useState(() => loadGlobalExprTemplate());
   const thumbFileRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const initialFocusRef = useRef(false);
@@ -132,11 +131,8 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
     mutate((d) => {
       d.exprTemplate = names;
     });
-    if (globalTmpl.enabled) {
-      const next = { enabled: true, template: names };
-      setGlobalTmpl(next);
-      saveGlobalExprTemplate(next);
-    }
+    const g = loadGlobalExprTemplate();
+    if (g.enabled) saveGlobalExprTemplate({ enabled: true, template: names });
     toast("表情テンプレートを保存しました");
   };
 
@@ -265,20 +261,6 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
             >
               この表情をテンプレに保存
             </button>
-            <label className="flex items-center gap-1 text-[11px] text-text-dim cursor-pointer shrink-0 whitespace-nowrap">
-              <input
-                type="checkbox"
-                checked={globalTmpl.enabled}
-                onChange={(e) => {
-                  const enabled = e.target.checked;
-                  const next = { enabled, template: enabled ? staged.map((s) => s.name) : globalTmpl.template };
-                  setGlobalTmpl(next);
-                  saveGlobalExprTemplate(next);
-                }}
-                className="accent-accent"
-              />
-              新規プロジェクトにも引き継ぐ
-            </label>
           </div>
         </div>
       </div>

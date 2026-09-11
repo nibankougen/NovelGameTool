@@ -40,6 +40,20 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
         </div>
       </div>
 
+      <div className="mb-5">
+        <div className="text-text-dim text-xs mb-2">表情テンプレート</div>
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            checked={a.exprTemplateCarryOver}
+            onChange={(e) => a.setExprTemplateCarryOver(e.target.checked)}
+            className="accent-accent"
+          />
+          新規プロジェクトにも引き継ぐ
+        </label>
+        <p className="text-text-dim text-[11px] mt-2">キャラクター編集で保存した表情テンプレートを、新規プロジェクト作成時のデフォルト表情候補として使うかどうかの設定です。</p>
+      </div>
+
       <div className="mb-1">
         <div className="text-text-dim text-xs mb-2">行のサムネイル表示サイズ</div>
         <div className="flex items-center gap-3">

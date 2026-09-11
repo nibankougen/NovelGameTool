@@ -32,6 +32,8 @@ export interface AppActionsValue {
   setThumbSizeStep: (step: number) => void;
   theme: ThemeChoice;
   setTheme: (t: ThemeChoice) => void;
+  exprTemplateCarryOver: boolean;
+  setExprTemplateCarryOver: (v: boolean) => void;
   exportJson: () => void;
   exportTxt: () => void;
   importJson: (file: File) => void;

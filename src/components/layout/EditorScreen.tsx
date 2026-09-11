@@ -9,7 +9,7 @@ import { usePersistentState } from "../../state/usePersistentState";
 import { SIDEBAR_LS_KEY, THEME_LS_KEY, THUMB_SIZE_LS_KEY } from "../../lib/storage";
 import { download, safeName } from "../../lib/download";
 import { buildScriptText } from "../../lib/gameExport";
-import { normalizeProject } from "../../state/projectReducer";
+import { loadGlobalExprTemplate, normalizeProject, saveGlobalExprTemplate } from "../../state/projectReducer";
 import { AppActionsProvider, type AppActionsValue, type ThemeChoice } from "../../state/AppActionsContext";
 import { Topbar } from "./Topbar";
 import { Sidebar } from "./Sidebar";
@@ -43,8 +43,14 @@ export function EditorScreen() {
   const [sidebarCollapsed, setSidebarCollapsed] = usePersistentState(SIDEBAR_LS_KEY, false);
   const [thumbSizeStep, setThumbSizeStep] = usePersistentState(THUMB_SIZE_LS_KEY, 0);
   const [theme, setThemeState] = usePersistentState<ThemeChoice>(THEME_LS_KEY, null);
+  const [exprCarryOver, setExprCarryOverState] = useState(() => loadGlobalExprTemplate().enabled);
 
   useEffect(() => applyThemeAttribute(theme), [theme]);
+
+  const setExprCarryOver = useCallback((v: boolean) => {
+    setExprCarryOverState(v);
+    saveGlobalExprTemplate({ ...loadGlobalExprTemplate(), enabled: v });
+  }, []);
 
   const [charModal, setCharModal] = useState<{ open: boolean; charId: string | null }>({ open: false, charId: null });
   const [choiceModal, setChoiceModal] = useState<{ open: boolean; cmdIndex: number | null }>({
@@ -134,6 +140,8 @@ export function EditorScreen() {
     setThumbSizeStep,
     theme,
     setTheme: setThemeState,
+    exprTemplateCarryOver: exprCarryOver,
+    setExprTemplateCarryOver: setExprCarryOver,
     exportJson,
     exportTxt,
     importJson,
