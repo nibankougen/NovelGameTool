@@ -21,9 +21,9 @@ function ToolbarButtons({ showLabels }: { showLabels: boolean }) {
         <Icon name="book-open" />
         <Lbl>あらすじ</Lbl>
       </button>
-      <button onClick={a.openStats} title="統計情報 — シーン・章・全体のセリフ数と文字数">
+      <button onClick={a.openStats} title="統計 — シーン・章・全体のセリフ数と文字数">
         <Icon name="chart-column" />
-        <Lbl>統計情報</Lbl>
+        <Lbl>統計</Lbl>
       </button>
       <button onClick={a.openTranslation} title="翻訳画面 — セリフ・選択肢・キャラ名を他言語に翻訳">
         <Icon name="languages" />

@@ -37,7 +37,7 @@ export function StatsModal({ open, onClose }: { open: boolean; onClose: () => vo
   return (
     <Modal open={open} onRequestClose={onClose} className="w-[92vw] max-w-[640px] h-[80vh] max-h-[80vh] flex flex-col">
       <ModalHeader onClose={onClose}>
-        <Icon name="chart-column" /> 統計情報
+        <Icon name="chart-column" /> 統計
       </ModalHeader>
       <div className="grid grid-cols-[1fr_90px_90px] gap-2 items-center px-2 py-1.5 text-text-dim text-[11px] border-b border-border shrink-0">
         <span>シーン</span>
