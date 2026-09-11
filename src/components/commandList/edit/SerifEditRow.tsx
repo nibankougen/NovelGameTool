@@ -233,7 +233,7 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
           <button
             ref={spkChipRef}
             type="button"
-            className="edit-chip edit-chip-spk inline-flex items-center gap-1 px-1 py-0.5 rounded font-bold text-sm hover:bg-bg-3 hover:outline hover:outline-1 hover:outline-accent"
+            className="edit-chip edit-chip-spk inline-flex items-center gap-1 px-1 py-0.5 min-h-0 rounded font-bold text-sm hover:bg-bg-3 hover:outline hover:outline-1 hover:outline-accent"
             style={{ color: ch ? ch.color : "var(--narration)" }}
             title="クリックで話者切替／Backspaceで削除（地の文に）"
             onClick={(e) => {
@@ -255,7 +255,7 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
             <button
               ref={faceChipRef}
               type="button"
-              className="edit-chip edit-chip-face inline-flex items-center gap-1 px-1 py-0.5 rounded font-normal text-xs hover:bg-bg-3 hover:outline hover:outline-1 hover:outline-accent"
+              className="edit-chip edit-chip-face inline-flex items-center gap-1 px-1 py-0.5 min-h-0 rounded font-normal text-xs hover:bg-bg-3 hover:outline hover:outline-1 hover:outline-accent"
               style={{ color: face ? undefined : "var(--text-dim)", order: face ? undefined : 2 }}
               title="クリックで表情切替／Backspaceで表情削除"
               onClick={(e) => {

@@ -103,7 +103,7 @@ export function ExpressionTagEditor({ staged, setStaged, usageCounts, thumb, inp
               {!img && (
                 <button
                   type="button"
-                  className="et-btn border-none bg-transparent p-0 text-text-dim"
+                  className="et-btn border-none bg-transparent p-0 min-h-0 text-text-dim"
                   title="表情画像を設定"
                   onClick={() => {
                     fileTargetRef.current = i;
@@ -138,7 +138,7 @@ export function ExpressionTagEditor({ staged, setStaged, usageCounts, thumb, inp
               <span className="expr-n text-text-dim text-[11px]">{count > 0 ? `${count}回` : "未使用"}</span>
               <button
                 type="button"
-                className="et-btn border-none bg-transparent p-0 text-text-dim"
+                className="et-btn border-none bg-transparent p-0 min-h-0 text-text-dim"
                 title="名前変更"
                 onClick={() => setRenamingIndex(i)}
               >
@@ -146,7 +146,7 @@ export function ExpressionTagEditor({ staged, setStaged, usageCounts, thumb, inp
               </button>
               <button
                 type="button"
-                className="et-btn border-none bg-transparent p-0 text-text-dim"
+                className="et-btn border-none bg-transparent p-0 min-h-0 text-text-dim"
                 title="削除"
                 onClick={() => {
                   if (count > 0 && !window.confirm(`表情「${s.name}」は${count}箇所で使用中です。削除すると使用箇所は警告表示になります。削除しますか？`)) return;

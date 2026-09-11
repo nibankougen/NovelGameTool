@@ -18,7 +18,7 @@ function GotoSceneButton({ sceneId, onGotoScene }: { sceneId: string; onGotoScen
   return (
     <button
       type="button"
-      className="opt-goto inline-flex items-center px-0.5 ml-1 border-none bg-transparent text-text-dim rounded hover:text-accent hover:bg-bg-3 align-middle"
+      className="opt-goto inline-flex items-center px-0.5 min-h-0 ml-1 border-none bg-transparent text-text-dim rounded hover:text-accent hover:bg-bg-3 align-middle"
       title="このシーンへ移動"
       onClick={(e) => {
         e.stopPropagation();

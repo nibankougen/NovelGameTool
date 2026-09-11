@@ -182,7 +182,7 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
               onClick={() => setColor(p)}
               aria-pressed={color === p}
               title={p}
-              className="w-[26px] h-[26px] rounded-md cursor-pointer"
+              className="w-[26px] h-[26px] min-h-0 rounded-md cursor-pointer"
               style={{
                 background: p,
                 boxShadow: color === p ? "0 0 0 2px var(--bg-2), 0 0 0 4px var(--accent)" : "0 0 0 2px transparent",

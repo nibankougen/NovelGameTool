@@ -124,6 +124,11 @@
     align-items: center;
     justify-content: center;
     gap: 5px;
+    /* ラベル文字を含まない（アイコンのみの）ボタンは、文字の行の高さ分だけ
+       ラベル付きボタンより低くなってしまうため、min-height で高さを揃える。
+       行内アクションなど意図的に小さくしたいボタンは .mini-btn や
+       個別の min-h-0 指定で明示的に外す。 */
+    min-height: 31.5px;
   }
   button:hover {
     background: color-mix(in srgb, var(--bg-3) 60%, var(--text) 12%);
@@ -234,6 +239,7 @@
     border: none;
     background: transparent;
     color: var(--text-dim);
+    min-height: 0;
   }
   .mini-btn:hover {
     background: transparent;
