@@ -1,0 +1,230 @@
+@import "tailwindcss";
+
+/* =========================================================
+   意味別カラートークン
+   ライト値を :root の既定値とし、ダークはメディアクエリ／
+   data-theme="dark" 属性の両方で上書きする。
+========================================================= */
+:root {
+  --bg: #f3f4f7;
+  --bg-2: #ffffff;
+  --bg-3: #e7e9ef;
+  --panel: #ffffff;
+  --border: #d8dbe3;
+  --text: #1a1d24;
+  --text-dim: #676f7e;
+  --accent: #2f5fd6;
+  --accent-dim: #dde6fb;
+  --danger: #c9333f;
+  --danger-bg: #fbe3e5;
+  --ok: #1c8a5a;
+  --narration: #454b57;
+  --sys: #1a6aa8;
+  --comment: #5b7049;
+  --thumb-scale: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #16181d;
+    --bg-2: #1e2128;
+    --bg-3: #262a33;
+    --panel: #1a1d23;
+    --border: #333845;
+    --text: #e8eaf0;
+    --text-dim: #9aa0ae;
+    --accent: #4f8cff;
+    --accent-dim: #2d4f8f;
+    --danger: #ff5f6b;
+    --danger-bg: #3a2226;
+    --ok: #4fd08c;
+    --narration: #b8bfcf;
+    --sys: #8fd0ff;
+    --comment: #7a8a6f;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #16181d;
+  --bg-2: #1e2128;
+  --bg-3: #262a33;
+  --panel: #1a1d23;
+  --border: #333845;
+  --text: #e8eaf0;
+  --text-dim: #9aa0ae;
+  --accent: #4f8cff;
+  --accent-dim: #2d4f8f;
+  --danger: #ff5f6b;
+  --danger-bg: #3a2226;
+  --ok: #4fd08c;
+  --narration: #b8bfcf;
+  --sys: #8fd0ff;
+  --comment: #7a8a6f;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-bg-3: var(--bg-3);
+  --color-panel: var(--panel);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-text-dim: var(--text-dim);
+  --color-accent: var(--accent);
+  --color-accent-dim: var(--accent-dim);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-ok: var(--ok);
+  --color-narration: var(--narration);
+  --color-sys: var(--sys);
+  --color-comment: var(--comment);
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family:
+      "Segoe UI",
+      "Yu Gothic UI",
+      "Hiragino Sans",
+      Meiryo,
+      sans-serif;
+    font-size: 14px;
+    overflow: hidden;
+  }
+  button {
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+  button:hover {
+    background: color-mix(in srgb, var(--bg-3) 60%, var(--text) 12%);
+    border-color: var(--text-dim);
+  }
+  button:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  input[type="text"],
+  input[type="number"],
+  input[type="color"],
+  select,
+  textarea {
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    outline: none;
+  }
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: var(--accent);
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--text-dim) 50%, transparent);
+    border-radius: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+  }
+  .btn-danger:hover {
+    background: var(--danger-bg);
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+  .icon-btn {
+    padding: 5px 7px;
+  }
+  .lucide-icon {
+    width: 1em;
+    height: 1em;
+    flex-shrink: 0;
+    vertical-align: -0.125em;
+    pointer-events: none;
+  }
+  .toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    background: var(--bg-3);
+    border: 1px solid var(--accent);
+    color: var(--text);
+    padding: 8px 20px;
+    border-radius: 8px;
+    z-index: 300;
+    font-size: 13px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  }
+  .toast.err {
+    border-color: var(--danger);
+  }
+  .drop-indicator {
+    height: 2px;
+    background: var(--accent);
+    border-radius: 1px;
+    margin: 1px 6px;
+    pointer-events: none;
+  }
+  .drag-handle {
+    display: inline-flex;
+    align-items: center;
+    color: var(--text-dim);
+    cursor: grab;
+    padding: 0 2px;
+    flex-shrink: 0;
+    user-select: none;
+  }
+  .drag-handle:hover {
+    color: var(--text);
+  }
+  .drag-handle:active {
+    cursor: grabbing;
+  }
+  .dragging {
+    opacity: 0.4;
+  }
+  .mini-btn {
+    padding: 0 5px;
+    font-size: 11px;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+  }
+  .mini-btn:hover {
+    background: transparent;
+    color: var(--text);
+  }
+}
