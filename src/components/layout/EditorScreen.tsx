@@ -158,7 +158,7 @@ export function EditorScreen() {
       <div className="flex flex-col h-screen">
         <Topbar />
         <div className="flex flex-1 min-h-0">
-          {!sidebarCollapsed && <Sidebar />}
+          <Sidebar collapsed={sidebarCollapsed} />
           <EditorPane mainInputRef={mainInputRef} />
         </div>
       </div>
