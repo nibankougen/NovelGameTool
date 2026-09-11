@@ -111,8 +111,6 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
   if (!cmds.length) {
     return (
       <div id="emptyHint" className="text-text-dim text-center py-15 px-5 leading-loose">
-        まだ何もありません。
-        <br />
         下の入力欄にセリフを入力して <kbd className="bg-bg-3 border border-border rounded px-1.5 text-xs">Enter</kbd> で追加できます。
         <br />
         <kbd className="bg-bg-3 border border-border rounded px-1.5 text-xs">@名前 セリフ</kbd> で話者切替、

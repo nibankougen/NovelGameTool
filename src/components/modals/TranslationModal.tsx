@@ -151,7 +151,7 @@ export function TranslationModal({ open, onClose }: { open: boolean; onClose: ()
       <div className="flex-1 overflow-y-auto min-h-0">
         {!project.languages.length && (
           <div className="py-8 px-2.5 text-text-dim text-sm text-center leading-loose">
-            翻訳先の言語がまだありません。
+            翻訳先の言語がありません。
             <br />
             「＋言語」から言語コード（例: en, zh-CN, ko）を追加してください。
           </div>

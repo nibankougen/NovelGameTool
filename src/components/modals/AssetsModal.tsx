@@ -125,17 +125,17 @@ export function AssetsModal({ open, onClose }: { open: boolean; onClose: () => v
       </p>
       <div className="flex-1 overflow-y-auto min-h-0">
         <h4 className="text-accent font-semibold text-sm mb-1.5 mt-2">背景画像</h4>
-        {!names.bg.length && <p className="text-text-dim text-xs mb-3">/bg で使われている名前はまだありません</p>}
+        {!names.bg.length && <p className="text-text-dim text-xs mb-3">/bg で使われている名前はありません</p>}
         {names.bg.map((n) => (
           <ImageAssetRow key={n} name={n} src={project.assets.bg[n]} onSet={(v) => setAsset("bg", n, v)} onRemove={() => removeAsset("bg", n)} />
         ))}
         <h4 className="text-accent font-semibold text-sm mb-1.5 mt-4">BGM</h4>
-        {!names.bgm.length && <p className="text-text-dim text-xs mb-3">/bgm で使われている名前はまだありません</p>}
+        {!names.bgm.length && <p className="text-text-dim text-xs mb-3">/bgm で使われている名前はありません</p>}
         {names.bgm.map((n) => (
           <AudioAssetRow key={n} name={n} src={project.assets.bgm[n]} onSet={(v) => setAsset("bgm", n, v)} onRemove={() => removeAsset("bgm", n)} />
         ))}
         <h4 className="text-accent font-semibold text-sm mb-1.5 mt-4">効果音</h4>
-        {!names.se.length && <p className="text-text-dim text-xs mb-3">/se で使われている名前はまだありません</p>}
+        {!names.se.length && <p className="text-text-dim text-xs mb-3">/se で使われている名前はありません</p>}
         {names.se.map((n) => (
           <AudioAssetRow key={n} name={n} src={project.assets.se[n]} onSet={(v) => setAsset("se", n, v)} onRemove={() => removeAsset("se", n)} />
         ))}

@@ -169,7 +169,7 @@ export function ExpressionTagEditor({ staged, setStaged, usageCounts, thumb, inp
             <span className="expr-n text-danger text-[11px]">{name}</span>
           </span>
         ))}
-        {!staged.length && !usedButMissing.length && <span className="expr-none text-text-dim">表情はまだ登録されていません</span>}
+        {!staged.length && !usedButMissing.length && <span className="expr-none text-text-dim">表情が登録されていません</span>}
       </div>
       <input
         type="text"
