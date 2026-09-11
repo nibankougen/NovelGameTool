@@ -456,7 +456,6 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
           id="mainInput"
           type="text"
           autoComplete="off"
-          placeholder="セリフを入力して Enter （@名前 で話者切替、/ でコマンド）"
           className="flex-1 min-w-0 px-3 py-2 text-[15px]"
           value={value}
           onChange={(e) => {
@@ -472,7 +471,6 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
           onClick={() => appActions.openChoiceModal(null)}
         >
           <Icon name="split" />
-          <span className="lbl">選択肢</span>
         </button>
         <button
           ref={jumpBtnRef}
@@ -488,43 +486,7 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
           }}
         >
           <Icon name="corner-down-right" />
-          <span className="lbl">ジャンプ</span>
         </button>
-      </div>
-      <div id="inputHint" className="max-w-[860px] mx-auto mt-1 text-text-faint text-[11px] flex gap-4 flex-wrap select-none">
-        <span>
-          <b className="text-text-dim font-semibold">@名前␣</b>話者切替
-        </span>
-        <span>
-          <b className="text-text-dim font-semibold">@␣</b>地の文
-        </span>
-        <span>
-          <b className="text-text-dim font-semibold">Alt+1〜9</b>本文へ名前挿入
-        </span>
-        <span>
-          <b className="text-text-dim font-semibold">/</b>コマンド
-        </span>
-        <span>
-          <b className="text-text-dim font-semibold">↑↓</b>行選択
-        </span>
-        <span>
-          <b className="text-text-dim font-semibold">Enter</b>選択行を編集
-        </span>
-        <span>
-          <b className="text-text-dim font-semibold">Ctrl+↑↓</b>行移動
-        </span>
-        <span>
-          <b className="text-text-dim font-semibold">Ctrl+D</b>複製
-        </span>
-        <span>
-          <b className="text-text-dim font-semibold">Del</b>削除
-        </span>
-        <span>
-          <b className="text-text-dim font-semibold">Ctrl+Z</b>元に戻す
-        </span>
-        <span>
-          <b className="text-text-dim font-semibold">F1</b>ヘルプ
-        </span>
       </div>
     </div>
   );
