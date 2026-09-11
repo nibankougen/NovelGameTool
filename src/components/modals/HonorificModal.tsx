@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useToast } from "../common/ToastProvider";
 import { useDragReorder } from "../../hooks/useDragReorder";
@@ -6,6 +6,8 @@ import { Modal, ModalTitle } from "./Modal";
 import { Icon } from "../common/Icon";
 import { uid } from "../../lib/id";
 import { HONOR_SECOND } from "../../types/project";
+
+const TARGET_FILTER_ALL = "__all__";
 
 function parseVocabInput(raw: string): string[] {
   const seen = new Set<string>();
@@ -39,10 +41,39 @@ export function HonorificModal({ open, onClose }: { open: boolean; onClose: () =
     suffix: project.honorificVocab.suffix.join("、"),
   }));
 
+  // フィルター: 話者は ""=すべて、相手は TARGET_FILTER_ALL=すべて／""=自分(一人称)／HONOR_SECOND=相手(二人称)／それ以外=キャラid
+  const [speakerFilter, setSpeakerFilter] = useState("");
+  const [targetFilter, setTargetFilter] = useState(TARGET_FILTER_ALL);
+
+  useEffect(() => {
+    if (speakerFilter && !project.characters.some((c) => c.id === speakerFilter)) setSpeakerFilter("");
+    if (
+      targetFilter !== TARGET_FILTER_ALL &&
+      targetFilter !== "" &&
+      targetFilter !== HONOR_SECOND &&
+      !project.characters.some((c) => c.id === targetFilter)
+    ) {
+      setTargetFilter(TARGET_FILTER_ALL);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project.characters]);
+
+  const filtersActive = speakerFilter !== "" || targetFilter !== TARGET_FILTER_ALL;
+
+  const visibleRules = useMemo(
+    () =>
+      project.honorificRules.filter((r) => {
+        if (speakerFilter && r.speakerId !== speakerFilter) return false;
+        if (targetFilter !== TARGET_FILTER_ALL && (r.targetId ?? "") !== targetFilter) return false;
+        return true;
+      }),
+    [project.honorificRules, speakerFilter, targetFilter],
+  );
+
   const drag = useDragReorder<HTMLDivElement>({
     itemSelector: ".honor-row",
     onDrop: (from, to) => {
-      if (from === to) return;
+      if (from === to || filtersActive) return;
       patch((d) => {
         const [r] = d.honorificRules.splice(from, 1);
         d.honorificRules.splice(to, 0, r);
@@ -55,9 +86,16 @@ export function HonorificModal({ open, onClose }: { open: boolean; onClose: () =
       toast("先にキャラクターを登録してください", true);
       return;
     }
+    const speakerId = (speakerFilter && project.characters.some((c) => c.id === speakerFilter) ? speakerFilter : null) ?? project.characters[0].id;
+    const targetId = targetFilter === TARGET_FILTER_ALL ? null : targetFilter || null;
     patch((d) => {
-      d.honorificRules.push({ id: uid(), speakerId: project.characters[0].id, targetId: null, pattern: "", allowBare: false });
+      d.honorificRules.push({ id: uid(), speakerId, targetId, pattern: "", allowBare: false });
     });
+  };
+
+  const resetFilters = () => {
+    setSpeakerFilter("");
+    setTargetFilter(TARGET_FILTER_ALL);
   };
 
   return (
@@ -103,6 +141,44 @@ export function HonorificModal({ open, onClose }: { open: boolean; onClose: () =
           </label>
         ))}
       </div>
+
+      <div className="flex flex-wrap items-center gap-2 mb-2.5 shrink-0 text-xs">
+        <span className="text-text-dim inline-flex items-center" title="フィルター">
+          <Icon name="filter" />
+        </span>
+        <span className="text-text-dim">話者:</span>
+        <select value={speakerFilter} onChange={(e) => setSpeakerFilter(e.target.value)} className="text-xs w-32">
+          <option value="">すべて</option>
+          {project.characters.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+        <span className="text-text-dim">相手:</span>
+        <select value={targetFilter} onChange={(e) => setTargetFilter(e.target.value)} className="text-xs w-32">
+          <option value={TARGET_FILTER_ALL}>すべて</option>
+          <option value="">（自分＝一人称）</option>
+          <option value={HONOR_SECOND}>（相手＝二人称）</option>
+          {project.characters.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+        {filtersActive && (
+          <>
+            <span className="text-text-dim">
+              {visibleRules.length} / {project.honorificRules.length} 件
+            </span>
+            <button type="button" onClick={resetFilters} className="text-xs px-2 py-1">
+              <Icon name="x" />
+              フィルターを解除
+            </button>
+          </>
+        )}
+      </div>
+
       <div className="flex-1 overflow-y-auto min-h-0 text-sm">
         <div className="grid grid-cols-[20px_1fr_1fr_2fr_74px_30px] gap-1.5 items-center px-1.5 py-1 sticky top-0 bg-bg-2 text-text-dim text-[11px] border-b border-border z-[1]">
           <span></span>
@@ -116,11 +192,24 @@ export function HonorificModal({ open, onClose }: { open: boolean; onClose: () =
           {!project.honorificRules.length && (
             <div className="py-8 px-2.5 text-text-dim text-sm text-center leading-loose">「行を追加」からルールを登録してください</div>
           )}
-          {project.honorificRules.map((r) => (
+          {project.honorificRules.length > 0 && !visibleRules.length && (
+            <div className="py-8 px-2.5 text-text-dim text-sm text-center leading-loose">
+              条件に一致するルールがありません
+              <br />
+              <button type="button" onClick={resetFilters} className="mt-2 text-xs px-2 py-1">
+                フィルターを解除
+              </button>
+            </div>
+          )}
+          {visibleRules.map((r) => (
             <div key={r.id} className="honor-row grid grid-cols-[20px_1fr_1fr_2fr_74px_30px] gap-1.5 items-center px-1.5 py-1 border-b border-hairline group">
-              <span className="drag-handle invisible group-hover:visible" title="ドラッグで並べ替え">
-                <Icon name="grip-vertical" />
-              </span>
+              {filtersActive ? (
+                <span title="フィルター中は並べ替えできません" />
+              ) : (
+                <span className="drag-handle invisible group-hover:visible" title="ドラッグで並べ替え">
+                  <Icon name="grip-vertical" />
+                </span>
+              )}
               <select
                 value={r.speakerId}
                 className="w-full text-xs"
