@@ -10,6 +10,7 @@ import { faceUsageCounts } from "../../lib/sceneUtils";
 import { loadImageAsThumb, hasFileDrag, firstImageFile } from "../../lib/image";
 import { loadGlobalExprTemplate, saveGlobalExprTemplate } from "../../state/projectReducer";
 import { ExpressionTagEditor, type StagedExpr } from "./ExpressionTagEditor";
+import { ImageThumbButton } from "../common/ImageThumbButton";
 
 export function CharacterModal({ open, charId, onClose }: { open: boolean; charId: string | null; onClose: () => void }) {
   return open ? <CharacterModalInner key={charId ?? "new"} charId={charId} onClose={onClose} /> : null;
@@ -32,7 +33,6 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
   );
   const [exprInputText, setExprInputText] = useState("");
   const [dragOverThumb, setDragOverThumb] = useState(false);
-  const thumbFileRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const initialFocusRef = useRef(false);
 
@@ -216,34 +216,13 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
           <br />
           イラスト
         </label>
-        <img
-          src={thumb ?? undefined}
-          alt=""
-          className="w-16 h-16 rounded-lg object-cover border border-border bg-bg-3"
-          style={{ visibility: thumb ? "visible" : "hidden" }}
+        <ImageThumbButton
+          img={thumb}
+          own={!!thumb}
+          title={thumb ? "クリックで画像を外す" : "キャラの基本イラストを設定。表情画像を設定していない表情ではこの画像が使われます"}
+          onPick={(file) => loadImageAsThumb(file).then(setThumb)}
+          onRemove={() => setThumb(null)}
         />
-        <button type="button" onClick={() => thumbFileRef.current?.click()} title="キャラの基本イラスト。表情画像を設定していない表情ではこの画像が使われます">
-          <Icon name="image" />
-          画像を選択…
-        </button>
-        {thumb && (
-          <button type="button" onClick={() => setThumb(null)}>
-            <Icon name="x" />
-            画像を外す
-          </button>
-        )}
-        <input
-          ref={thumbFileRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            e.target.value = "";
-            if (file) loadImageAsThumb(file).then(setThumb);
-          }}
-        />
-        <span className="text-text-dim text-[11px]">またはドラッグ&ドロップ</span>
       </div>
       <div className="flex gap-2 mb-2.5 items-start">
         <label className="w-[70px] shrink-0 pt-1.5 text-text-dim">表情</label>
@@ -259,7 +238,7 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
               className="text-[11px] text-text-dim px-2 py-0.5"
               title="現在の表情一覧をテンプレートとして保存します。以後の新規キャラクターに自動適用されます"
             >
-              この表情をテンプレに保存
+              現在の表情一覧をテンプレに保存
             </button>
           </div>
         </div>

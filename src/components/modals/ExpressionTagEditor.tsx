@@ -1,7 +1,9 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Icon } from "../common/Icon";
+import { ImageThumbButton } from "../common/ImageThumbButton";
 import { loadImageAsThumb, hasFileDrag, firstImageFile } from "../../lib/image";
 import { useToast } from "../common/ToastProvider";
+import { useDragReorder } from "../../hooks/useDragReorder";
 
 export interface StagedExpr {
   orig: string | null;
@@ -22,8 +24,19 @@ export function ExpressionTagEditor({ staged, setStaged, usageCounts, thumb, inp
   const toast = useToast();
   const [renamingIndex, setRenamingIndex] = useState<number | null>(null);
   const [dragHoverIndex, setDragHoverIndex] = useState<number | null>(null);
-  const fileTargetRef = useRef<number | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const drag = useDragReorder<HTMLDivElement>({
+    itemSelector: ".expr-row",
+    onDrop: (from, to) => {
+      if (from === to) return;
+      setStaged((prev) => {
+        const next = [...prev];
+        const [item] = next.splice(from, 1);
+        next.splice(to, 0, item);
+        return next;
+      });
+    },
+  });
 
   const addNames = (raw: string): number => {
     const parts = raw
@@ -57,15 +70,20 @@ export function ExpressionTagEditor({ staged, setStaged, usageCounts, thumb, inp
 
   return (
     <div className="flex-1 min-w-0">
-      <div className="flex flex-wrap gap-1.5 mb-1.5 text-xs leading-relaxed" title="各表情のタグに画像ファイルをドラッグ&ドロップでも設定できます">
+      <div
+        ref={drag.containerRef}
+        onMouseDown={drag.onMouseDown}
+        className="flex flex-col gap-1.5 mb-1.5 max-h-[360px] overflow-y-auto pr-1"
+        title="各表情に画像ファイルをドラッグ&ドロップでも設定できます。左端のハンドルをドラッグで並べ替え"
+      >
         {staged.map((s, i) => {
           const count = usageCounts.get(s.name) ?? 0;
           const img = s.img || (thumb ? thumb : null);
           const isDefaultPreview = !s.img && !!thumb;
           return (
-            <span
+            <div
               key={i}
-              className={`expr-tag inline-flex items-center gap-1.5 py-0.5 px-2.5 rounded-full border border-border ${count === 0 ? "text-text-dim border-dashed bg-transparent" : "bg-bg-3"} ${dragHoverIndex === i ? "outline outline-2 outline-dashed outline-accent -outline-offset-1" : ""}`}
+              className={`expr-row group flex items-center gap-2.5 py-1.5 px-2 rounded-lg border ${count === 0 ? "text-text-dim border-dashed border-border bg-transparent" : "border-border bg-accent-dim/25"} ${dragHoverIndex === i ? "outline outline-2 outline-dashed outline-accent -outline-offset-1" : ""}`}
               onDragOver={(e) => {
                 if (!hasFileDrag(e)) return;
                 e.preventDefault();
@@ -85,60 +103,49 @@ export function ExpressionTagEditor({ staged, setStaged, usageCounts, thumb, inp
                 });
               }}
             >
-              {img && (
-                <img
-                  className={`et-img w-[22px] h-[22px] rounded object-cover shrink-0 cursor-pointer bg-bg-2 ${isDefaultPreview ? "opacity-35" : ""}`}
-                  src={img}
-                  alt=""
-                  onClick={() => {
-                    if (s.img) {
-                      setStaged((prev) => prev.map((x, xi) => (xi === i ? { ...x, img: null } : x)));
-                    } else {
-                      fileTargetRef.current = i;
-                      fileInputRef.current?.click();
-                    }
-                  }}
-                />
-              )}
-              {!img && (
-                <button
-                  type="button"
-                  className="et-btn border-none bg-transparent p-0 min-h-0 text-text-dim"
-                  title="表情画像を設定"
-                  onClick={() => {
-                    fileTargetRef.current = i;
-                    fileInputRef.current?.click();
-                  }}
-                >
-                  <Icon name="image" />
-                </button>
-              )}
-              {renamingIndex === i ? (
-                <input
-                  autoFocus
-                  type="text"
-                  defaultValue={s.name}
-                  className="et-input text-xs py-0.5 px-1.5 w-[110px]"
-                  onFocus={(e) => e.target.select()}
-                  onBlur={(e) => commitRename(i, e.target.value)}
-                  onKeyDown={(e) => {
-                    e.stopPropagation();
-                    if (e.key === "Enter") commitRename(i, e.currentTarget.value);
-                    if (e.key === "Escape") {
+              <span className="drag-handle invisible group-hover:visible" title="ドラッグで並べ替え">
+                <Icon name="grip-vertical" />
+              </span>
+              <ImageThumbButton
+                img={img}
+                own={!!s.img}
+                dimmed={isDefaultPreview}
+                title={s.img ? "クリックで画像を外す" : "デフォルトイラストを使用中（クリックで個別に設定）"}
+                onPick={(file) =>
+                  loadImageAsThumb(file).then((dataUrl) => {
+                    setStaged((prev) => prev.map((x, xi) => (xi === i ? { ...x, img: dataUrl } : x)));
+                  })
+                }
+                onRemove={() => setStaged((prev) => prev.map((x, xi) => (xi === i ? { ...x, img: null } : x)))}
+              />
+              <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
+                {renamingIndex === i ? (
+                  <input
+                    autoFocus
+                    type="text"
+                    defaultValue={s.name}
+                    className="text-sm py-1 px-2 w-full min-w-0"
+                    onFocus={(e) => e.target.select()}
+                    onBlur={(e) => commitRename(i, e.target.value)}
+                    onKeyDown={(e) => {
                       e.stopPropagation();
-                      setRenamingIndex(null);
-                    }
-                  }}
-                />
-              ) : (
-                <span className="cursor-pointer" onClick={() => setRenamingIndex(i)}>
-                  {s.name}
-                </span>
-              )}
-              <span className="expr-n text-text-dim text-[11px]">{count > 0 ? `${count}回` : "未使用"}</span>
+                      if (e.key === "Enter") commitRename(i, e.currentTarget.value);
+                      if (e.key === "Escape") {
+                        e.stopPropagation();
+                        setRenamingIndex(null);
+                      }
+                    }}
+                  />
+                ) : (
+                  <span className="cursor-pointer font-medium truncate" onClick={() => setRenamingIndex(i)}>
+                    {s.name}
+                  </span>
+                )}
+                <span className="text-text-dim text-[11px]">{count > 0 ? `使用回数: ${count}回` : "未使用"}</span>
+              </div>
               <button
                 type="button"
-                className="et-btn border-none bg-transparent p-0 min-h-0 text-text-dim"
+                className="border-none bg-transparent p-1 min-h-0 text-text-dim shrink-0"
                 title="名前変更"
                 onClick={() => setRenamingIndex(i)}
               >
@@ -146,7 +153,7 @@ export function ExpressionTagEditor({ staged, setStaged, usageCounts, thumb, inp
               </button>
               <button
                 type="button"
-                className="et-btn border-none bg-transparent p-0 min-h-0 text-text-dim"
+                className="border-none bg-transparent p-1 min-h-0 text-text-dim shrink-0"
                 title="削除"
                 onClick={() => {
                   if (count > 0 && !window.confirm(`表情「${s.name}」は${count}箇所で使用中です。削除すると使用箇所は警告表示になります。削除しますか？`)) return;
@@ -155,25 +162,26 @@ export function ExpressionTagEditor({ staged, setStaged, usageCounts, thumb, inp
               >
                 <Icon name="x" />
               </button>
-            </span>
+            </div>
           );
         })}
         {usedButMissing.map((name) => (
-          <span
+          <div
             key={`missing-${name}`}
-            className="expr-tag missing inline-flex items-center gap-1.5 py-0.5 px-2.5 rounded-full border border-danger text-danger cursor-pointer"
-            title="使用中だが候補から外れています。クリックで候補に戻す"
+            className="flex items-center gap-2.5 py-1.5 px-2 rounded-lg border border-danger text-danger cursor-pointer"
+            title="使用中の表情が候補から外れています。クリックで候補に戻す"
             onClick={() => addNames(name)}
           >
             <Icon name="triangle-alert" />
-            <span className="expr-n text-danger text-[11px]">{name}</span>
-          </span>
+            <span className="text-[11px]">{name}</span>
+          </div>
         ))}
-        {!staged.length && !usedButMissing.length && <span className="expr-none text-text-dim">表情が登録されていません</span>}
+        {!staged.length && !usedButMissing.length && <div className="text-text-dim">表情が登録されていません</div>}
       </div>
       <input
         type="text"
         className="w-full"
+        placeholder="表情を追加"
         value={inputText}
         onChange={(e) => setInputText(e.target.value)}
         onKeyDown={(e) => {
@@ -184,21 +192,6 @@ export function ExpressionTagEditor({ staged, setStaged, usageCounts, thumb, inp
             e.stopPropagation();
             setInputText("");
           }
-        }}
-      />
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          e.target.value = "";
-          const i = fileTargetRef.current;
-          if (!file || i === null) return;
-          loadImageAsThumb(file).then((dataUrl) => {
-            setStaged((prev) => prev.map((x, xi) => (xi === i ? { ...x, img: dataUrl } : x)));
-          });
         }}
       />
     </div>
