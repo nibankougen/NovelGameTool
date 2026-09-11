@@ -3,7 +3,7 @@ import { useProjectStore } from "../../state/ProjectProvider";
 import { useAppActions } from "../../state/AppActionsContext";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { useClickOutside } from "../../hooks/useClickOutside";
-import { Icon } from "../common/Icon";
+import { Icon, type IconName } from "../common/Icon";
 
 function ToolbarButtons({ showLabels }: { showLabels: boolean }) {
   const a = useAppActions();
@@ -11,23 +11,7 @@ function ToolbarButtons({ showLabels }: { showLabels: boolean }) {
     showLabels ? <span className="lbl">{children}</span> : null;
   return (
     <>
-      <button onClick={a.newProject} title="新規プロジェクト">
-        <Icon name="file-plus" />
-        <Lbl>新規</Lbl>
-      </button>
-      <ImportButton showLabels={showLabels} />
-      <button className="btn-primary" onClick={a.exportJson} title="JSONファイルとして保存 (Ctrl+S)">
-        <Icon name="save" />
-        <Lbl>JSON保存</Lbl>
-      </button>
-      <button onClick={a.exportTxt} title="読みやすいテキスト台本として書き出し">
-        <Icon name="file-text" />
-        <Lbl>台本TXT</Lbl>
-      </button>
-      <button onClick={a.openExportModal} title="メモ・サムネイル・コメント行を除いたゲーム用データを書き出し">
-        <Icon name="gamepad-2" />
-        <Lbl>ゲーム出力</Lbl>
-      </button>
+      <FileMenuButton showLabels={showLabels} />
       <span className="w-px self-stretch bg-border mx-0.5" />
       <button onClick={a.openPlay} title="テストプレイ (Ctrl+P)">
         <Icon name="play" />
@@ -69,15 +53,69 @@ function ToolbarButtons({ showLabels }: { showLabels: boolean }) {
   );
 }
 
-function ImportButton({ showLabels }: { showLabels: boolean }) {
+interface FileMenuItem {
+  label: string;
+  icon: IconName;
+  title?: string;
+  onClick: () => void;
+}
+
+function FileMenuButton({ showLabels }: { showLabels: boolean }) {
   const a = useAppActions();
   const fileRef = useRef<HTMLInputElement>(null);
+  const [open, setOpen] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const closeTimer = useRef<number | undefined>(undefined);
+  const menuRef = useClickOutside<HTMLDivElement>(open, () => setOpen(false), btnRef);
+
+  const cancelClose = () => {
+    if (closeTimer.current !== undefined) {
+      window.clearTimeout(closeTimer.current);
+      closeTimer.current = undefined;
+    }
+  };
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimer.current = window.setTimeout(() => setOpen(false), 150);
+  };
+
+  const items: FileMenuItem[] = [
+    { label: "新規プロジェクト", icon: "file-plus", onClick: a.newProject },
+    { label: "バックアップから開く", icon: "folder-open", title: "JSONファイルを読み込み", onClick: () => fileRef.current?.click() },
+    { label: "バックアップをダウンロード", icon: "save", title: "JSONファイルとして保存 (Ctrl+S)", onClick: a.exportJson },
+    { label: "台本ファイルとして書き出し", icon: "file-text", title: "読みやすいテキスト台本として書き出し", onClick: a.exportTxt },
+    { label: "ゲーム用ファイルとして書き出し", icon: "gamepad-2", title: "メモ・サムネイル・コメント行を除いたゲーム用データを書き出し", onClick: a.openExportModal },
+  ];
+
   return (
-    <>
-      <button onClick={() => fileRef.current?.click()} title="JSONファイルを読み込み">
-        <Icon name="folder-open" />
-        {showLabels && <span className="lbl">読込</span>}
+    <div className="relative" onMouseEnter={() => { cancelClose(); setOpen(true); }} onMouseLeave={scheduleClose}>
+      <button ref={btnRef} onClick={() => setOpen(true)} title="ファイル">
+        <Icon name="files" />
+        {showLabels && <span className="lbl">ファイル</span>}
+        <Icon name="chevron-down" />
       </button>
+      {open && (
+        <div
+          ref={menuRef}
+          className="absolute top-full left-0 mt-1 z-80 bg-bg-3 border border-border rounded-[10px] shadow-2xl p-1.5 min-w-[220px]"
+        >
+          <div className="flex flex-col gap-0.5 [&_button]:justify-start [&_button]:w-full [&_button]:bg-transparent [&_button]:border-transparent">
+            {items.map((it) => (
+              <button
+                key={it.label}
+                title={it.title}
+                onClick={() => {
+                  setOpen(false);
+                  it.onClick();
+                }}
+              >
+                <Icon name={it.icon} />
+                <span className="lbl">{it.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <input
         ref={fileRef}
         type="file"
@@ -89,7 +127,7 @@ function ImportButton({ showLabels }: { showLabels: boolean }) {
           if (file) a.importJson(file);
         }}
       />
-    </>
+    </div>
   );
 }
 
