@@ -78,7 +78,7 @@ export function SearchPanel({ onClose }: { onClose: () => void }) {
         {hits.map((hit, n) => (
           <div
             key={n}
-            className={`flex gap-2 items-baseline py-1.5 px-3 cursor-pointer text-sm border-t border-white/5 ${n === active ? "bg-bg-3" : "hover:bg-bg-3"}`}
+            className={`flex gap-2 items-baseline py-1.5 px-3 cursor-pointer text-sm border-t border-hairline ${n === active ? "bg-bg-3" : "hover:bg-bg-3"}`}
             onClick={() => gotoHit(n)}
           >
             <span className="text-sys text-[11px] whitespace-nowrap shrink-0 max-w-[110px] overflow-hidden text-ellipsis">{hit.sceneName}</span>

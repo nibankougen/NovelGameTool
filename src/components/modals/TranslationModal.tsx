@@ -180,7 +180,7 @@ export function TranslationModal({ open, onClose }: { open: boolean; onClose: ()
             const myIndex = shown;
             shown++;
             rows.push(
-              <div key={entry.key} className="grid grid-cols-2 gap-2.5 items-center py-1.5 px-1 border-b border-white/5">
+              <div key={entry.key} className="grid grid-cols-2 gap-2.5 items-center py-1.5 px-1 border-b border-hairline">
                 <div className="text-sm leading-relaxed break-words min-w-0">
                   <TransPreview fieldRef={entry.ref} findChar={findChar} />
                 </div>

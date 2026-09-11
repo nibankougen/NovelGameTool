@@ -12,7 +12,7 @@ function ImageAssetRow({ name, src, onSet, onRemove }: { name: string; src: stri
   const fileRef = useRef<HTMLInputElement>(null);
   return (
     <div
-      className="flex items-center gap-2.5 py-1.5 px-1 border-b border-white/5"
+      className="flex items-center gap-2.5 py-1.5 px-1 border-b border-hairline"
       onDragOver={(e) => {
         if (hasFileDrag(e)) e.preventDefault();
       }}
@@ -60,7 +60,7 @@ function AudioAssetRow({ name, src, onSet, onRemove }: { name: string; src: stri
   const fileRef = useRef<HTMLInputElement>(null);
   return (
     <div
-      className="flex items-center gap-2.5 py-1.5 px-1 border-b border-white/5"
+      className="flex items-center gap-2.5 py-1.5 px-1 border-b border-hairline"
       onDragOver={(e) => {
         if (hasFileDrag(e)) e.preventDefault();
       }}

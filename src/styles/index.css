@@ -21,6 +21,9 @@
   --narration: #454b57;
   --sys: #1a6aa8;
   --comment: #5b7049;
+  --hairline: rgba(0, 0, 0, 0.08);
+  --warn: #96650a;
+  --text-faint: #a3aab5;
   --thumb-scale: 1;
 }
 
@@ -41,6 +44,9 @@
     --narration: #b8bfcf;
     --sys: #8fd0ff;
     --comment: #7a8a6f;
+    --hairline: rgba(255, 255, 255, 0.06);
+    --warn: #e0b84c;
+    --text-faint: #565d6e;
   }
 }
 
@@ -60,6 +66,9 @@
   --narration: #b8bfcf;
   --sys: #8fd0ff;
   --comment: #7a8a6f;
+  --hairline: rgba(255, 255, 255, 0.06);
+  --warn: #e0b84c;
+  --text-faint: #565d6e;
 }
 
 @theme inline {
@@ -78,6 +87,9 @@
   --color-narration: var(--narration);
   --color-sys: var(--sys);
   --color-comment: var(--comment);
+  --color-hairline: var(--hairline);
+  --color-warn: var(--warn);
+  --color-text-faint: var(--text-faint);
 }
 
 @layer base {

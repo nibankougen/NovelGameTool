@@ -77,7 +77,7 @@ export function CommandRow({
       <span className="drag-handle invisible group-hover:visible pt-1" title="ドラッグで並べ替え">
         <Icon name="grip-vertical" />
       </span>
-      <span className="row-num w-8 shrink-0 text-right text-[#565d6e] text-[11px] pt-0.5 select-none">{index + 1}</span>
+      <span className="row-num w-8 shrink-0 text-right text-text-faint text-[11px] pt-0.5 select-none">{index + 1}</span>
       <div className="row-body flex-1 min-w-0 break-words whitespace-pre-wrap">
         <CommandLineContent
           cmd={cmd}

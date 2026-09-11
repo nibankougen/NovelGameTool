@@ -76,7 +76,7 @@ export function CommandLineContent({ cmd, findChar, scenes, honorIssues, acked, 
       const badgeEl = badge && (
         <div className="honor-badge-row flex">
           <span
-            className={`honor-badge inline-flex items-center shrink-0 text-[#e0b84c] pb-0.5 cursor-pointer${acked ? " opacity-35" : ""}`}
+            className={`honor-badge inline-flex items-center shrink-0 text-warn pb-0.5 cursor-pointer${acked ? " opacity-35" : ""}`}
             data-act="honor-ack"
             title={`${ackTitle}\n人称の表記ゆれ: ${honorIssues.join("、")}`}
             onClick={(e) => {

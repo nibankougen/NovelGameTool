@@ -74,7 +74,7 @@ export function HonorificModal({ open, onClose }: { open: boolean; onClose: () =
       </div>
       <p className="text-text-dim text-xs leading-relaxed mb-3 shrink-0">
         キャラクターごとに「自分をどう呼ぶか（一人称）」「相手をどう呼ぶか（二人称・名前を伴わない呼びかけ）」「他のキャラをどう呼ぶか（名前＋敬称）」を登録しておくと、登録と異なる言い回しが本文に出てきた行に小さく
-        <Icon name="circle-alert" className="inline text-[#e0b84c] align-[-2px]" /> が付きます。簡易チェックのため参考程度にご利用ください。
+        <Icon name="circle-alert" className="inline text-warn align-[-2px]" /> が付きます。簡易チェックのため参考程度にご利用ください。
       </p>
       <div className="flex flex-wrap gap-4 mb-3.5 shrink-0">
         {(
@@ -117,7 +117,7 @@ export function HonorificModal({ open, onClose }: { open: boolean; onClose: () =
             <div className="py-8 px-2.5 text-text-dim text-sm text-center leading-loose">「行を追加」からルールを登録してください</div>
           )}
           {project.honorificRules.map((r) => (
-            <div key={r.id} className="honor-row grid grid-cols-[20px_1fr_1fr_2fr_74px_30px] gap-1.5 items-center px-1.5 py-1 border-b border-white/5 group">
+            <div key={r.id} className="honor-row grid grid-cols-[20px_1fr_1fr_2fr_74px_30px] gap-1.5 items-center px-1.5 py-1 border-b border-hairline group">
               <span className="drag-handle invisible group-hover:visible" title="ドラッグで並べ替え">
                 <Icon name="grip-vertical" />
               </span>

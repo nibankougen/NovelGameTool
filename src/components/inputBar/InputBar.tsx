@@ -378,7 +378,7 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
                 lastGroup = groupName;
                 return (
                   <div key={s.id}>
-                    {header && <div className="popup-section px-3.5 pt-1.5 pb-0.5 text-text-dim text-[11px] font-bold border-t border-white/10 first:border-t-0">{groupName || "未分類"}</div>}
+                    {header && <div className="popup-section px-3.5 pt-1.5 pb-0.5 text-text-dim text-[11px] font-bold border-t border-hairline first:border-t-0">{groupName || "未分類"}</div>}
                     <div
                       className="popup-item flex gap-3 py-1.5 px-3.5 cursor-pointer items-center hover:bg-accent-dim"
                       onMouseDown={(e) => {
@@ -491,7 +491,7 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
           <span className="lbl">ジャンプ</span>
         </button>
       </div>
-      <div id="inputHint" className="max-w-[860px] mx-auto mt-1 text-[#565d6e] text-[11px] flex gap-4 flex-wrap select-none">
+      <div id="inputHint" className="max-w-[860px] mx-auto mt-1 text-text-faint text-[11px] flex gap-4 flex-wrap select-none">
         <span>
           <b className="text-text-dim font-semibold">@名前␣</b>話者切替
         </span>

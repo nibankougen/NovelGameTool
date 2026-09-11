@@ -68,7 +68,7 @@ export function StatsModal({ open, onClose }: { open: boolean; onClose: () => vo
               return (
                 <div
                   key={id}
-                  className="grid grid-cols-[1fr_90px_90px] gap-2 items-center px-2 py-1.5 border-b border-white/5 cursor-pointer hover:bg-bg-2"
+                  className="grid grid-cols-[1fr_90px_90px] gap-2 items-center px-2 py-1.5 border-b border-hairline cursor-pointer hover:bg-bg-2"
                   onClick={() => {
                     editorUi.gotoScene(id);
                     onClose();

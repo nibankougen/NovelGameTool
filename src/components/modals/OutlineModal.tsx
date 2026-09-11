@@ -51,7 +51,7 @@ export function OutlineModal({ open, onClose }: { open: boolean; onClose: () => 
                   {groupName || "未分類"}
                 </div>
               )}
-              <div className="py-2 px-1 border-b border-white/5">
+              <div className="py-2 px-1 border-b border-hairline">
                 <div className="flex items-center gap-2 mb-1">
                   <button
                     className="font-bold text-sm px-2 py-0.5 bg-transparent border-none"
