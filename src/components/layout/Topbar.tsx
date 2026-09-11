@@ -151,7 +151,7 @@ export function Topbar() {
       </button>
       {showLogo && (
         <span className="font-bold text-accent mr-1 text-[15px] flex items-center gap-1">
-          <Icon name="book-open" /> NovelEdit
+          <Icon name="book-open" /> Serifu Dev Tool
         </span>
       )}
       <input

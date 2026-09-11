@@ -1,4 +1,4 @@
-# NovelGameTool — ノベルゲーム シナリオエディタ
+# Serifu Dev Tool — ノベルゲーム シナリオエディタ
 
 ノベルゲームのシナリオデータ（セリフ・地の文・演出コマンド・選択肢分岐）を、キーボード中心の少ない手数で作成できるPC向けエディタです。pnpm + Vite + React + TypeScript + Tailwind CSS による静的SPAとして実装されています。
 
