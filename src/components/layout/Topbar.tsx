@@ -98,7 +98,7 @@ function DropdownMenuButton({
           ref={menuRef}
           className="absolute top-full left-0 mt-1 z-80 bg-bg-3 border border-border rounded-[10px] shadow-2xl p-1.5 min-w-[220px]"
         >
-          <div className="flex flex-col gap-0.5 [&_button]:justify-start [&_button]:w-full [&_button]:bg-transparent [&_button]:border-transparent">
+          <div className="flex flex-col gap-0.5 [&_button]:justify-start [&_button]:w-full [&_button]:bg-transparent [&_button]:border-transparent [&_button:hover]:bg-accent-dim">
             {items.map((it) => (
               <button
                 key={it.label}
