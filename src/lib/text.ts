@@ -4,7 +4,7 @@ import type { Character } from "../types/project";
    保存形式では不可視のプライベート領域文字（U+E050 … U+E051）でIDを挟んだ
    トークンとして持ち、名前を変更しても自動で追従する。
    編集欄では読みやすいよう《名前》の形で表示・入力し、確定時にトークンへ変換する。
-   台本TXT・ゲーム出力など「書き出し」時だけは、その時点の名前を平文として埋め込む。 */
+   台本ファイルとして書き出し・ゲーム用ファイルとして書き出しなど「書き出し」時だけは、その時点の名前を平文として埋め込む。 */
 export const MENTION_START = "\uE050";
 export const MENTION_END = "\uE051";
 const MENTION_SOURCE = `${MENTION_START}([^${MENTION_START}${MENTION_END}]*)${MENTION_END}`;

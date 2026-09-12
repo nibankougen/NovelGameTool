@@ -46,7 +46,7 @@ export function ExportGameModal({ open, onClose }: { open: boolean; onClose: () 
 
   return (
     <Modal open={open} onRequestClose={onClose}>
-      <ModalHeader>ゲーム出力の設定</ModalHeader>
+      <ModalHeader>ゲーム用ファイル書き出しの設定</ModalHeader>
       <p className="text-text-dim text-xs mb-3.5">設定メモ・デフォルトイラスト・表情画像は常に出力されません。この設定はプロジェクトに保存されます。</p>
       <CheckRow label="表情を出力" desc="キャラの表情候補（expressions）とセリフの face" checked={cfg.face} onChange={(v) => setCfg({ face: v })} />
       <CheckRow label="シーン名を出力" desc="scenes[].name（ID参照のみなら不要）" checked={cfg.sceneName} onChange={(v) => setCfg({ sceneName: v })} />

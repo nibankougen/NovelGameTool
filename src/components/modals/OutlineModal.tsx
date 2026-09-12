@@ -22,7 +22,7 @@ export function OutlineModal({ open, onClose }: { open: boolean; onClose: () => 
         <label className="block text-text-dim text-xs mb-1">大枠メモ（設定・プロット全体・伏線など）</label>
         <textarea
           className="w-full min-h-[80px] resize-y leading-relaxed text-sm"
-          placeholder="物語全体の設定・あらすじ・伏線などを自由にメモできます（ゲーム出力には含まれません）"
+          placeholder="物語全体の設定・あらすじ・伏線などを自由にメモできます（ゲーム用ファイルには含まれません）"
           value={project.overview}
           onFocus={onFocus}
           onChange={(e) => {

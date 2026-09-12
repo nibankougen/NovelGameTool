@@ -102,7 +102,7 @@ export function HelpModal({ open, onClose }: { open: boolean; onClose: () => voi
           <Row k="翻訳" v={<><Icon name="languages" className="inline" /> で翻訳画面を開き、言語を追加してセリフ・選択肢・キャラ名を翻訳できます</>} />
           <Row k="人称チェック" v={<><Icon name="users" className="inline" /> で設定画面を開き、キャラごとの一人称・二人称・呼び方を登録すると表記ゆれを検出します</>} />
           <Row k="テストプレイ" v="背景・BGM・効果音は「素材」画面で登録した画像・音声があれば実際に描画・再生されます" />
-          <Row k="ゲーム出力" v="「ゲーム出力」ボタンで、ゲーム実装用JSONを書き出せます" />
+          <Row k="ゲーム用ファイルとして書き出し" v="「ファイル > ゲーム用ファイルとして書き出し」ボタンで、ゲーム実装用JSONを書き出せます" />
         </tbody>
       </table>
     </Modal>
