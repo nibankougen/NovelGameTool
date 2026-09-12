@@ -22,6 +22,7 @@ export interface AppActionsValue {
   openHonorific: () => void;
   openPlay: () => void;
   openAssets: () => void;
+  openEventKeys: () => void;
   openSettings: () => void;
   openSearch: () => void;
   closeSearch: () => void;

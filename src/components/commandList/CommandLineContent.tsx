@@ -5,16 +5,37 @@ import { ColumnResizeHandle } from "./ColumnResizeHandle";
 import { useSerifColumns } from "../../state/SerifColumnsContext";
 import { useAssetUrl } from "../../hooks/useAssetUrl";
 import type { CharLookup } from "../../lib/text";
-import type { Command, Scene } from "../../types/project";
+import type { Command, EventKeyDef, Scene } from "../../types/project";
 
 interface Props {
   cmd: Command;
   findChar: CharLookup;
   scenes: Scene[];
+  eventKeys: EventKeyDef[];
   honorIssues: string[];
   acked: boolean;
   onToggleHonorAck: () => void;
   onGotoScene: (sceneId: string) => void;
+}
+
+function EventTagsRow({ cmd, eventKeys }: { cmd: Command; eventKeys: EventKeyDef[] }) {
+  if (cmd.type !== "serif" || !cmd.events?.length) return null;
+  const events = cmd.events;
+  return (
+    <div className="event-tags-row flex flex-wrap gap-1 mt-1">
+      {eventKeys.map((key) => {
+        const tag = events.find((e) => e.keyId === key.id);
+        if (!tag) return null;
+        return (
+          <span key={key.id} className="event-tag inline-flex items-center gap-1 bg-bg-3 rounded px-1.5 py-0.5 text-[11px] text-text-dim">
+            <Icon name="tag" />
+            {key.name}
+            {tag.value !== undefined && tag.value !== "" ? `: ${tag.value}` : ""}
+          </span>
+        );
+      })}
+    </div>
+  );
 }
 
 function GotoSceneButton({ sceneId, onGotoScene }: { sceneId: string; onGotoScene: (id: string) => void }) {
@@ -42,7 +63,7 @@ function BrokenRef({ children }: { children: ReactNode }) {
   );
 }
 
-export function CommandLineContent({ cmd, findChar, scenes, honorIssues, acked, onToggleHonorAck, onGotoScene }: Props) {
+export function CommandLineContent({ cmd, findChar, scenes, eventKeys, honorIssues, acked, onToggleHonorAck, onGotoScene }: Props) {
   const { speakerColWidth, faceColWidth, setSpeakerColWidth, setFaceColWidth } = useSerifColumns();
   const serifChar = cmd.type === "serif" && cmd.chara ? findChar(cmd.chara) : null;
   const serifImgPath = serifChar ? (cmd.type === "serif" && cmd.face && serifChar.exprImages[cmd.face]) || serifChar.thumb : null;
@@ -111,6 +132,7 @@ export function CommandLineContent({ cmd, findChar, scenes, honorIssues, acked, 
             <span className={cmd.chara ? "serif-text" : "narration text-narration"}>
               <MentionText text={cmd.text} findChar={findChar} />
             </span>
+            <EventTagsRow cmd={cmd} eventKeys={eventKeys} />
           </div>
         </div>
       );

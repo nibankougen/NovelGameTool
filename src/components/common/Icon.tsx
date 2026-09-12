@@ -30,6 +30,7 @@ import {
   Settings,
   Split,
   Sun,
+  Tag,
   TriangleAlert,
   Trash2,
   Upload,
@@ -77,6 +78,7 @@ const ICONS: Record<string, LucideIcon> = {
   upload: Upload,
   settings: Settings,
   wrench: Wrench,
+  tag: Tag,
 };
 
 export type IconName = keyof typeof ICONS;

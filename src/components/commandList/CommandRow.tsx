@@ -3,7 +3,7 @@ import { Icon } from "../common/Icon";
 import { CommandLineContent } from "./CommandLineContent";
 import type { ClickInfo } from "../../lib/editClickMapping";
 import { computeClickInfo } from "../../lib/editClickMapping";
-import type { Character, Command, Scene } from "../../types/project";
+import type { Character, Command, EventKeyDef, Scene } from "../../types/project";
 import type { CharLookup } from "../../lib/text";
 
 interface Props {
@@ -16,6 +16,7 @@ interface Props {
   acked: boolean;
   characters: Character[];
   scenes: Scene[];
+  eventKeys: EventKeyDef[];
   findChar: CharLookup;
   onDelete: () => void;
   onDup: () => void;
@@ -38,6 +39,7 @@ export function CommandRow({
   acked,
   characters,
   scenes,
+  eventKeys,
   findChar,
   onDelete,
   onDup,
@@ -83,6 +85,7 @@ export function CommandRow({
           cmd={cmd}
           findChar={findChar}
           scenes={scenes}
+          eventKeys={eventKeys}
           honorIssues={honorIssues}
           acked={acked}
           onToggleHonorAck={onToggleHonorAck}

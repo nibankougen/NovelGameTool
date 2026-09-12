@@ -23,6 +23,7 @@ function ToolbarButtons({ showLabels }: { showLabels: boolean }) {
     { label: "翻訳", icon: "languages", title: "翻訳画面 — セリフ・選択肢・キャラ名を他言語に翻訳", onClick: a.openTranslation },
     { label: "人称チェック", icon: "users", title: "人称チェック設定 — キャラごとの一人称・呼び方を登録して表記ゆれを検出", onClick: a.openHonorific },
     { label: "素材", icon: "music", title: "素材管理 — テストプレイで使う背景画像・BGM・効果音を登録", onClick: a.openAssets },
+    { label: "イベントキー", icon: "tag", title: "イベントキー管理 — セリフに付与できるカスタムイベントの種類を登録", onClick: a.openEventKeys },
   ];
 
   return (

@@ -137,6 +137,7 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
             acked={cmd.type === "serif" && !!cmd.honorAckText && cmd.honorAckText === cmd.text}
             characters={project.characters}
             scenes={project.scenes}
+            eventKeys={project.eventKeys}
             findChar={findChar}
             onDelete={() => {
               const sceneId = scene.id;

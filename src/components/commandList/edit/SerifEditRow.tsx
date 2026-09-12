@@ -11,8 +11,9 @@ import { parseInput } from "../../../lib/parseInput";
 import { parseInputDry, makeDraftParseEnv } from "../../../lib/parseEnvDraft";
 import { carryTr } from "../../../lib/carryTr";
 import { ColumnResizeHandle } from "../ColumnResizeHandle";
+import { EventTagsEditor } from "./EventTagsEditor";
 import { useSerifColumns } from "../../../state/SerifColumnsContext";
-import type { Scene, SerifCommand } from "../../../types/project";
+import type { Scene, SerifCommand, SerifEventTag } from "../../../types/project";
 
 interface ChipMenuItem {
   label: string;
@@ -32,6 +33,7 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
   const [spk, setSpk] = useState<string | null>(cmd.chara && findChar(cmd.chara) ? cmd.chara : null);
   const [face, setFace] = useState<string | null>(cmd.face || null);
   const [text, setText] = useState(() => textToDisplay(cmd.text, findChar));
+  const [events, setEvents] = useState<SerifEventTag[]>(cmd.events ?? []);
   const [menu, setMenu] = useState<{ for: "speaker" | "face"; items: ChipMenuItem[] } | null>(null);
 
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -154,7 +156,8 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
           if (r.kind !== "command") return;
           const sc = d.scenes.find((s) => s.id === sceneId);
           if (!sc) return;
-          sc.commands[index] = carryTr(sc.commands[index], r.cmd);
+          const newCmd = r.cmd.type === "serif" && events.length ? { ...r.cmd, events } : r.cmd;
+          sc.commands[index] = carryTr(sc.commands[index], newCmd);
         });
       } else if (t) {
         editorUi.stopEdit();
@@ -166,6 +169,7 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
             chara: spk,
             face: spk ? face : null,
             text: textToStorage(t, d.characters),
+            events: events.length ? events : undefined,
           });
         });
       } else {
@@ -208,7 +212,7 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
       <div className="row-body flex-1 min-w-0">
         <div
           ref={wrapRef}
-          className="edit-wrap flex items-center w-full relative"
+          className="edit-wrap relative"
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => {
             if ((e.target as HTMLElement) !== inputRef.current && e.key === "Escape") {
@@ -225,6 +229,7 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
             }, 0);
           }}
         >
+          <div className="flex items-start w-full">
           <div className="row-face-slot w-[26px] h-[26px] shrink-0 mr-1.5">
             {thumbSrc && (
               <img
@@ -291,38 +296,42 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
             )}
             <ColumnResizeHandle width={faceColWidth} onResize={setFaceColWidth} />
           </div>
-          <input
-            ref={inputRefCallback}
-            type="text"
-            className="edit-text flex-1 min-w-0 text-sm px-0.5 py-px bg-transparent border-none rounded outline-none focus:bg-bg-2 focus:outline focus:outline-1 focus:outline-accent"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.nativeEvent.isComposing || e.keyCode === 229) return;
-              if (e.key === "Enter") {
-                e.preventDefault();
-                finish(true);
-              } else if (e.key === "Escape") {
-                e.preventDefault();
-                if (menu) setMenu(null);
-                else finish(false);
-              } else if (e.key === "Backspace" && e.currentTarget.selectionStart === 0 && e.currentTarget.selectionEnd === 0) {
-                e.preventDefault();
-                if (face) setFace(null);
-                else if (spk) setSpk(null);
-              } else if (e.altKey && /^[1-9]$/.test(e.key)) {
-                e.preventDefault();
-                const idx = Number(e.key) - 1;
-                const target = project.characters[idx];
-                if (target) {
-                  const { value, cursor } = insertTextAtCursor(e.currentTarget, `《${target.name}》`);
-                  setText(value);
-                  requestAnimationFrame(() => inputRef.current?.setSelectionRange(cursor, cursor));
+          <div className="flex-1 min-w-0">
+            <input
+              ref={inputRefCallback}
+              type="text"
+              className="edit-text w-full text-sm px-0.5 py-px bg-transparent border-none rounded outline-none focus:bg-bg-2 focus:outline focus:outline-1 focus:outline-accent"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  finish(true);
+                } else if (e.key === "Escape") {
+                  e.preventDefault();
+                  if (menu) setMenu(null);
+                  else finish(false);
+                } else if (e.key === "Backspace" && e.currentTarget.selectionStart === 0 && e.currentTarget.selectionEnd === 0) {
+                  e.preventDefault();
+                  if (face) setFace(null);
+                  else if (spk) setSpk(null);
+                } else if (e.altKey && /^[1-9]$/.test(e.key)) {
+                  e.preventDefault();
+                  const idx = Number(e.key) - 1;
+                  const target = project.characters[idx];
+                  if (target) {
+                    const { value, cursor } = insertTextAtCursor(e.currentTarget, `《${target.name}》`);
+                    setText(value);
+                    requestAnimationFrame(() => inputRef.current?.setSelectionRange(cursor, cursor));
+                  }
                 }
-              }
-              e.stopPropagation();
-            }}
-          />
+                e.stopPropagation();
+              }}
+            />
+            <EventTagsEditor events={events} setEvents={setEvents} eventKeys={project.eventKeys} />
+          </div>
+          </div>
           {menu && (
             <div
               className="edit-menu absolute z-60 bg-bg-3 border border-border rounded-lg shadow-2xl min-w-[150px] max-h-[250px] overflow-y-auto"

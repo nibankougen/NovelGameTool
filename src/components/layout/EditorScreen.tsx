@@ -24,6 +24,7 @@ import { TranslationModal } from "../modals/TranslationModal";
 import { HonorificModal } from "../modals/HonorificModal";
 import { PlayModal } from "../modals/PlayModal";
 import { AssetsModal } from "../modals/AssetsModal";
+import { EventKeysModal } from "../modals/EventKeysModal";
 import { SettingsModal } from "../modals/SettingsModal";
 
 function applyThemeAttribute(theme: ThemeChoice) {
@@ -64,6 +65,7 @@ export function EditorScreen() {
   const [honorOpen, setHonorOpen] = useState(false);
   const [playOpen, setPlayOpen] = useState(false);
   const [assetsOpen, setAssetsOpen] = useState(false);
+  const [eventKeysOpen, setEventKeysOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -113,6 +115,7 @@ export function EditorScreen() {
     openHonorific: () => setHonorOpen(true),
     openPlay: () => setPlayOpen(true),
     openAssets: () => setAssetsOpen(true),
+    openEventKeys: () => setEventKeysOpen(true),
     openSettings: () => setSettingsOpen(true),
     openSearch: () => setSearchOpen(true),
     closeSearch: () => setSearchOpen(false),
@@ -155,6 +158,7 @@ export function EditorScreen() {
       <HonorificModal open={honorOpen} onClose={() => setHonorOpen(false)} />
       <PlayModal open={playOpen} onClose={() => setPlayOpen(false)} />
       <AssetsModal open={assetsOpen} onClose={() => setAssetsOpen(false)} />
+      <EventKeysModal open={eventKeysOpen} onClose={() => setEventKeysOpen(false)} />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </AppActionsProvider>
   );

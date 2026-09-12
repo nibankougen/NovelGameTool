@@ -1,5 +1,19 @@
 export type TrMap = Record<string, string>;
 
+export type EventKeyValueType = "none" | "number" | "string";
+
+export interface EventKeyDef {
+  id: string;
+  name: string;
+  valueType: EventKeyValueType;
+}
+
+export interface SerifEventTag {
+  keyId: string;
+  /** valueType が "none" のキーには持たせない */
+  value?: number | string;
+}
+
 export interface SerifCommand {
   type: "serif";
   chara: string | null;
@@ -9,6 +23,8 @@ export interface SerifCommand {
   /** 人称チェックのバッジを既読にした時点のテキストのスナップショット。
    * text と一致する間だけ既読扱いになる（編集すると自動的に未読へ戻る）。undo対象外。 */
   honorAckText?: string;
+  /** このセリフに付与されたイベントキー。プロジェクト共通の project.eventKeys を参照する */
+  events?: SerifEventTag[];
 }
 export interface BgCommand {
   type: "bg";
@@ -123,6 +139,7 @@ export interface Project {
   honorificRules: HonorificRule[];
   honorificVocab: HonorificVocab;
   assets: ProjectAssets;
+  eventKeys: EventKeyDef[];
 }
 
 export const PALETTE = [

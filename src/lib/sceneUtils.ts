@@ -76,3 +76,16 @@ export function faceUsageCounts(scenes: Scene[], charId: string): Map<string, nu
   }
   return map;
 }
+
+/** イベントキーごとの使用回数（全シーン横断）。イベントキー管理画面の「使用中に削除しようとした」判定に使う */
+export function eventKeyUsageCounts(scenes: Scene[]): Map<string, number> {
+  const map = new Map<string, number>();
+  for (const s of scenes) {
+    for (const c of s.commands) {
+      if (c.type === "serif" && c.events) {
+        for (const e of c.events) map.set(e.keyId, (map.get(e.keyId) ?? 0) + 1);
+      }
+    }
+  }
+  return map;
+}

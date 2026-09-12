@@ -13,6 +13,7 @@ function pickTr(tr: TrMap | undefined, langs: string[]): TrMap | null {
 /** ゲーム実装向けの出力データ（設定メモ・デフォルトイラスト・表情画像は常に除外） */
 export function gameExportData(project: Project, cfg: ExportSettings, findChar: CharLookup): Record<string, unknown> {
   const langs = project.languages || [];
+  const eventKeyById = new Map(project.eventKeys.map((k) => [k.id, k]));
   const root: Record<string, unknown> = {
     title: project.title,
     characters: project.characters.map((c) => {
@@ -34,6 +35,16 @@ export function gameExportData(project: Project, cfg: ExportSettings, findChar: 
             if (cfg.face && c.face) out.face = c.face;
             const tr = pickTr(c.tr, langs);
             if (tr) out.tr = tr;
+            if (c.events?.length) {
+              const events = c.events
+                .map((e) => {
+                  const key = eventKeyById.get(e.keyId);
+                  if (!key) return null;
+                  return e.value !== undefined ? { key: key.name, value: e.value } : { key: key.name };
+                })
+                .filter((e): e is { key: string; value?: number | string } => !!e);
+              if (events.length) out.events = events;
+            }
             return out;
           }
           if (c.type === "choice") {

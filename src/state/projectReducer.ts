@@ -4,6 +4,8 @@ import {
   EXPORT_DEFAULTS,
   HONOR_VOCAB_DEFAULTS,
   type Character,
+  type EventKeyDef,
+  type EventKeyValueType,
   type Project,
   type Scene,
 } from "../types/project";
@@ -41,6 +43,7 @@ export function defaultProject(): Project {
     honorificRules: [],
     honorificVocab: { ...HONOR_VOCAB_DEFAULTS },
     assets: { bg: {}, bgm: {}, se: {} },
+    eventKeys: [],
   };
 }
 
@@ -63,6 +66,17 @@ export function normalizeProject(raw: unknown): Project {
     if (!c.exprImages || typeof c.exprImages !== "object" || Array.isArray(c.exprImages)) c.exprImages = {};
   }
 
+  const VALUE_TYPES: EventKeyValueType[] = ["none", "number", "string"];
+  const rawEventKeys = Array.isArray(p.eventKeys) ? p.eventKeys : [];
+  const eventKeys: EventKeyDef[] = rawEventKeys
+    .filter((k): k is Record<string, unknown> => !!k && typeof k === "object" && typeof (k as Record<string, unknown>).name === "string")
+    .map((k) => ({
+      id: typeof k.id === "string" ? k.id : uid(),
+      name: k.name as string,
+      valueType: VALUE_TYPES.includes(k.valueType as EventKeyValueType) ? (k.valueType as EventKeyValueType) : "none",
+    }));
+  const eventKeyById = new Map(eventKeys.map((k) => [k.id, k]));
+
   const sceneGroups = Array.isArray(p.sceneGroups) ? (p.sceneGroups as { id: string; name: string }[]) : [];
   const groupIds = new Set(sceneGroups.map((g) => g.id));
   const scenes: Scene[] = Array.isArray(p.scenes) ? (p.scenes as Scene[]) : [];
@@ -71,6 +85,24 @@ export function normalizeProject(raw: unknown): Project {
     if (s.groupId === undefined) s.groupId = null;
     if (typeof s.synopsis !== "string") s.synopsis = "";
     if (!Array.isArray(s.commands)) s.commands = [];
+    for (const cmd of s.commands) {
+      if (cmd.type !== "serif") continue;
+      if (!Array.isArray(cmd.events)) {
+        delete cmd.events;
+        continue;
+      }
+      const cleaned = cmd.events
+        .filter((e) => e && typeof e === "object" && typeof e.keyId === "string" && eventKeyById.has(e.keyId))
+        .map((e) => {
+          const def = eventKeyById.get(e.keyId)!;
+          const out: { keyId: string; value?: number | string } = { keyId: def.id };
+          if (def.valueType === "number" && typeof e.value === "number") out.value = e.value;
+          else if (def.valueType === "string" && typeof e.value === "string") out.value = e.value;
+          return out;
+        });
+      if (cleaned.length) cmd.events = cleaned;
+      else delete cmd.events;
+    }
   }
   if (!scenes.length) scenes.push({ id: uid(), name: "シーン1", commands: [], groupId: null, synopsis: "" });
 
@@ -118,6 +150,7 @@ export function normalizeProject(raw: unknown): Project {
     honorificRules,
     honorificVocab,
     assets,
+    eventKeys,
   };
 }
 

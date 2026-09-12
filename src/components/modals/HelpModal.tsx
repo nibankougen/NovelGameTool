@@ -102,6 +102,10 @@ export function HelpModal({ open, onClose }: { open: boolean; onClose: () => voi
           />
           <Row k="翻訳" v={<><Icon name="languages" className="inline" /> で翻訳画面を開き、言語を追加してセリフ・選択肢・キャラ名を翻訳できます</>} />
           <Row k="人称チェック" v={<><Icon name="users" className="inline" /> で設定画面を開き、キャラごとの一人称・二人称・呼び方を登録すると表記ゆれを検出します</>} />
+          <Row
+            k="イベントキー"
+            v={<><Icon name="tag" className="inline" /> で登録したキーを、セリフ編集行の下から複数付与できます。値の種類（数値/文字列）を設定したキーはセリフごとに値も指定でき、ゲーム用ファイルの書き出しに含まれます</>}
+          />
           <Row k="テストプレイ" v="背景・BGM・効果音は「素材」画面で登録した画像・音声があれば実際に描画・再生されます" />
           <Row k="ゲーム用ファイルとして書き出し" v="「ファイル > ゲーム用ファイルとして書き出し」ボタンで、ゲーム実装用JSONを書き出せます" />
         </tbody>
