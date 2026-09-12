@@ -74,7 +74,7 @@ export function HelpModal({ open, onClose }: { open: boolean; onClose: () => voi
           <Row k="Ctrl+0" v="話者を地の文に切替" />
           <Row k="Alt+1〜9" v="セリフ本文のカーソル位置へキャラクター1〜9番の名前を挿入。名前を変更すると本文中の表記も自動で追従します" />
           <Row k="Ctrl+Z / Ctrl+Y" v="元に戻す／やり直し" />
-          <Row k="Ctrl+S" v="JSONファイルとして保存" />
+          <Row k="Ctrl+S" v="プロジェクトフォルダへ即座に保存" />
           <Row k="Ctrl+P" v="テストプレイ" />
           <Row k="Ctrl+B" v="サイドバーの表示／非表示" />
           <Row k="Ctrl+F" v="プロジェクト全体を全文検索" />
@@ -85,7 +85,8 @@ export function HelpModal({ open, onClose }: { open: boolean; onClose: () => voi
       <table className="w-full border-collapse mb-4">
         <tbody>
           <Row k="複数行の貼り付け" v="テキストエディタで書いた台本を入力欄に貼り付けると、1行ずつまとめて追加できます" />
-          <Row k="自動保存" v="編集内容はブラウザ内に自動保存されます。バックアップや共有には「JSON保存」を使ってください" />
+          <Row k="新規プロジェクト／プロジェクトを開く" v="「ファイル」メニューから、作業フォルダを選んで新規プロジェクトを作成したり、既存のプロジェクトフォルダを開いたりできます" />
+          <Row k="自動保存" v="編集内容は開いている作業フォルダへ自動保存されます。バックアップや別PCへの受け渡しには、フォルダごとコピーしてください" />
           <Row
             k="行の編集"
             v="行をクリックすると即編集モードになります。セリフ行では話者・表情がチップになり、クリックで切替できます。文頭でBackspaceでチップごと削除（地の文に）"
