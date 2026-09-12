@@ -102,7 +102,7 @@ export function ProjectLauncher() {
                   title={t("launcher.removeFromList")}
                   onClick={() => handleRemoveRecent(r.id)}
                 >
-                  <Icon name="x" />
+                  <Icon name="trash-2" />
                 </button>
               </div>
             ))}

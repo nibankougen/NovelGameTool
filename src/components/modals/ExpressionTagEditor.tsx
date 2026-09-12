@@ -124,7 +124,7 @@ function ExprRow({
         <Icon name="pencil" />
       </button>
       <button type="button" className="border-none bg-transparent p-1 min-h-0 text-text-dim shrink-0" title={t("expression.delete")} onClick={onDelete}>
-        <Icon name="x" />
+        <Icon name="trash-2" />
       </button>
     </div>
   );
