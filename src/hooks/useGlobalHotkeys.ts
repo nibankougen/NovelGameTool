@@ -7,7 +7,7 @@ export interface GlobalHotkeysConfig {
   closeAllClosableModals: () => void;
   undo: () => void;
   redo: () => void;
-  exportJson: () => void;
+  saveNow: () => void;
   toggleSidebar: () => void;
   openPlay: () => void;
   openSearch: () => void;
@@ -46,7 +46,7 @@ export function useGlobalHotkeys(config: GlobalHotkeysConfig) {
       }
       if (e.ctrlKey && (e.key === "s" || e.key === "S")) {
         e.preventDefault();
-        c.exportJson();
+        c.saveNow();
         return;
       }
       if (e.ctrlKey && !e.shiftKey && !e.altKey && (e.key === "b" || e.key === "B")) {

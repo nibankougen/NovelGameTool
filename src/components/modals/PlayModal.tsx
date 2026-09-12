@@ -2,6 +2,7 @@ import { useProjectStore } from "../../state/ProjectProvider";
 import { useEditorUi } from "../../state/EditorUiContext";
 import { useCharLookup } from "../../hooks/useCharLookup";
 import { usePlaySession } from "../../hooks/usePlaySession";
+import { useAssetUrl } from "../../hooks/useAssetUrl";
 import { Modal, ModalCloseButton } from "./Modal";
 import { Icon } from "../common/Icon";
 
@@ -10,10 +11,12 @@ export function PlayModal({ open, onClose }: { open: boolean; onClose: () => voi
 }
 
 function PlayModalInner({ onClose }: { onClose: () => void }) {
-  const { project } = useProjectStore();
+  const { project, dirHandle } = useProjectStore();
   const editorUi = useEditorUi();
   const findChar = useCharLookup();
-  const { state, advance, restart } = usePlaySession(project, editorUi.currentSceneId, findChar);
+  const { state, advance, restart } = usePlaySession(project, dirHandle, editorUi.currentSceneId, findChar);
+  const bgImageUrl = useAssetUrl(state.bgImage);
+  const faceImgUrl = useAssetUrl(state.faceImg);
 
   // テストプレイの舞台は実際のゲーム画面（常に暗めのVNスタイル）を模したプレビューのため、
   // エディタのライト／ダークテーマに関わらず常に読める配色で固定する（var(--text)等は使わない）。
@@ -32,16 +35,16 @@ function PlayModalInner({ onClose }: { onClose: () => void }) {
           <ModalCloseButton onClick={onClose} className="ml-auto text-[#aab0bf] hover:text-white" />
         </div>
         <div className="flex-1 relative cursor-pointer" onClick={() => advance()}>
-          {state.bgImage && (
-            <img src={state.bgImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          {bgImageUrl && (
+            <img src={bgImageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
           )}
           <div
             className="absolute left-3 right-3 bottom-3 min-h-[130px] rounded-[10px] border px-4.5 py-3 leading-loose text-base flex gap-3.5 items-start"
             style={{ background: "rgba(15,17,22,.9)", borderColor: "#3a4050", color: "#eef0f4" }}
           >
-            {state.faceImg && (
+            {faceImgUrl && (
               <img
-                src={state.faceImg}
+                src={faceImgUrl}
                 alt=""
                 className="w-[100px] h-[100px] rounded-lg object-cover shrink-0 pointer-events-none"
                 style={{ background: "#1a1d24", border: "1px solid #3a4050" }}

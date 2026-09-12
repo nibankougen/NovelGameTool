@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { textToResolved, type CharLookup } from "../lib/text";
 import { findScene } from "../lib/lookup";
+import { resolveAssetUrl } from "../lib/projectFs";
 import type { Project } from "../types/project";
 
 export interface PlayChoice {
@@ -54,7 +55,7 @@ function initialState(): PlayState {
   };
 }
 
-export function usePlaySession(project: Project, startSceneId: string, findChar: CharLookup) {
+export function usePlaySession(project: Project, dirHandle: FileSystemDirectoryHandle | null, startSceneId: string, findChar: CharLookup) {
   const [state, setState] = useState<PlayState>(initialState);
   const sessionRef = useRef<Session>(makeSession(startSceneId));
   const bgmAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -67,23 +68,30 @@ export function usePlaySession(project: Project, startSceneId: string, findChar:
       s.bgmLabel = value || "停止";
       bgmAudioRef.current?.pause();
       bgmAudioRef.current = null;
-      const src = value ? project.assets.bgm[value] : null;
-      if (src) {
-        const audio = new Audio(src);
-        audio.loop = true;
-        audio.play().catch(() => {});
-        bgmAudioRef.current = audio;
+      const relPath = value ? project.assets.bgm[value] : null;
+      if (relPath && dirHandle) {
+        resolveAssetUrl(dirHandle, relPath).then((src) => {
+          if (!src || sessionRef.current.bgmValue !== value) return;
+          const audio = new Audio(src);
+          audio.loop = true;
+          audio.play().catch(() => {});
+          bgmAudioRef.current = audio;
+        });
       }
     },
-    [project.assets.bgm],
+    [project.assets.bgm, dirHandle],
   );
 
   const playSe = useCallback(
     (value: string) => {
-      const src = project.assets.se[value];
-      if (src) new Audio(src).play().catch(() => {});
+      const relPath = project.assets.se[value];
+      if (relPath && dirHandle) {
+        resolveAssetUrl(dirHandle, relPath).then((src) => {
+          if (src) new Audio(src).play().catch(() => {});
+        });
+      }
     },
-    [project.assets.se],
+    [project.assets.se, dirHandle],
   );
 
   const step = useCallback(() => {

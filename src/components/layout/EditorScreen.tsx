@@ -9,7 +9,7 @@ import { usePersistentState } from "../../state/usePersistentState";
 import { SIDEBAR_LS_KEY, THEME_LS_KEY, THUMB_SIZE_LS_KEY } from "../../lib/storage";
 import { download, safeName } from "../../lib/download";
 import { buildScriptText } from "../../lib/gameExport";
-import { loadGlobalExprTemplate, normalizeProject, saveGlobalExprTemplate } from "../../state/projectReducer";
+import { loadGlobalExprTemplate, saveGlobalExprTemplate } from "../../state/projectReducer";
 import { AppActionsProvider, type AppActionsValue, type ThemeChoice } from "../../state/AppActionsContext";
 import { Topbar } from "./Topbar";
 import { Sidebar } from "./Sidebar";
@@ -32,12 +32,11 @@ function applyThemeAttribute(theme: ThemeChoice) {
 }
 
 export function EditorScreen() {
-  const { project, undo, redo, loadProject, newProject: resetProject } = useProjectStore();
+  const { project, undo, redo, createProjectInDir, openProjectInDir, saveNow } = useProjectStore();
   const editorUi = useEditorUi();
   const toast = useToast();
   const findChar = useCharLookup();
   const mainInputRef = useRef<HTMLInputElement>(null);
-  const importFileRef = useRef<HTMLInputElement>(null);
   const { hasOpen, closeAll } = useModalRegistry();
 
   const [sidebarCollapsed, setSidebarCollapsed] = usePersistentState(SIDEBAR_LS_KEY, false);
@@ -68,41 +67,25 @@ export function EditorScreen() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
-  const exportJson = useCallback(() => {
-    download(`${safeName(project.title)}.json`, JSON.stringify(project, null, 2));
-    toast("JSONファイルとして保存しました");
-  }, [project, toast]);
-
   const exportTxt = useCallback(() => {
     download(`${safeName(project.title)}.txt`, buildScriptText(project, findChar), "text/plain");
     toast("台本テキストを書き出しました");
   }, [project, findChar, toast]);
 
-  const importJson = useCallback(
-    (file: File) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          const parsed = JSON.parse(String(reader.result));
-          if (!parsed || !Array.isArray(parsed.scenes) || !Array.isArray(parsed.characters)) {
-            throw new Error("形式が違います");
-          }
-          if (!window.confirm("現在の内容を読み込んだプロジェクトで置き換えます。よろしいですか？（Ctrl+Zで戻せます）")) return;
-          loadProject(normalizeProject(parsed));
-          toast("読み込みました");
-        } catch {
-          toast("読み込みに失敗しました（JSON形式を確認してください）", true);
-        }
-      };
-      reader.readAsText(file);
-    },
-    [loadProject, toast],
-  );
+  const handleNewProject = useCallback(async () => {
+    const result = await createProjectInDir();
+    if (result === "exists") toast("選択したフォルダには既にプロジェクトがあります。「プロジェクトを開く」を使ってください", true);
+  }, [createProjectInDir, toast]);
 
-  const handleNewProject = useCallback(() => {
-    if (!window.confirm("新規プロジェクトを作成します。現在の内容は失われます（Ctrl+Zで戻せます）。\n心配な場合は先にJSON保存してください。")) return;
-    resetProject();
-  }, [resetProject]);
+  const handleOpenProject = useCallback(async () => {
+    const result = await openProjectInDir();
+    if (result === "invalid") toast("有効なプロジェクトフォルダではありません", true);
+  }, [openProjectInDir, toast]);
+
+  const handleSaveNow = useCallback(async () => {
+    await saveNow();
+    toast("保存しました");
+  }, [saveNow, toast]);
 
   useGlobalHotkeys({
     mainInputRef,
@@ -110,7 +93,7 @@ export function EditorScreen() {
     closeAllClosableModals: closeAll,
     undo,
     redo,
-    exportJson,
+    saveNow: handleSaveNow,
     toggleSidebar: () => setSidebarCollapsed((v) => !v),
     openPlay: () => setPlayOpen(true),
     openSearch: () => setSearchOpen(true),
@@ -142,27 +125,14 @@ export function EditorScreen() {
     setTheme: setThemeState,
     exprTemplateCarryOver: exprCarryOver,
     setExprTemplateCarryOver: setExprCarryOver,
-    exportJson,
     exportTxt,
-    importJson,
-    openImportPicker: () => importFileRef.current?.click(),
     newProject: handleNewProject,
+    openProject: handleOpenProject,
     focusMainInput: () => mainInputRef.current?.focus(),
   };
 
   return (
     <AppActionsProvider value={actions}>
-      <input
-        ref={importFileRef}
-        type="file"
-        accept=".json"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          e.target.value = "";
-          if (file) importJson(file);
-        }}
-      />
       <div className="flex flex-col h-screen">
         <Topbar />
         <div className="flex flex-1 min-h-0">

@@ -34,11 +34,9 @@ export interface AppActionsValue {
   setTheme: (t: ThemeChoice) => void;
   exprTemplateCarryOver: boolean;
   setExprTemplateCarryOver: (v: boolean) => void;
-  exportJson: () => void;
   exportTxt: () => void;
-  importJson: (file: File) => void;
-  openImportPicker: () => void;
   newProject: () => void;
+  openProject: () => void;
   focusMainInput: () => void;
 }
 

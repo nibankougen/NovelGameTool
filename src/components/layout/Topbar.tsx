@@ -11,9 +11,8 @@ function ToolbarButtons({ showLabels }: { showLabels: boolean }) {
     showLabels ? <span className="lbl">{children}</span> : null;
 
   const fileItems: DropdownMenuItem[] = [
-    { label: "新規プロジェクト", icon: "file-plus", onClick: a.newProject },
-    { label: "バックアップから開く", icon: "folder-open", title: "JSONファイルを読み込み", onClick: a.openImportPicker },
-    { label: "バックアップをダウンロード", icon: "save", title: "JSONファイルとして保存 (Ctrl+S)", onClick: a.exportJson },
+    { label: "プロジェクトを開く", icon: "folder-open", title: "別のプロジェクトフォルダを開く", onClick: a.openProject },
+    { label: "新規プロジェクト", icon: "file-plus", title: "作業フォルダを選んで新規プロジェクトを作成", onClick: a.newProject },
     { label: "台本ファイルとして書き出し", icon: "file-text", title: "読みやすいテキスト台本として書き出し", onClick: a.exportTxt },
     { label: "ゲーム用ファイルとして書き出し", icon: "gamepad-2", title: "メモ・サムネイル・コメント行を除いたゲーム用データを書き出し", onClick: a.openExportModal },
   ];

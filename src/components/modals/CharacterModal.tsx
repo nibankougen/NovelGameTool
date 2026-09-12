@@ -7,7 +7,9 @@ import { Icon } from "../common/Icon";
 import { PALETTE } from "../../types/project";
 import { uid } from "../../lib/id";
 import { faceUsageCounts } from "../../lib/sceneUtils";
-import { loadImageAsThumb, hasFileDrag, firstImageFile } from "../../lib/image";
+import { hasFileDrag, firstImageFile } from "../../lib/image";
+import { deleteAssetFile, writeAssetFile } from "../../lib/projectFs";
+import { useAssetUrl } from "../../hooks/useAssetUrl";
 import { loadGlobalExprTemplate, saveGlobalExprTemplate } from "../../state/projectReducer";
 import { ExpressionTagEditor, type StagedExpr } from "./ExpressionTagEditor";
 import { ImageThumbButton } from "../common/ImageThumbButton";
@@ -17,7 +19,7 @@ export function CharacterModal({ open, charId, onClose }: { open: boolean; charI
 }
 
 function CharacterModalInner({ charId, onClose }: { charId: string | null; onClose: () => void }) {
-  const { project, mutate } = useProjectStore();
+  const { project, mutate, dirHandle } = useProjectStore();
   const editorUi = useEditorUi();
   const toast = useToast();
   const existing = charId ? (project.characters.find((c) => c.id === charId) ?? null) : null;
@@ -25,6 +27,7 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
   const [name, setName] = useState(existing?.name ?? "");
   const [color, setColor] = useState(existing?.color ?? PALETTE[project.characters.length % PALETTE.length]);
   const [thumb, setThumb] = useState<string | null>(existing?.thumb ?? null);
+  const thumbUrl = useAssetUrl(thumb);
   const [memo, setMemo] = useState(existing?.memo ?? "");
   const [staged, setStaged] = useState<StagedExpr[]>(() =>
     existing
@@ -72,6 +75,12 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
     for (const s of staged) if (s.img) exprImages[s.name] = s.img;
     const renamedPairs = staged.filter((s) => s.orig && s.orig !== s.name).map((s) => [s.orig as string, s.name] as const);
 
+    if (dirHandle && existing) {
+      const stillUsed = new Set([thumb, ...Object.values(exprImages)].filter((v): v is string => !!v));
+      const oldPaths = [existing.thumb, ...Object.values(existing.exprImages)].filter((v): v is string => !!v);
+      for (const p of oldPaths) if (!stillUsed.has(p)) void deleteAssetFile(dirHandle, p);
+    }
+
     if (existing) {
       const targetId = existing.id;
       mutate((d) => {
@@ -110,6 +119,10 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
     if (!existing) return;
     if (!window.confirm(`キャラクター「${existing.name}」を削除しますか？（このキャラクターのセリフは地の文になります）`)) return;
     const targetId = existing.id;
+    if (dirHandle) {
+      const paths = [existing.thumb, ...Object.values(existing.exprImages)].filter((v): v is string => !!v);
+      for (const p of paths) void deleteAssetFile(dirHandle, p);
+    }
     mutate((d) => {
       for (const sc of d.scenes)
         for (const cmd of sc.commands) if (cmd.type === "serif" && cmd.chara === targetId) cmd.chara = null;
@@ -203,12 +216,13 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
         onDrop={(e) => {
           e.preventDefault();
           setDragOverThumb(false);
+          if (!dirHandle) return;
           const file = firstImageFile(e);
           if (!file) {
             toast("画像ファイルをドロップしてください", true);
             return;
           }
-          loadImageAsThumb(file).then(setThumb);
+          writeAssetFile(dirHandle, "characters", file).then(setThumb);
         }}
       >
         <label className="w-[70px] shrink-0 text-text-dim leading-tight">
@@ -217,10 +231,10 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
           イラスト
         </label>
         <ImageThumbButton
-          img={thumb}
+          img={thumbUrl}
           own={!!thumb}
           title={thumb ? "クリックで画像を外す" : "キャラの基本イラストを設定。表情画像を設定していない表情ではこの画像が使われます"}
-          onPick={(file) => loadImageAsThumb(file).then(setThumb)}
+          onPick={(file) => dirHandle && writeAssetFile(dirHandle, "characters", file).then(setThumb)}
           onRemove={() => setThumb(null)}
         />
       </div>

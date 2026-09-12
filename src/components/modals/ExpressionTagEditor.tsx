@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { Icon } from "../common/Icon";
 import { ImageThumbButton } from "../common/ImageThumbButton";
-import { loadImageAsThumb, hasFileDrag, firstImageFile } from "../../lib/image";
+import { hasFileDrag, firstImageFile } from "../../lib/image";
+import { writeAssetFile } from "../../lib/projectFs";
+import { useAssetUrl } from "../../hooks/useAssetUrl";
+import { useProjectStore } from "../../state/ProjectProvider";
 import { useToast } from "../common/ToastProvider";
 import { useDragReorder } from "../../hooks/useDragReorder";
 
@@ -20,8 +23,115 @@ interface Props {
   setInputText: (v: string) => void;
 }
 
+function ExprRow({
+  s,
+  i,
+  count,
+  thumbUrl,
+  dirHandle,
+  dragHover,
+  onDragEnter,
+  onDragLeaveRow,
+  renaming,
+  startRename,
+  commitRename,
+  cancelRename,
+  onDelete,
+  setStaged,
+}: {
+  s: StagedExpr;
+  i: number;
+  count: number;
+  thumbUrl: string | null;
+  dirHandle: FileSystemDirectoryHandle | null;
+  dragHover: boolean;
+  onDragEnter: () => void;
+  onDragLeaveRow: () => void;
+  renaming: boolean;
+  startRename: () => void;
+  commitRename: (v: string) => void;
+  cancelRename: () => void;
+  onDelete: () => void;
+  setStaged: (updater: (prev: StagedExpr[]) => StagedExpr[]) => void;
+}) {
+  const toast = useToast();
+  const ownUrl = useAssetUrl(s.img);
+  const img = ownUrl || (s.img ? null : thumbUrl);
+  const isDefaultPreview = !s.img && !!thumbUrl;
+
+  const setImg = (path: string | null) => setStaged((prev) => prev.map((x, xi) => (xi === i ? { ...x, img: path } : x)));
+
+  return (
+    <div
+      className={`expr-row group flex items-center gap-2.5 py-1.5 px-2 rounded-lg border ${count === 0 ? "text-text-dim border-dashed border-border bg-transparent" : "border-border bg-accent-dim/25"} ${dragHover ? "outline outline-2 outline-dashed outline-accent -outline-offset-1" : ""}`}
+      onDragOver={(e) => {
+        if (!hasFileDrag(e)) return;
+        e.preventDefault();
+        onDragEnter();
+      }}
+      onDragLeave={onDragLeaveRow}
+      onDrop={(e) => {
+        e.preventDefault();
+        onDragLeaveRow();
+        if (!dirHandle) return;
+        const file = firstImageFile(e);
+        if (!file) {
+          toast("画像ファイルをドロップしてください", true);
+          return;
+        }
+        writeAssetFile(dirHandle, "characters", file).then(setImg);
+      }}
+    >
+      <span className="drag-handle invisible group-hover:visible" title="ドラッグで並べ替え">
+        <Icon name="grip-vertical" />
+      </span>
+      <ImageThumbButton
+        img={img}
+        own={!!s.img}
+        dimmed={isDefaultPreview}
+        title={s.img ? "クリックで画像を外す" : "デフォルトイラストを使用中（クリックで個別に設定）"}
+        onPick={(file) => dirHandle && writeAssetFile(dirHandle, "characters", file).then(setImg)}
+        onRemove={() => setImg(null)}
+      />
+      <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
+        {renaming ? (
+          <input
+            autoFocus
+            type="text"
+            defaultValue={s.name}
+            className="text-sm py-1 px-2 w-full min-w-0"
+            onFocus={(e) => e.target.select()}
+            onBlur={(e) => commitRename(e.target.value)}
+            onKeyDown={(e) => {
+              e.stopPropagation();
+              if (e.key === "Enter") commitRename(e.currentTarget.value);
+              if (e.key === "Escape") {
+                e.stopPropagation();
+                cancelRename();
+              }
+            }}
+          />
+        ) : (
+          <span className="cursor-pointer font-medium truncate" onClick={startRename}>
+            {s.name}
+          </span>
+        )}
+        <span className="text-text-dim text-[11px]">{count > 0 ? `使用回数: ${count}回` : "未使用"}</span>
+      </div>
+      <button type="button" className="border-none bg-transparent p-1 min-h-0 text-text-dim shrink-0" title="名前変更" onClick={startRename}>
+        <Icon name="pencil" />
+      </button>
+      <button type="button" className="border-none bg-transparent p-1 min-h-0 text-text-dim shrink-0" title="削除" onClick={onDelete}>
+        <Icon name="x" />
+      </button>
+    </div>
+  );
+}
+
 export function ExpressionTagEditor({ staged, setStaged, usageCounts, thumb, inputText, setInputText }: Props) {
   const toast = useToast();
+  const { dirHandle } = useProjectStore();
+  const thumbUrl = useAssetUrl(thumb);
   const [renamingIndex, setRenamingIndex] = useState<number | null>(null);
   const [dragHoverIndex, setDragHoverIndex] = useState<number | null>(null);
 
@@ -76,95 +186,28 @@ export function ExpressionTagEditor({ staged, setStaged, usageCounts, thumb, inp
         className="flex flex-col gap-1.5 mb-1.5 max-h-[360px] overflow-y-auto pr-1"
         title="各表情に画像ファイルをドラッグ&ドロップでも設定できます。左端のハンドルをドラッグで並べ替え"
       >
-        {staged.map((s, i) => {
-          const count = usageCounts.get(s.name) ?? 0;
-          const img = s.img || (thumb ? thumb : null);
-          const isDefaultPreview = !s.img && !!thumb;
-          return (
-            <div
-              key={i}
-              className={`expr-row group flex items-center gap-2.5 py-1.5 px-2 rounded-lg border ${count === 0 ? "text-text-dim border-dashed border-border bg-transparent" : "border-border bg-accent-dim/25"} ${dragHoverIndex === i ? "outline outline-2 outline-dashed outline-accent -outline-offset-1" : ""}`}
-              onDragOver={(e) => {
-                if (!hasFileDrag(e)) return;
-                e.preventDefault();
-                setDragHoverIndex(i);
-              }}
-              onDragLeave={() => setDragHoverIndex((v) => (v === i ? null : v))}
-              onDrop={(e) => {
-                e.preventDefault();
-                setDragHoverIndex(null);
-                const file = firstImageFile(e);
-                if (!file) {
-                  toast("画像ファイルをドロップしてください", true);
-                  return;
-                }
-                loadImageAsThumb(file).then((dataUrl) => {
-                  setStaged((prev) => prev.map((x, xi) => (xi === i ? { ...x, img: dataUrl } : x)));
-                });
-              }}
-            >
-              <span className="drag-handle invisible group-hover:visible" title="ドラッグで並べ替え">
-                <Icon name="grip-vertical" />
-              </span>
-              <ImageThumbButton
-                img={img}
-                own={!!s.img}
-                dimmed={isDefaultPreview}
-                title={s.img ? "クリックで画像を外す" : "デフォルトイラストを使用中（クリックで個別に設定）"}
-                onPick={(file) =>
-                  loadImageAsThumb(file).then((dataUrl) => {
-                    setStaged((prev) => prev.map((x, xi) => (xi === i ? { ...x, img: dataUrl } : x)));
-                  })
-                }
-                onRemove={() => setStaged((prev) => prev.map((x, xi) => (xi === i ? { ...x, img: null } : x)))}
-              />
-              <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
-                {renamingIndex === i ? (
-                  <input
-                    autoFocus
-                    type="text"
-                    defaultValue={s.name}
-                    className="text-sm py-1 px-2 w-full min-w-0"
-                    onFocus={(e) => e.target.select()}
-                    onBlur={(e) => commitRename(i, e.target.value)}
-                    onKeyDown={(e) => {
-                      e.stopPropagation();
-                      if (e.key === "Enter") commitRename(i, e.currentTarget.value);
-                      if (e.key === "Escape") {
-                        e.stopPropagation();
-                        setRenamingIndex(null);
-                      }
-                    }}
-                  />
-                ) : (
-                  <span className="cursor-pointer font-medium truncate" onClick={() => setRenamingIndex(i)}>
-                    {s.name}
-                  </span>
-                )}
-                <span className="text-text-dim text-[11px]">{count > 0 ? `使用回数: ${count}回` : "未使用"}</span>
-              </div>
-              <button
-                type="button"
-                className="border-none bg-transparent p-1 min-h-0 text-text-dim shrink-0"
-                title="名前変更"
-                onClick={() => setRenamingIndex(i)}
-              >
-                <Icon name="pencil" />
-              </button>
-              <button
-                type="button"
-                className="border-none bg-transparent p-1 min-h-0 text-text-dim shrink-0"
-                title="削除"
-                onClick={() => {
-                  if (count > 0 && !window.confirm(`表情「${s.name}」は${count}箇所で使用中です。削除すると使用箇所は警告表示になります。削除しますか？`)) return;
-                  setStaged((prev) => prev.filter((_, xi) => xi !== i));
-                }}
-              >
-                <Icon name="x" />
-              </button>
-            </div>
-          );
-        })}
+        {staged.map((s, i) => (
+          <ExprRow
+            key={i}
+            s={s}
+            i={i}
+            count={usageCounts.get(s.name) ?? 0}
+            thumbUrl={thumbUrl}
+            dirHandle={dirHandle}
+            dragHover={dragHoverIndex === i}
+            onDragEnter={() => setDragHoverIndex(i)}
+            onDragLeaveRow={() => setDragHoverIndex((cur) => (cur === i ? null : cur))}
+            renaming={renamingIndex === i}
+            startRename={() => setRenamingIndex(i)}
+            commitRename={(v) => commitRename(i, v)}
+            cancelRename={() => setRenamingIndex(null)}
+            onDelete={() => {
+              if (usageCounts.get(s.name) && !window.confirm(`表情「${s.name}」は${usageCounts.get(s.name)}箇所で使用中です。削除すると使用箇所は警告表示になります。削除しますか？`)) return;
+              setStaged((prev) => prev.filter((_, xi) => xi !== i));
+            }}
+            setStaged={setStaged}
+          />
+        ))}
         {usedButMissing.map((name) => (
           <div
             key={`missing-${name}`}

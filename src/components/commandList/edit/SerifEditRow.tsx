@@ -3,6 +3,7 @@ import { useProjectStore } from "../../../state/ProjectProvider";
 import { useEditorUi } from "../../../state/EditorUiContext";
 import { useAppActions } from "../../../state/AppActionsContext";
 import { useCharLookup } from "../../../hooks/useCharLookup";
+import { useAssetUrl } from "../../../hooks/useAssetUrl";
 import { useToast } from "../../common/ToastProvider";
 import { Icon, type IconName } from "../../common/Icon";
 import { textToDisplay, textToStorage, insertTextAtCursor } from "../../../lib/text";
@@ -41,7 +42,8 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
   const startedRef = useRef(false);
 
   const ch = spk ? findChar(spk) : null;
-  const thumbSrc = ch ? (face && ch.exprImages[face]) || ch.thumb : null;
+  const thumbPath = ch ? (face && ch.exprImages[face]) || ch.thumb : null;
+  const thumbSrc = useAssetUrl(thumbPath);
   const faceChipVisible = !!ch;
 
   const openSpeakerMenu = () => {

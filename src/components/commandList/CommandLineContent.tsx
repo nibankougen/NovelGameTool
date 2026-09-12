@@ -3,6 +3,7 @@ import { Icon } from "../common/Icon";
 import { MentionText } from "../common/MentionText";
 import { ColumnResizeHandle } from "./ColumnResizeHandle";
 import { useSerifColumns } from "../../state/SerifColumnsContext";
+import { useAssetUrl } from "../../hooks/useAssetUrl";
 import type { CharLookup } from "../../lib/text";
 import type { Command, Scene } from "../../types/project";
 
@@ -43,11 +44,13 @@ function BrokenRef({ children }: { children: ReactNode }) {
 
 export function CommandLineContent({ cmd, findChar, scenes, honorIssues, acked, onToggleHonorAck, onGotoScene }: Props) {
   const { speakerColWidth, faceColWidth, setSpeakerColWidth, setFaceColWidth } = useSerifColumns();
+  const serifChar = cmd.type === "serif" && cmd.chara ? findChar(cmd.chara) : null;
+  const serifImgPath = serifChar ? (cmd.type === "serif" && cmd.face && serifChar.exprImages[cmd.face]) || serifChar.thumb : null;
+  const img = useAssetUrl(serifImgPath);
   switch (cmd.type) {
     case "serif": {
-      const ch = cmd.chara ? findChar(cmd.chara) : null;
+      const ch = serifChar;
       const faceBroken = !!(cmd.face && ch && !ch.expressions.includes(cmd.face));
-      const img = ch ? (cmd.face && ch.exprImages[cmd.face]) || ch.thumb : null;
       const badge = honorIssues.length > 0;
       const ackTitle = acked ? "確認済み（クリックで戻す）" : "クリックで確認済みにする（薄く表示）";
       const badgeEl = badge && (
