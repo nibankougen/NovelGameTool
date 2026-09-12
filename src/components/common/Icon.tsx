@@ -1,5 +1,6 @@
 import {
   BookOpen,
+  BookUser,
   ChartColumn,
   ChevronDown,
   ChevronRight,
@@ -40,6 +41,7 @@ import {
 
 const ICONS: Record<string, LucideIcon> = {
   "book-open": BookOpen,
+  "book-user": BookUser,
   "file-plus": FilePlus,
   "folder-open": FolderOpen,
   save: Save,
