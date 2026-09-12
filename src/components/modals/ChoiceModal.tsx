@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useEditorUi } from "../../state/EditorUiContext";
 import { useToast } from "../common/ToastProvider";
@@ -22,6 +23,7 @@ export function ChoiceModal({ open, cmdIndex, onClose }: { open: boolean; cmdInd
 }
 
 function ChoiceModalInner({ cmdIndex, onClose }: { cmdIndex: number | null; onClose: () => void }) {
+  const { t } = useTranslation();
   const { project, mutate } = useProjectStore();
   const editorUi = useEditorUi();
   const toast = useToast();
@@ -43,12 +45,12 @@ function ChoiceModalInner({ cmdIndex, onClose }: { cmdIndex: number | null; onCl
 
   const handleSelectChange = (key: string, value: string) => {
     if (value === "__new__") {
-      const name = window.prompt("新規シーン名:");
+      const name = window.prompt(t("common.newScenePrompt"));
       if (name && name.trim()) {
         const trimmed = name.trim();
         let newId = "";
         mutate((d) => {
-          const env = makeDraftParseEnv(d, { toast });
+          const env = makeDraftParseEnv(d, { toast }, t);
           newId = env.ensureScene(trimmed);
         });
         updateRow(key, { target: newId, branch: "" });
@@ -67,16 +69,16 @@ function ChoiceModalInner({ cmdIndex, onClose }: { cmdIndex: number | null; onCl
       .map((r) => ({ text: r.text.trim(), target: r.target, branch: r.target ? "" : r.branch.trim() }))
       .filter((o) => o.text);
     if (!parsed.length) {
-      toast("選択肢を1つ以上入力してください", true);
+      toast(t("choice.requireAtLeastOne"), true);
       return;
     }
 
     let branchError: string | null = null;
     for (const o of parsed) {
       if (o.target || !o.branch) continue;
-      const err = parseInputDry(o.branch, project, currentSpeaker, { sticky: false });
+      const err = parseInputDry(o.branch, project, currentSpeaker, { sticky: false }, t);
       if (err) {
-        branchError = `「${o.text}」の返答: ${err}`;
+        branchError = t("choice.branchError", { text: o.text, error: err });
         break;
       }
     }
@@ -106,7 +108,7 @@ function ChoiceModalInner({ cmdIndex, onClose }: { cmdIndex: number | null; onCl
 
       const branchCmdList = parsed.map((o) => {
         if (o.target || !o.branch) return null;
-        const r = parseInput(o.branch, env, currentSpeaker, { sticky: false });
+        const r = parseInput(o.branch, env, currentSpeaker, { sticky: false }, t);
         return r.kind === "command" ? r.cmd : null;
       });
       const needsSplit = branchCmdList.some(Boolean);
@@ -115,9 +117,10 @@ function ChoiceModalInner({ cmdIndex, onClose }: { cmdIndex: number | null; onCl
         const tail = sc.commands.splice(ci + 1);
         let mergeId: string | null = null;
         if (tail.length) {
+          const continuationSuffix = t("choice.continuationSuffix");
           let n = 2;
-          let mergeName = sc.name + "の続き";
-          while (d.scenes.some((s) => s.name === mergeName)) mergeName = sc.name + "の続き" + n++;
+          let mergeName = sc.name + continuationSuffix;
+          while (d.scenes.some((s) => s.name === mergeName)) mergeName = sc.name + continuationSuffix + n++;
           const mergeScene = { id: uid(), name: mergeName, commands: tail, groupId: sc.groupId, synopsis: "" };
           d.scenes.push(mergeScene);
           mergeId = mergeScene.id;
@@ -128,9 +131,10 @@ function ChoiceModalInner({ cmdIndex, onClose }: { cmdIndex: number | null; onCl
           if (branchCmd) {
             const branchCmds = [branchCmd];
             if (mergeId) branchCmds.push({ type: "jump", target: mergeId });
+            const branchDefaultName = t("choice.branchSceneDefaultName");
             let n = 2;
-            let branchName = o.text || "分岐";
-            while (d.scenes.some((s) => s.name === branchName)) branchName = (o.text || "分岐") + n++;
+            let branchName = o.text || branchDefaultName;
+            while (d.scenes.some((s) => s.name === branchName)) branchName = (o.text || branchDefaultName) + n++;
             const branchScene = { id: uid(), name: branchName, commands: branchCmds, groupId: sc.groupId, synopsis: "" };
             d.scenes.push(branchScene);
             cmd.options[idx].target = branchScene.id;
@@ -149,7 +153,7 @@ function ChoiceModalInner({ cmdIndex, onClose }: { cmdIndex: number | null; onCl
 
   return (
     <Modal open={true} onRequestClose={onClose}>
-      <ModalHeader>選択肢の編集</ModalHeader>
+      <ModalHeader>{t("choice.title")}</ModalHeader>
       <div id="choiceOptList">
         {rows.map((r, i) => (
           <div key={r.key} className="opt-item mb-2">
@@ -157,13 +161,13 @@ function ChoiceModalInner({ cmdIndex, onClose }: { cmdIndex: number | null; onCl
               <input
                 ref={i === 0 ? firstInputRef : undefined}
                 type="text"
-                placeholder="選択肢の文"
+                placeholder={t("choice.optionPlaceholder")}
                 value={r.text}
                 onChange={(e) => updateRow(r.key, { text: e.target.value })}
                 className="flex-1"
               />
               <select value={r.target ?? ""} onChange={(e) => handleSelectChange(r.key, e.target.value)} className="w-[170px] shrink-0">
-                <option value="">（続行 — 飛ばない）</option>
+                <option value="">{t("choice.continueOption")}</option>
                 {grouped
                   ? project.sceneGroups.map((g) => (
                       <optgroup key={g.id} label={g.name}>
@@ -180,7 +184,7 @@ function ChoiceModalInner({ cmdIndex, onClose }: { cmdIndex: number | null; onCl
                       </option>
                     ))}
                 {grouped && project.scenes.some((s) => !s.groupId) && (
-                  <optgroup label="未分類">
+                  <optgroup label={t("choice.ungrouped")}>
                     {project.scenes.filter((s) => !s.groupId).map((s) => (
                       <option key={s.id} value={s.id}>
                         {s.name}
@@ -188,9 +192,9 @@ function ChoiceModalInner({ cmdIndex, onClose }: { cmdIndex: number | null; onCl
                     ))}
                   </optgroup>
                 )}
-                <option value="__new__">＋ 新規シーン作成…</option>
+                <option value="__new__">{t("choice.createNewScene")}</option>
               </select>
-              <button className="mini-btn" title="削除" onClick={() => removeRow(r.key)}>
+              <button className="mini-btn" title={t("choice.delete")} onClick={() => removeRow(r.key)}>
                 <Icon name="trash-2" />
               </button>
             </div>
@@ -198,7 +202,7 @@ function ChoiceModalInner({ cmdIndex, onClose }: { cmdIndex: number | null; onCl
               <span className="text-text-dim text-xs shrink-0">└</span>
               <input
                 type="text"
-                placeholder="この選択肢だけの短い返答（任意・自動で合流先へつながります）"
+                placeholder={t("choice.branchPlaceholder")}
                 value={r.branch}
                 onChange={(e) => updateRow(r.key, { branch: e.target.value })}
                 className="flex-1 text-sm"
@@ -209,12 +213,12 @@ function ChoiceModalInner({ cmdIndex, onClose }: { cmdIndex: number | null; onCl
       </div>
       <button onClick={addRow}>
         <Icon name="plus" />
-        選択肢を追加
+        {t("choice.addOption")}
       </button>
       <ModalFoot>
-        <button onClick={onClose}>キャンセル</button>
+        <button onClick={onClose}>{t("common.cancel")}</button>
         <button className="btn-primary" onClick={handleSave}>
-          保存
+          {t("common.save")}
         </button>
       </ModalFoot>
     </Modal>

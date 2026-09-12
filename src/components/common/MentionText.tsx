@@ -1,9 +1,11 @@
 import { Fragment, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { splitMentions, type CharLookup } from "../../lib/text";
 import { Icon } from "./Icon";
 
 /** 《名前》メンション参照を含むテキストをJSXとして描画する（削除済みキャラは破損参照バッジで表示） */
 export function MentionText({ text, findChar }: { text: string; findChar: CharLookup }) {
+  const { t } = useTranslation();
   const segments = useMemo(() => splitMentions(text, findChar), [text, findChar]);
   return (
     <>
@@ -16,7 +18,7 @@ export function MentionText({ text, findChar }: { text: string; findChar: CharLo
           </span>
         ) : (
           <span key={i} className="broken-ref text-danger inline-flex items-center gap-1">
-            <Icon name="triangle-alert" />（削除済キャラ）
+            <Icon name="triangle-alert" />{t("commandList.deletedCharacter")}
           </span>
         ),
       )}

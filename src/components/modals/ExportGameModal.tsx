@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useCharLookup } from "../../hooks/useCharLookup";
 import { useToast } from "../common/ToastProvider";
@@ -27,6 +28,7 @@ function CheckRow({
 }
 
 export function ExportGameModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = useTranslation();
   const { project, mutate } = useProjectStore();
   const findChar = useCharLookup();
   const toast = useToast();
@@ -41,22 +43,22 @@ export function ExportGameModal({ open, onClose }: { open: boolean; onClose: () 
     const data = gameExportData(project, cfg, findChar);
     download(`${safeName(project.title)}.game.json`, cfg.pretty ? JSON.stringify(data, null, 2) : JSON.stringify(data), "application/json");
     onClose();
-    toast("ゲーム用データを書き出しました");
+    toast(t("exportGame.exported"));
   };
 
   return (
     <Modal open={open} onRequestClose={onClose}>
-      <ModalHeader>ゲーム用ファイル書き出しの設定</ModalHeader>
-      <p className="text-text-dim text-xs mb-3.5">設定メモ・デフォルトイラスト・表情画像は常に出力されません。この設定はプロジェクトに保存されます。</p>
-      <CheckRow label="表情を出力" desc="キャラの表情候補（expressions）とセリフの face" checked={cfg.face} onChange={(v) => setCfg({ face: v })} />
-      <CheckRow label="シーン名を出力" desc="scenes[].name（ID参照のみなら不要）" checked={cfg.sceneName} onChange={(v) => setCfg({ sceneName: v })} />
-      <CheckRow label="キャラクターの色を出力" desc="名前表示色（color）" checked={cfg.color} onChange={(v) => setCfg({ color: v })} />
-      <CheckRow label="コメント行を出力" desc={'// のメモ行（type: "comment"）'} checked={cfg.comment} onChange={(v) => setCfg({ comment: v })} />
-      <CheckRow label="整形して出力" desc="インデント付きJSON（オフで圧縮出力）" checked={cfg.pretty} onChange={(v) => setCfg({ pretty: v })} />
+      <ModalHeader>{t("exportGame.title")}</ModalHeader>
+      <p className="text-text-dim text-xs mb-3.5">{t("exportGame.intro")}</p>
+      <CheckRow label={t("exportGame.face.label")} desc={t("exportGame.face.desc")} checked={cfg.face} onChange={(v) => setCfg({ face: v })} />
+      <CheckRow label={t("exportGame.sceneName.label")} desc={t("exportGame.sceneName.desc")} checked={cfg.sceneName} onChange={(v) => setCfg({ sceneName: v })} />
+      <CheckRow label={t("exportGame.color.label")} desc={t("exportGame.color.desc")} checked={cfg.color} onChange={(v) => setCfg({ color: v })} />
+      <CheckRow label={t("exportGame.comment.label")} desc={t("exportGame.comment.desc")} checked={cfg.comment} onChange={(v) => setCfg({ comment: v })} />
+      <CheckRow label={t("exportGame.pretty.label")} desc={t("exportGame.pretty.desc")} checked={cfg.pretty} onChange={(v) => setCfg({ pretty: v })} />
       <ModalFoot>
-        <button onClick={onClose}>キャンセル</button>
+        <button onClick={onClose}>{t("common.cancel")}</button>
         <button className="btn-primary" onClick={handleExport}>
-          書き出し
+          {t("exportGame.exportButton")}
         </button>
       </ModalFoot>
     </Modal>

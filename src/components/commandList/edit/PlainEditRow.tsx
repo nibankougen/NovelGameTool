@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useProjectStore } from "../../../state/ProjectProvider";
 import { useEditorUi } from "../../../state/EditorUiContext";
 import { useAppActions } from "../../../state/AppActionsContext";
@@ -12,6 +13,7 @@ import { carryTr } from "../../../lib/carryTr";
 import type { Command, Scene } from "../../../types/project";
 
 export function PlainEditRow({ index, cmd, scene }: { index: number; cmd: Command; scene: Scene }) {
+  const { t } = useTranslation();
   const { project, mutate } = useProjectStore();
   const editorUi = useEditorUi();
   const appActions = useAppActions();
@@ -43,7 +45,7 @@ export function PlainEditRow({ index, cmd, scene }: { index: number; cmd: Comman
     doneRef.current = true;
     if (commit) {
       const speaker = { id: editorUi.speakerId, face: editorUi.speakerFace };
-      const err = parseInputDry(value, project, speaker, { sticky: false });
+      const err = parseInputDry(value, project, speaker, { sticky: false }, t);
       if (err) {
         toast(err, true);
         doneRef.current = false;
@@ -53,8 +55,8 @@ export function PlainEditRow({ index, cmd, scene }: { index: number; cmd: Comman
       const sceneId = scene.id;
       editorUi.stopEdit();
       mutate((d) => {
-        const env = makeDraftParseEnv(d, { toast });
-        const r = parseInput(value, env, speaker, { sticky: false });
+        const env = makeDraftParseEnv(d, { toast }, t);
+        const r = parseInput(value, env, speaker, { sticky: false }, t);
         if (r.kind !== "command") return;
         const sc = d.scenes.find((s) => s.id === sceneId);
         if (!sc) return;

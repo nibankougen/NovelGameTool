@@ -1,14 +1,16 @@
+import { useTranslation } from "react-i18next";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useUndoableSession } from "../../hooks/useUndoableSession";
 import type { Scene } from "../../types/project";
 
 export function SceneMemoPanel({ scene, indented }: { scene: Scene; indented: boolean }) {
+  const { t } = useTranslation();
   const { patch } = useProjectStore();
   const onFocus = useUndoableSession();
   return (
     <div className={`scene-memo-panel${indented ? " grouped" : ""} mx-1.5 mb-1.5${indented ? " ml-[42px]" : " ml-[26px]"}`}>
       <textarea
-        placeholder="このシーンのあらすじ・メモ…"
+        placeholder={t("scene.synopsisPlaceholder")}
         value={scene.synopsis}
         onFocus={onFocus}
         onChange={(e) => {

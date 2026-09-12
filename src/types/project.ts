@@ -134,7 +134,10 @@ export interface Project {
   sceneGroups: SceneGroup[];
   exportSettings: ExportSettings;
   exprTemplate: string[];
+  /** 翻訳先の言語コード一覧（自由入力）。プロジェクト原文の言語は baseLanguage を参照 */
   languages: string[];
+  /** プロジェクト原文（セリフ等）の言語。対応UI言語のいずれか */
+  baseLanguage: string;
   overview: string;
   honorificRules: HonorificRule[];
   honorificVocab: HonorificVocab;

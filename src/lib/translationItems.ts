@@ -10,14 +10,14 @@ export type TransFieldRef =
 export type TransEntry = { type: "section"; label: string } | { type: "field"; key: string; ref: TransFieldRef };
 
 /** 翻訳対象の項目を、原文画面に表示する順序どおりに列挙する（project/キャラ見出し → タイトル → 各キャラ名 → シーンごとにセリフ/選択肢） */
-export function collectTransItems(project: Project): TransEntry[] {
-  const items: TransEntry[] = [{ type: "section", label: "プロジェクト・キャラクター" }];
+export function collectTransItems(project: Project, t: (key: string, opts?: Record<string, unknown>) => string): TransEntry[] {
+  const items: TransEntry[] = [{ type: "section", label: t("translation.section.projectAndCharacters") }];
   items.push({ type: "field", key: "title", ref: { kind: "title" } });
   for (const c of project.characters) {
     items.push({ type: "field", key: `char:${c.id}`, ref: { kind: "character", charId: c.id } });
   }
   for (const s of project.scenes) {
-    items.push({ type: "section", label: `シーン: ${s.name}` });
+    items.push({ type: "section", label: t("translation.section.scene", { name: s.name }) });
     s.commands.forEach((cmd, i) => {
       if (cmd.type === "serif") {
         items.push({
@@ -100,7 +100,7 @@ export function setTransValue(draft: Project, ref: TransFieldRef, lang: string, 
 
 /** 言語を削除する際、全項目からその言語の翻訳データを一括で消す */
 export function deleteLanguageEverywhere(draft: Project, lang: string): void {
-  for (const entry of collectTransItems(draft)) {
+  for (const entry of collectTransItems(draft, (k: string) => k)) {
     if (entry.type === "field") setTransValue(draft, entry.ref, lang, "");
   }
 }

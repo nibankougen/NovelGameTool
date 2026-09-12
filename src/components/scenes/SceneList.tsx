@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useEditorUi } from "../../state/EditorUiContext";
 import { useToast } from "../common/ToastProvider";
@@ -16,6 +17,7 @@ import { SceneMemoPanel } from "./SceneMemoPanel";
 type Renaming = { type: "scene" | "group"; id: string } | null;
 
 export function SceneList() {
+  const { t } = useTranslation();
   const { project, mutate, mutateVersion } = useProjectStore();
   const editorUi = useEditorUi();
   const toast = useToast();
@@ -135,7 +137,7 @@ export function SceneList() {
       namePrefix = numMatch[1];
       n = parseInt(numMatch[2], 10) + 1;
     } else {
-      namePrefix = "シーン";
+      namePrefix = t("scene.namePrefix");
       n = project.scenes.length + 1;
     }
     while (project.scenes.some((s) => s.name === namePrefix + n)) n++;
@@ -154,11 +156,12 @@ export function SceneList() {
   };
 
   const addGroup = () => {
+    const groupPrefix = t("scene.groupNamePrefix");
     let n = project.sceneGroups.length + 1;
-    while (project.sceneGroups.some((g) => g.name === "グループ" + n)) n++;
+    while (project.sceneGroups.some((g) => g.name === groupPrefix + n)) n++;
     const newId = uid();
     mutate((d) => {
-      d.sceneGroups.push({ id: newId, name: "グループ" + n });
+      d.sceneGroups.push({ id: newId, name: groupPrefix + n });
     });
     setRenaming({ type: "group", id: newId });
   };
@@ -181,8 +184,7 @@ export function SceneList() {
     const scenes = order.filter((id) => selectedSceneIds.has(id)).map((id) => project.scenes.find((s) => s.id === id)!).filter(Boolean);
     if (scenes.length < 2) return;
     const names = scenes.map((s) => s.name).join("」「");
-    if (!window.confirm(`シーン「${names}」を1つに結合しますか？\n（先頭のシーンにセリフ等がまとめられ、残りのシーンは削除されます。ジャンプ・選択肢からの参照先は自動的に結合後のシーンへ付け替えられます）`))
-      return;
+    if (!window.confirm(t("scene.confirmMerge", { names }))) return;
     const targetId = scenes[0].id;
     const removedIds = new Set(scenes.slice(1).map((s) => s.id));
     setSelectedSceneIds(new Set());
@@ -201,7 +203,7 @@ export function SceneList() {
       d.scenes = d.scenes.filter((s) => !removedIds.has(s.id));
       if (removedIds.has(editorUi.currentSceneId)) editorUi.gotoScene(targetId);
     });
-    toast(`${scenes.length}件のシーンを「${scenes[0].name}」に結合しました`);
+    toast(t("scene.merged", { count: scenes.length, name: scenes[0].name }));
   };
 
   const renderScenesFor = (groupId: string | null, indented: boolean) =>
@@ -251,10 +253,10 @@ export function SceneList() {
             onCancelRename={() => setRenaming(null)}
             onDelete={() => {
               if (project.scenes.length <= 1) {
-                toast("最後のシーンは削除できません", true);
+                toast(t("scene.cannotDeleteLast"), true);
                 return;
               }
-              if (!window.confirm(`シーン「${s.name}」を削除しますか？`)) return;
+              if (!window.confirm(t("scene.confirmDeleteScene", { name: s.name }))) return;
               mutate((d) => {
                 const idx = d.scenes.findIndex((x) => x.id === s.id);
                 d.scenes.splice(idx, 1);
@@ -270,12 +272,13 @@ export function SceneList() {
   return (
     <>
       <div className="side-head flex items-center justify-between px-2.5 pt-2 pb-1 text-text-dim text-xs font-semibold">
-        <span>シーン</span>
+        <span>{t("scene.sceneLabel")}</span>
         <span className="flex gap-1">
-          <button onClick={addGroup} title="グループ（章）を追加" className="text-sm px-2 py-0">
-            <Icon name="plus" />章
+          <button onClick={addGroup} title={t("scene.addGroupTitle")} className="text-sm px-2 py-0">
+            <Icon name="plus" />
+            {t("scene.addGroupLabel")}
           </button>
-          <button onClick={() => createScene(null)} title="シーンを追加" className="text-sm px-2 py-0">
+          <button onClick={() => createScene(null)} title={t("scene.addSceneTitle")} className="text-sm px-2 py-0">
             <Icon name="plus" />
           </button>
         </span>
@@ -303,7 +306,7 @@ export function SceneList() {
               }}
               onCancelRename={() => setRenaming(null)}
               onDelete={() => {
-                if (!window.confirm(`グループ「${g.name}」を削除しますか？\n（含まれるシーンは削除されず、未分類になります）`)) return;
+                if (!window.confirm(t("scene.confirmDeleteGroup", { name: g.name }))) return;
                 mutate((d) => {
                   const idx = d.sceneGroups.findIndex((x) => x.id === g.id);
                   d.sceneGroups.splice(idx, 1);
@@ -340,7 +343,10 @@ export function SceneList() {
           onClose={() => setCtxMenu(null)}
           items={[
             {
-              label: selectedSceneIds.size >= 1 ? `選択した${selectedSceneIds.size}件のシーンを結合` : "結合するシーンを選択してください（Shift+クリック）",
+              label:
+                selectedSceneIds.size >= 1
+                  ? t("scene.mergeSelected", { count: selectedSceneIds.size })
+                  : t("scene.selectScenesToMerge"),
               disabled: selectedSceneIds.size < 2,
               onClick: mergeSelectedScenes,
             },

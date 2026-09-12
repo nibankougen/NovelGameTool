@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useCharLookup } from "../../hooks/useCharLookup";
 import { useUndoableSession } from "../../hooks/useUndoableSession";
@@ -8,15 +9,17 @@ import { Icon } from "../common/Icon";
 import { MentionText } from "../common/MentionText";
 import { collectTransItems, getTransValue, setTransValue, deleteLanguageEverywhere, type TransFieldRef } from "../../lib/translationItems";
 import { findCharacter, findScene } from "../../lib/lookup";
+import { SUPPORTED_LANGUAGES, LANGUAGE_LABELS, isSupportedLanguage } from "../../lib/language";
 
 function TransPreview({ fieldRef, findChar }: { fieldRef: TransFieldRef; findChar: ReturnType<typeof useCharLookup> }) {
+  const { t } = useTranslation();
   const { project } = useProjectStore();
   switch (fieldRef.kind) {
     case "title":
       return (
         <>
-          <span className="text-text-dim text-[11px] mr-1.5">タイトル</span>
-          {project.title || "無題"}
+          <span className="text-text-dim text-[11px] mr-1.5">{t("translation.preview.title")}</span>
+          {project.title || t("translation.preview.untitled")}
         </>
       );
     case "character": {
@@ -24,7 +27,7 @@ function TransPreview({ fieldRef, findChar }: { fieldRef: TransFieldRef; findCha
       if (!c) return null;
       return (
         <>
-          <span className="text-text-dim text-[11px] mr-1.5">キャラ名</span>
+          <span className="text-text-dim text-[11px] mr-1.5">{t("translation.preview.characterName")}</span>
           <b style={{ color: c.color }}>{c.name}</b>
         </>
       );
@@ -36,7 +39,7 @@ function TransPreview({ fieldRef, findChar }: { fieldRef: TransFieldRef; findCha
       return (
         <>
           <span className="text-text-dim text-[11px] mr-1.5">{fieldRef.lineNo}</span>
-          {ch ? <b style={{ color: ch.color }}>{ch.name}</b> : <span className="text-text-dim text-[11px]">地の文</span>}
+          {ch ? <b style={{ color: ch.color }}>{ch.name}</b> : <span className="text-text-dim text-[11px]">{t("translation.preview.narration")}</span>}
           {cmd.face && <span className="face-tag text-text-dim text-[11px] ml-0.5">（{cmd.face}）</span>}{" "}
           <MentionText text={cmd.text} findChar={findChar} />
         </>
@@ -49,7 +52,7 @@ function TransPreview({ fieldRef, findChar }: { fieldRef: TransFieldRef; findCha
       if (!opt) return null;
       return (
         <>
-          <span className="text-text-dim text-[11px] mr-1.5">{fieldRef.lineNo} 選択肢</span>◆ {opt.text}
+          <span className="text-text-dim text-[11px] mr-1.5">{t("translation.preview.choiceOption", { lineNo: fieldRef.lineNo })}</span>◆ {opt.text}
         </>
       );
     }
@@ -57,6 +60,7 @@ function TransPreview({ fieldRef, findChar }: { fieldRef: TransFieldRef; findCha
 }
 
 export function TranslationModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = useTranslation();
   const { project, mutate, patch } = useProjectStore();
   const findChar = useCharLookup();
   const toast = useToast();
@@ -66,42 +70,49 @@ export function TranslationModal({ open, onClose }: { open: boolean; onClose: ()
   const [onlyEmpty, setOnlyEmpty] = useState(false);
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
 
-  const entries = useMemo(() => collectTransItems(project), [project]);
+  const entries = useMemo(() => collectTransItems(project, t), [project, t]);
+
+  const setBaseLanguage = (code: string) => {
+    if (!isSupportedLanguage(code)) return;
+    mutate((d) => {
+      d.baseLanguage = code;
+    });
+  };
 
   const addLang = () => {
-    const raw = window.prompt("翻訳先の言語コード（例: en, zh-CN, ko）:");
+    const raw = window.prompt(t("translation.addLanguagePrompt"));
     if (!raw) return;
     const code = raw.trim();
     if (!code) return;
-    if (code === "ja") {
-      toast("「ja」はベース言語のため使用できません", true);
+    if (code === project.baseLanguage) {
+      toast(t("translation.baseLanguageNotAllowed", { code }), true);
       return;
     }
     if (!/^[A-Za-z][A-Za-z0-9_-]{0,14}$/.test(code)) {
-      toast("言語コードの形式が正しくありません", true);
+      toast(t("translation.invalidLanguageCode"), true);
       return;
     }
     if (project.languages.includes(code)) {
-      toast("すでに追加されています", true);
+      toast(t("translation.alreadyAdded"), true);
       return;
     }
     mutate((d) => {
       d.languages.push(code);
     });
     setLang(code);
-    toast(`言語「${code}」を追加しました`);
+    toast(t("translation.languageAdded", { code }));
   };
 
   const delLang = () => {
     if (!lang) return;
-    if (!window.confirm(`言語「${lang}」を削除しますか？（この言語の翻訳データも削除されます）`)) return;
+    if (!window.confirm(t("translation.confirmDeleteLanguage", { lang }))) return;
     mutate((d) => {
       const idx = d.languages.indexOf(lang);
       if (idx !== -1) d.languages.splice(idx, 1);
       deleteLanguageEverywhere(d, lang);
     });
     setLang(project.languages.find((l) => l !== lang) ?? "");
-    toast(`言語「${lang}」を削除しました`);
+    toast(t("translation.languageDeleted", { lang }));
   };
 
   let total = 0;
@@ -119,41 +130,51 @@ export function TranslationModal({ open, onClose }: { open: boolean; onClose: ()
   return (
     <Modal open={open} onRequestClose={onClose} className="w-[92vw] max-w-[1100px] h-[86vh] max-h-[86vh] flex flex-col">
       <ModalHeader onClose={onClose}>
-        <Icon name="languages" /> 翻訳
+        <Icon name="languages" /> {t("translation.title")}
       </ModalHeader>
       <div className="flex items-center gap-2.5 mb-3 flex-wrap">
+        <label className="flex items-center gap-1.5 text-xs text-text-dim">
+          {t("translation.baseLanguage")}
+          <select value={project.baseLanguage} onChange={(e) => setBaseLanguage(e.target.value)} className="min-w-[110px]">
+            {SUPPORTED_LANGUAGES.map((l) => (
+              <option key={l} value={l}>
+                {LANGUAGE_LABELS[l]}
+              </option>
+            ))}
+          </select>
+        </label>
         {project.languages.length > 0 && (
           <>
-            <select value={lang} onChange={(e) => setLang(e.target.value)} title="翻訳先の言語" className="min-w-[110px]">
+            <select value={lang} onChange={(e) => setLang(e.target.value)} title={t("translation.targetLanguage")} className="min-w-[110px]">
               {project.languages.map((l) => (
                 <option key={l} value={l}>
                   {l}
                 </option>
               ))}
             </select>
-            <button onClick={delLang} title="選択中の言語と入力済みの翻訳を削除">
+            <button onClick={delLang} title={t("translation.deleteLanguageTitle")}>
               <Icon name="trash-2" />
             </button>
           </>
         )}
-        <button onClick={addLang} title="翻訳先の言語を追加">
+        <button onClick={addLang} title={t("translation.addLanguageTitle")}>
           <Icon name="plus" />
-          言語
+          {t("translation.addLanguage")}
         </button>
         {project.languages.length > 0 && (
           <label className="flex items-center gap-1.5 text-xs text-text-dim cursor-pointer">
             <input type="checkbox" checked={onlyEmpty} onChange={(e) => setOnlyEmpty(e.target.checked)} className="accent-accent" />
-            未翻訳のみ
+            {t("translation.onlyUntranslated")}
           </label>
         )}
-        {lang && <span className="text-text-dim text-xs">翻訳済み {done} / {total}</span>}
+        {lang && <span className="text-text-dim text-xs">{t("translation.translatedCount", { done, total })}</span>}
       </div>
       <div className="flex-1 overflow-y-auto min-h-0">
         {!project.languages.length && (
           <div className="py-8 px-2.5 text-text-dim text-sm text-center leading-loose">
-            翻訳先の言語がありません。
+            {t("translation.noLanguages1")}
             <br />
-            「＋言語」から言語コード（例: en, zh-CN, ko）を追加してください。
+            {t("translation.noLanguages2")}
           </div>
         )}
         {project.languages.length > 0 && lang && (() => {
@@ -213,7 +234,7 @@ export function TranslationModal({ open, onClose }: { open: boolean; onClose: ()
           if (!rows.length) {
             return (
               <div className="py-8 px-2.5 text-text-dim text-sm text-center leading-loose">
-                {onlyEmpty ? "未翻訳の項目はありません 🎉" : "翻訳対象のテキストがありません"}
+                {onlyEmpty ? t("translation.noUntranslated") : t("translation.noItems")}
               </div>
             );
           }

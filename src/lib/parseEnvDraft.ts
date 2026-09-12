@@ -7,9 +7,13 @@ export interface DraftParseCallbacks {
   toast?: (message: string) => void;
 }
 
+type T = (key: string, opts?: Record<string, unknown>) => string;
+
+const identityT: T = (key) => key;
+
 /** parseInput() が /jump ・ /choice ・ @名前 などでシーン/キャラを自動作成する際、
  * immerのドラフトへ直接作成することで「入力内容の反映」と「自動作成」を1つのundoステップにまとめる。 */
-export function makeDraftParseEnv(draft: Draft<Project>, cb: DraftParseCallbacks = {}): ParseEnv {
+export function makeDraftParseEnv(draft: Draft<Project>, cb: DraftParseCallbacks = {}, t: T = identityT): ParseEnv {
   return {
     characters: draft.characters,
     ensureScene: (rawName: string) => {
@@ -18,7 +22,7 @@ export function makeDraftParseEnv(draft: Draft<Project>, cb: DraftParseCallbacks
       if (!s) {
         s = { id: uid(), name, commands: [], groupId: null, synopsis: "" };
         draft.scenes.push(s);
-        cb.toast?.(`シーン「${name}」を作成しました`);
+        cb.toast?.(t("parseEnv.sceneCreated", { name }));
       }
       return s.id;
     },
@@ -36,7 +40,7 @@ export function makeDraftParseEnv(draft: Draft<Project>, cb: DraftParseCallbacks
           exprImages: {},
         };
         draft.characters.push(c);
-        cb.toast?.(`キャラクター「${name}」を登録しました`);
+        cb.toast?.(t("parseEnv.characterCreated", { name }));
       }
       return c.id;
     },
@@ -44,7 +48,7 @@ export function makeDraftParseEnv(draft: Draft<Project>, cb: DraftParseCallbacks
       const c = draft.characters.find((c) => c.id === charId);
       if (c && !c.expressions.includes(expr)) {
         c.expressions.push(expr);
-        cb.toast?.(`「${c.name}」に表情「${expr}」を追加しました`);
+        cb.toast?.(t("parseEnv.expressionAdded", { name: c.name, expr }));
       }
     },
   };
@@ -67,7 +71,7 @@ export function makeDryParseEnv(project: Project): ParseEnv {
  * 現在の文法では、シーン/キャラ作成（ensureScene/ensureChar）が呼ばれるパスは必ず成功するため、
  * この事前チェックが通れば mutate 内での本実行が構文エラーで失敗することはない。
  */
-export function parseInputDry(text: string, project: Project, speaker: SpeakerState, opts?: ParseOptions): string | null {
-  const r = parseInput(text, makeDryParseEnv(project), speaker, opts);
+export function parseInputDry(text: string, project: Project, speaker: SpeakerState, opts?: ParseOptions, t: T = identityT): string | null {
+  const r = parseInput(text, makeDryParseEnv(project), speaker, opts, t);
   return r.kind === "error" ? r.message : null;
 }

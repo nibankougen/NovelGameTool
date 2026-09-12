@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { Modal, ModalHeader } from "./Modal";
 import { Icon } from "../common/Icon";
 
@@ -10,104 +11,85 @@ function Row({ k, v }: { k: ReactNode; v: ReactNode }) {
     </tr>
   );
 }
-function Code({ children }: { children: ReactNode }) {
+function Code({ children }: { children?: ReactNode }) {
   return <code className="bg-bg-3 border border-border rounded px-1.5 font-mono text-xs">{children}</code>;
 }
-function Kbd({ children }: { children: ReactNode }) {
+function Kbd({ children }: { children?: ReactNode }) {
   return <kbd className="bg-bg-3 border border-border rounded px-1.5 font-mono text-xs">{children}</kbd>;
 }
 
 export function HelpModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = useTranslation();
   return (
     <Modal open={open} onRequestClose={onClose} className="min-w-[560px]">
-      <ModalHeader onClose={onClose}>ヘルプ — 入力方法とショートカット</ModalHeader>
-      <h4 className="mt-3.5 mb-1 text-accent font-semibold">セリフ入力</h4>
+      <ModalHeader onClose={onClose}>{t("help.title")}</ModalHeader>
+      <h4 className="mt-3.5 mb-1 text-accent font-semibold">{t("help.serifHeading")}</h4>
       <table className="w-full border-collapse mb-4">
         <tbody>
-          <Row k={<Code>こんにちは</Code>} v="現在の話者のセリフとして追加（Enter）" />
-          <Row k={<Code>@あかね こんにちは</Code>} v="話者を「あかね」に切り替えてセリフ追加。未登録の名前は自動でキャラ登録" />
-          <Row k={<Code>@あかね</Code>} v="話者の切り替えのみ" />
+          <Row k={<Code>{t("help.ex1Code")}</Code>} v={t("help.ex1Desc")} />
+          <Row k={<Code>{t("help.ex2Code")}</Code>} v={t("help.ex2Desc")} />
+          <Row k={<Code>{t("help.ex3Code")}</Code>} v={t("help.ex3Desc")} />
           <Row
-            k={<Code>@あかね(笑顔) こんにちは</Code>}
-            v={
-              <>
-                表情付きセリフ。表情の候補はキャラクター編集で設定（未登録の表情は自動追加）。<Code>（　）</Code>全角も可。話者チップ横の「表情」ボタンからもクリックで選べ、選んだ表情は話者を切り替えるまで続きます
-              </>
-            }
+            k={<Code>{t("help.ex4Code")}</Code>}
+            v={<Trans i18nKey="help.ex4Desc" components={[<Code key="0" />]} />}
           />
-          <Row k={<Code>@ 教室に入った。</Code>} v="地の文（ナレーション）に切り替え" />
-          <Row k={<Code>//メモ</Code>} v="コメント行（ゲームには出力しないメモ）" />
+          <Row k={<Code>{t("help.ex5Code")}</Code>} v={t("help.ex5Desc")} />
+          <Row k={<Code>{t("help.ex6Code")}</Code>} v={t("help.ex6Desc")} />
         </tbody>
       </table>
 
       <h4 className="mt-3.5 mb-1 text-accent font-semibold">
-        スラッシュコマンド（<Code>/</Code>を入力すると候補が出ます）
+        <Trans i18nKey="help.slashHeading" components={[<Code key="0" />]} />
       </h4>
       <table className="w-full border-collapse mb-4">
         <tbody>
-          <Row k={<Code>/bg 教室</Code>} v="背景変更" />
-          <Row k={<Code>/bgm 日常テーマ</Code>} v={<><Code>/bgm</Code> のみで停止</>} />
-          <Row k={<Code>/se ドア開閉</Code>} v="効果音" />
-          <Row k={<Code>/wait 1000</Code>} v="ウェイト（ミリ秒）" />
-          <Row k={<Code>/jump シーン名</Code>} v="シーンへジャンプ。存在しないシーン名なら自動作成" />
+          <Row k={<Code>{t("help.bgCode")}</Code>} v={t("help.bgDesc")} />
+          <Row k={<Code>{t("help.bgmCode")}</Code>} v={<Trans i18nKey="help.bgmDesc" components={[<Code key="0" />]} />} />
+          <Row k={<Code>{t("help.seCode")}</Code>} v={t("help.seDesc")} />
+          <Row k={<Code>{t("help.waitCode")}</Code>} v={t("help.waitDesc")} />
+          <Row k={<Code>{t("help.jumpCode")}</Code>} v={t("help.jumpDesc")} />
           <Row
-            k={<Code>/choice はい&gt;ルートA | いいえ&gt;ルートB</Code>}
-            v={
-              <>
-                選択肢。<Code>選択肢文&gt;飛び先シーン</Code> を <Code>|</Code> 区切りで。<Code>/choice</Code> のみで編集画面を開く
-              </>
-            }
+            k={<Code>{t("help.choiceCode")}</Code>}
+            v={<Trans i18nKey="help.choiceDesc" components={[<Code key="0" />, <Code key="1" />, <Code key="2" />]} />}
           />
         </tbody>
       </table>
 
-      <h4 className="mt-3.5 mb-1 text-accent font-semibold">キーボードショートカット</h4>
+      <h4 className="mt-3.5 mb-1 text-accent font-semibold">{t("help.shortcutsHeading")}</h4>
       <table className="w-full border-collapse mb-4">
         <tbody>
-          <Row k={<Kbd>Enter</Kbd>} v="行を追加／行選択中（入力欄が空）は選択行を編集" />
-          <Row k={<>{"↑↓"}（入力欄が空のとき）</>} v="行選択の移動。新しい行は選択行の直後に挿入されます" />
-          <Row k={<Kbd>Esc</Kbd>} v="行選択解除（挿入位置を末尾に戻す）／編集キャンセル" />
-          <Row k={<>Ctrl+{"↑/↓"}</>} v="選択行を上下に移動" />
-          <Row k={<>Ctrl+D</>} v="選択行を複製" />
-          <Row k={<Kbd>Delete</Kbd>} v="（入力欄が空のとき）選択行を削除" />
-          <Row k="Ctrl+1〜9" v="話者をキャラクター1〜9番に切替" />
-          <Row k="Ctrl+0" v="話者を地の文に切替" />
-          <Row k="Alt+1〜9" v="セリフ本文のカーソル位置へキャラクター1〜9番の名前を挿入。名前を変更すると本文中の表記も自動で追従します" />
-          <Row k="Ctrl+Z / Ctrl+Y" v="元に戻す／やり直し" />
-          <Row k="Ctrl+S" v="プロジェクトフォルダへ即座に保存" />
-          <Row k="Ctrl+P" v="テストプレイ" />
-          <Row k="Ctrl+B" v="サイドバーの表示／非表示" />
-          <Row k="Ctrl+F" v="プロジェクト全体を全文検索" />
+          <Row k={<Kbd>{t("help.enterKey")}</Kbd>} v={t("help.enterDesc")} />
+          <Row k={<>{t("help.arrowKeys")}{t("help.arrowKeysNote")}</>} v={t("help.arrowKeysDesc")} />
+          <Row k={<Kbd>{t("help.escKey")}</Kbd>} v={t("help.escDesc")} />
+          <Row k={t("help.ctrlArrowKey")} v={t("help.ctrlArrowDesc")} />
+          <Row k={t("help.ctrlDKey")} v={t("help.ctrlDDesc")} />
+          <Row k={<Kbd>{t("help.deleteKey")}</Kbd>} v={t("help.deleteDesc")} />
+          <Row k={t("help.ctrl1to9Key")} v={t("help.ctrl1to9Desc")} />
+          <Row k={t("help.ctrl0Key")} v={t("help.ctrl0Desc")} />
+          <Row k={t("help.alt1to9Key")} v={t("help.alt1to9Desc")} />
+          <Row k={t("help.undoRedoKey")} v={t("help.undoRedoDesc")} />
+          <Row k={t("help.saveKey")} v={t("help.saveDesc")} />
+          <Row k={t("help.playKey")} v={t("help.playDesc")} />
+          <Row k={t("help.sidebarKey")} v={t("help.sidebarDesc")} />
+          <Row k={t("help.searchKey")} v={t("help.searchDesc")} />
         </tbody>
       </table>
 
-      <h4 className="mt-3.5 mb-1 text-accent font-semibold">その他</h4>
+      <h4 className="mt-3.5 mb-1 text-accent font-semibold">{t("help.otherHeading")}</h4>
       <table className="w-full border-collapse mb-4">
         <tbody>
-          <Row k="複数行の貼り付け" v="テキストエディタで書いた台本を入力欄に貼り付けると、1行ずつまとめて追加できます" />
-          <Row k="新規プロジェクト／プロジェクトを開く" v="「ファイル」メニューから、作業フォルダを選んで新規プロジェクトを作成したり、既存のプロジェクトフォルダを開いたりできます" />
-          <Row k="自動保存" v="編集内容は開いている作業フォルダへ自動保存されます。バックアップや別PCへの受け渡しには、フォルダごとコピーしてください" />
-          <Row
-            k="行の編集"
-            v="行をクリックすると即編集モードになります。セリフ行では話者・表情がチップになり、クリックで切替できます。文頭でBackspaceでチップごと削除（地の文に）"
-          />
-          <Row k="並べ替え" v="行・シーン・キャラクターの左端のハンドル（⋮⋮）をドラッグして順番を変えられます" />
-          <Row
-            k="シーンのグループ分け"
-            v="シーン一覧の「＋章」ボタンでグループを作成できます。シーンをドラッグしてグループやシーン行にドロップすると割り当てられます。複数シーンをShift+クリックで選択し右クリックで結合、行を複数選択して右クリックで新しいシーンに分離できます"
-          />
-          <Row
-            k="キャラクター設定"
-            v="キャラ一覧の鉛筆アイコンから名前・色・デフォルトイラスト・表情候補・設定メモを編集できます"
-          />
-          <Row k="翻訳" v={<><Icon name="languages" className="inline" /> で翻訳画面を開き、言語を追加してセリフ・選択肢・キャラ名を翻訳できます</>} />
-          <Row k="人称チェック" v={<><Icon name="users" className="inline" /> で設定画面を開き、キャラごとの一人称・二人称・呼び方を登録すると表記ゆれを検出します</>} />
-          <Row
-            k="イベントキー"
-            v={<><Icon name="tag" className="inline" /> で登録したキーを、セリフ編集行の下から複数付与できます。値の種類（数値/文字列）を設定したキーはセリフごとに値も指定でき、ゲーム用ファイルの書き出しに含まれます</>}
-          />
-          <Row k="テストプレイ" v="背景・BGM・効果音は「素材」画面で登録した画像・音声があれば実際に描画・再生されます" />
-          <Row k="ゲーム用ファイルとして書き出し" v="「ファイル > ゲーム用ファイルとして書き出し」ボタンで、ゲーム実装用JSONを書き出せます" />
+          <Row k={t("help.pasteKey")} v={t("help.pasteDesc")} />
+          <Row k={t("help.newOpenKey")} v={t("help.newOpenDesc")} />
+          <Row k={t("help.autosaveKey")} v={t("help.autosaveDesc")} />
+          <Row k={t("help.editRowKey")} v={t("help.editRowDesc")} />
+          <Row k={t("help.reorderKey")} v={t("help.reorderDesc")} />
+          <Row k={t("help.groupingKey")} v={t("help.groupingDesc")} />
+          <Row k={t("help.charSettingsKey")} v={t("help.charSettingsDesc")} />
+          <Row k={t("help.translationKey")} v={<Trans i18nKey="help.translationDesc" components={[<Icon key="0" name="languages" className="inline" />]} />} />
+          <Row k={t("help.honorificKey")} v={<Trans i18nKey="help.honorificDesc" components={[<Icon key="0" name="users" className="inline" />]} />} />
+          <Row k={t("help.eventKeyKey")} v={<Trans i18nKey="help.eventKeyDesc" components={[<Icon key="0" name="tag" className="inline" />]} />} />
+          <Row k={t("help.testPlayKey")} v={t("help.testPlayDesc")} />
+          <Row k={t("help.exportGameKey")} v={t("help.exportGameDesc")} />
         </tbody>
       </table>
     </Modal>

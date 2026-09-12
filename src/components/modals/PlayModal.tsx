@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useEditorUi } from "../../state/EditorUiContext";
 import { useCharLookup } from "../../hooks/useCharLookup";
@@ -11,6 +12,7 @@ export function PlayModal({ open, onClose }: { open: boolean; onClose: () => voi
 }
 
 function PlayModalInner({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation();
   const { project, dirHandle } = useProjectStore();
   const editorUi = useEditorUi();
   const findChar = useCharLookup();
@@ -30,8 +32,8 @@ function PlayModalInner({ onClose }: { onClose: () => void }) {
           className="px-3.5 py-2 flex items-center gap-3.5 text-xs"
           style={{ background: "rgba(0,0,0,.4)", color: "#aab0bf" }}
         >
-          <span className="bg-black/50 rounded px-2.5 py-0.5">背景: {state.bgLabel}</span>
-          <span className="bg-black/50 rounded px-2.5 py-0.5">BGM: {state.bgmLabel}</span>
+          <span className="bg-black/50 rounded px-2.5 py-0.5">{t("play.bgLabel", { label: state.bgLabel })}</span>
+          <span className="bg-black/50 rounded px-2.5 py-0.5">{t("play.bgmLabel", { label: state.bgmLabel })}</span>
           <ModalCloseButton onClick={onClose} className="ml-auto text-[#aab0bf] hover:text-white" />
         </div>
         <div className="flex-1 relative cursor-pointer" onClick={() => advance()}>
@@ -88,7 +90,7 @@ function PlayModalInner({ onClose }: { onClose: () => void }) {
             className="bg-[#262b35] text-[#eef0f4] border border-[#3a4050] hover:bg-[#2f3542] hover:border-[#5a6275]"
             onClick={restart}
           >
-            最初から
+            {t("play.restart")}
           </button>
         </div>
       </div>

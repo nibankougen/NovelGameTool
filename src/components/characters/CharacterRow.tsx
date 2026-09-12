@@ -1,4 +1,5 @@
 import type { MouseEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { Icon } from "../common/Icon";
 import { useAssetUrl } from "../../hooks/useAssetUrl";
 import type { Character } from "../../types/project";
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function CharacterRow({ character: c, hotkeyIndex, memoOpen, onEdit, onToggleMemo, onSelectSpeaker }: Props) {
+  const { t } = useTranslation();
   const thumbUrl = useAssetUrl(c.thumb);
   const handleClick = (e: MouseEvent) => {
     const act = (e.target as HTMLElement).closest("[data-act]")?.getAttribute("data-act");
@@ -24,11 +26,11 @@ export function CharacterRow({ character: c, hotkeyIndex, memoOpen, onEdit, onTo
   return (
     <div
       className="char-item group flex items-center gap-1.5 px-2 py-1 my-0.5 rounded-md cursor-pointer border border-transparent hover:bg-bg-3 relative"
-      title="クリックで話者に設定／鉛筆で編集／矢印でメモ"
+      title={t("character.rowTitle")}
       data-char-id={c.id}
       onClick={handleClick}
     >
-      <span className="drag-handle invisible group-hover:visible" title="ドラッグで並べ替え">
+      <span className="drag-handle invisible group-hover:visible" title={t("common.dragToReorder")}>
         <Icon name="grip-vertical" />
       </span>
       {thumbUrl ? (
@@ -41,11 +43,11 @@ export function CharacterRow({ character: c, hotkeyIndex, memoOpen, onEdit, onTo
       </span>
       {hotkeyIndex !== null && <span className="text-text-dim text-[11px]">Ctrl+{hotkeyIndex + 1}</span>}
       <span className="hidden group-hover:flex gap-0.5">
-        <button className="mini-btn" data-act="edit" title="編集">
+        <button className="mini-btn" data-act="edit" title={t("character.edit")}>
           <Icon name="pencil" />
         </button>
       </span>
-      <button className="mini-btn" data-act="memo" title="メモを開閉">
+      <button className="mini-btn" data-act="memo" title={t("character.toggleMemo")}>
         <Icon name={memoOpen ? "chevron-down" : "chevron-right"} />
       </button>
     </div>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { textToResolved, type CharLookup } from "../lib/text";
 import { findScene } from "../lib/lookup";
 import { resolveAssetUrl } from "../lib/projectFs";
@@ -35,15 +36,15 @@ interface Session {
   bgmLabel: string;
 }
 
-function makeSession(startSceneId: string): Session {
-  return { sceneId: startSceneId, idx: 0, face: null, bgLabel: "なし", bgImage: null, bgmValue: "", bgmLabel: "なし" };
+function makeSession(startSceneId: string, noneLabel: string): Session {
+  return { sceneId: startSceneId, idx: 0, face: null, bgLabel: noneLabel, bgImage: null, bgmValue: "", bgmLabel: noneLabel };
 }
 
-function initialState(): PlayState {
+function initialState(noneLabel: string): PlayState {
   return {
     sceneName: "",
-    bgLabel: "なし",
-    bgmLabel: "なし",
+    bgLabel: noneLabel,
+    bgmLabel: noneLabel,
     bgImage: null,
     speakerName: "",
     speakerColor: "var(--text)",
@@ -56,8 +57,9 @@ function initialState(): PlayState {
 }
 
 export function usePlaySession(project: Project, dirHandle: FileSystemDirectoryHandle | null, startSceneId: string, findChar: CharLookup) {
-  const [state, setState] = useState<PlayState>(initialState);
-  const sessionRef = useRef<Session>(makeSession(startSceneId));
+  const { t } = useTranslation();
+  const [state, setState] = useState<PlayState>(() => initialState(t("common.none")));
+  const sessionRef = useRef<Session>(makeSession(startSceneId, t("common.none")));
   const bgmAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const applyBgm = useCallback(
@@ -65,7 +67,7 @@ export function usePlaySession(project: Project, dirHandle: FileSystemDirectoryH
       const s = sessionRef.current;
       if (value === s.bgmValue) return;
       s.bgmValue = value;
-      s.bgmLabel = value || "停止";
+      s.bgmLabel = value || t("play.stopped");
       bgmAudioRef.current?.pause();
       bgmAudioRef.current = null;
       const relPath = value ? project.assets.bgm[value] : null;
@@ -79,7 +81,7 @@ export function usePlaySession(project: Project, dirHandle: FileSystemDirectoryH
         });
       }
     },
-    [project.assets.bgm, dirHandle],
+    [project.assets.bgm, dirHandle, t],
   );
 
   const playSe = useCallback(
@@ -135,7 +137,7 @@ export function usePlaySession(project: Project, dirHandle: FileSystemDirectoryH
           return;
         }
         case "bg": {
-          s.bgLabel = cmd.value ? cmd.value : "なし";
+          s.bgLabel = cmd.value ? cmd.value : t("common.none");
           s.bgImage = cmd.value ? (project.assets.bg[cmd.value] ?? null) : null;
           continue;
         }
@@ -155,7 +157,7 @@ export function usePlaySession(project: Project, dirHandle: FileSystemDirectoryH
               ...prev,
               sceneName: scene.name,
               speakerName: "",
-              text: "⚠ ジャンプ先シーンが見つかりません",
+              text: t("play.jumpTargetMissing"),
               isEnd: true,
               waitingChoice: false,
             }));
@@ -191,17 +193,17 @@ export function usePlaySession(project: Project, dirHandle: FileSystemDirectoryH
         }
       }
     }
-    setState((prev) => ({ ...prev, text: "⚠ ループが多すぎるため停止しました", isEnd: true, waitingChoice: false }));
+    setState((prev) => ({ ...prev, text: t("play.tooManyLoops"), isEnd: true, waitingChoice: false }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [project, findChar, applyBgm, playSe]);
+  }, [project, findChar, applyBgm, playSe, t]);
 
   const restart = useCallback(() => {
     bgmAudioRef.current?.pause();
     bgmAudioRef.current = null;
-    sessionRef.current = makeSession(startSceneId);
-    setState(initialState());
+    sessionRef.current = makeSession(startSceneId, t("common.none"));
+    setState(initialState(t("common.none")));
     step();
-  }, [startSceneId, step]);
+  }, [startSceneId, step, t]);
 
   const startedRef = useRef(false);
   useEffect(() => {

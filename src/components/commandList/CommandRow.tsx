@@ -1,4 +1,5 @@
 import type { MouseEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { Icon } from "../common/Icon";
 import { CommandLineContent } from "./CommandLineContent";
 import type { ClickInfo } from "../../lib/editClickMapping";
@@ -51,6 +52,7 @@ export function CommandRow({
   onShiftSelect,
   onContextMenu,
 }: Props) {
+  const { t } = useTranslation();
   const handleClick = (e: MouseEvent) => {
     const act = (e.target as HTMLElement).closest("[data-act]")?.getAttribute("data-act");
     if (act === "del") return onDelete();
@@ -76,7 +78,7 @@ export function CommandRow({
         onContextMenu(e.clientX, e.clientY);
       }}
     >
-      <span className="drag-handle invisible group-hover:visible pt-1" title="ドラッグで並べ替え">
+      <span className="drag-handle invisible group-hover:visible pt-1" title={t("common.dragToReorder")}>
         <Icon name="grip-vertical" />
       </span>
       <span className="row-num w-8 shrink-0 text-right text-text-faint text-[11px] pt-0.5 select-none">{index + 1}</span>
@@ -93,19 +95,19 @@ export function CommandRow({
         />
       </div>
       <span className="row-actions hidden group-hover:flex absolute right-1.5 top-0.5 gap-0.5 bg-bg-3 rounded px-0.5 py-px">
-        <button data-act="up" title="上へ移動 (Ctrl+↑)" className="mini-btn">
+        <button data-act="up" title={t("common.moveUp")} className="mini-btn">
           <Icon name="chevron-up" />
         </button>
-        <button data-act="down" title="下へ移動 (Ctrl+↓)" className="mini-btn">
+        <button data-act="down" title={t("common.moveDown")} className="mini-btn">
           <Icon name="chevron-down" />
         </button>
-        <button data-act="dup" title="複製 (Ctrl+D)" className="mini-btn">
+        <button data-act="dup" title={t("common.duplicate")} className="mini-btn">
           <Icon name="copy" />
         </button>
-        <button data-act="edit" title="編集 (Enter)" className="mini-btn">
+        <button data-act="edit" title={t("common.editWithKey")} className="mini-btn">
           <Icon name="pencil" />
         </button>
-        <button data-act="del" title="削除 (Del)" className="mini-btn">
+        <button data-act="del" title={t("common.deleteWithKey")} className="mini-btn">
           <Icon name="trash-2" />
         </button>
       </span>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useEditorUi } from "../../state/EditorUiContext";
 import { useUndoableSession } from "../../hooks/useUndoableSession";
@@ -6,6 +7,7 @@ import { Icon } from "../common/Icon";
 import { scenesInGroupOrder } from "../../lib/sceneUtils";
 
 export function OutlineModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = useTranslation();
   const { project, patch } = useProjectStore();
   const editorUi = useEditorUi();
   const onFocus = useUndoableSession();
@@ -16,13 +18,13 @@ export function OutlineModal({ open, onClose }: { open: boolean; onClose: () => 
   return (
     <Modal open={open} onRequestClose={onClose} className="w-[92vw] max-w-[900px] h-[86vh] max-h-[86vh] flex flex-col">
       <ModalHeader onClose={onClose}>
-        <Icon name="book-open" /> あらすじ
+        <Icon name="book-open" /> {t("outline.title")}
       </ModalHeader>
       <div className="shrink-0 mb-3">
-        <label className="block text-text-dim text-xs mb-1">大枠メモ（設定・プロット全体・伏線など）</label>
+        <label className="block text-text-dim text-xs mb-1">{t("outline.overviewLabel")}</label>
         <textarea
           className="w-full min-h-[80px] resize-y leading-relaxed text-sm"
-          placeholder="物語全体の設定・あらすじ・伏線などを自由にメモできます（ゲーム用ファイルには含まれません）"
+          placeholder={t("outline.overviewPlaceholder")}
           value={project.overview}
           onFocus={onFocus}
           onChange={(e) => {
@@ -35,7 +37,7 @@ export function OutlineModal({ open, onClose }: { open: boolean; onClose: () => 
         />
       </div>
       <div className="flex-1 overflow-y-auto min-h-0 border-t border-border pt-1">
-        {!project.scenes.length && <div className="py-8 px-2.5 text-text-dim text-sm text-center leading-loose">シーンがありません</div>}
+        {!project.scenes.length && <div className="py-8 px-2.5 text-text-dim text-sm text-center leading-loose">{t("outline.empty")}</div>}
         {scenesInGroupOrder(project.scenes, project.sceneGroups).map(({ scene: s, groupName }) => {
           const header = showGroupHeads && groupName !== lastGroup;
           lastGroup = groupName;
@@ -43,7 +45,7 @@ export function OutlineModal({ open, onClose }: { open: boolean; onClose: () => 
             <div key={s.id}>
               {header && (
                 <div className="sticky top-0 bg-bg-2 z-[2] px-1 pt-2.5 pb-1.5 text-xs font-bold text-sys border-b border-border">
-                  {groupName || "未分類"}
+                  {groupName || t("scene.ungrouped")}
                 </div>
               )}
               <div className="py-2 px-1 border-b border-hairline">
@@ -57,11 +59,11 @@ export function OutlineModal({ open, onClose }: { open: boolean; onClose: () => 
                   >
                     {s.name}
                   </button>
-                  <span className="text-text-dim text-xs">{s.commands.length}行</span>
+                  <span className="text-text-dim text-xs">{t("outline.lineCount", { count: s.commands.length })}</span>
                 </div>
                 <textarea
                   className="w-full text-xs px-2 py-1.5 min-h-[44px] resize-y leading-relaxed"
-                  placeholder="このシーンのあらすじ"
+                  placeholder={t("outline.synopsisPlaceholder")}
                   value={s.synopsis}
                   onFocus={onFocus}
                   onChange={(e) => {

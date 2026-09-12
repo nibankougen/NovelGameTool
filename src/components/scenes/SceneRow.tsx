@@ -1,4 +1,5 @@
 import type { MouseEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { Icon } from "../common/Icon";
 import { RenameInput } from "../common/RenameInput";
 import type { Scene } from "../../types/project";
@@ -36,6 +37,7 @@ export function SceneRow({
   onCancelRename,
   onDelete,
 }: Props) {
+  const { t } = useTranslation();
   if (renaming) {
     return (
       <div className={`scene-item flex items-center gap-1.5 px-2 py-1 my-0.5 rounded-md${indented ? " grouped ml-4" : ""}`}>
@@ -77,24 +79,24 @@ export function SceneRow({
         onContextMenu(e.clientX, e.clientY);
       }}
     >
-      <span className="drag-handle invisible group-hover:visible" title="ドラッグで並べ替え">
+      <span className="drag-handle invisible group-hover:visible" title={t("common.dragToReorder")}>
         <Icon name="grip-vertical" />
       </span>
       <span className="s-name flex-1 overflow-hidden text-ellipsis whitespace-nowrap">{scene.name}</span>
       {hasAlert && (
-        <span className="text-danger inline-flex shrink-0" title="削除済みのシーンやキャラへの参照があります">
+        <span className="text-danger inline-flex shrink-0" title={t("scene.brokenRefWarning")}>
           <Icon name="triangle-alert" />
         </span>
       )}
       <span className="text-text-dim text-[11px]">{scene.commands.length}</span>
-      <button className="mini-btn" data-act="memo" title="あらすじメモを開閉">
+      <button className="mini-btn" data-act="memo" title={t("scene.toggleSynopsis")}>
         <Icon name={memoOpen ? "chevron-down" : "chevron-right"} />
       </button>
       <span className="hidden group-hover:flex gap-0.5">
-        <button className="mini-btn" data-act="ren" title="名前変更">
+        <button className="mini-btn" data-act="ren" title={t("scene.rename")}>
           <Icon name="pencil" />
         </button>
-        <button className="mini-btn" data-act="del" title="削除">
+        <button className="mini-btn" data-act="del" title={t("common.delete")}>
           <Icon name="trash-2" />
         </button>
       </span>

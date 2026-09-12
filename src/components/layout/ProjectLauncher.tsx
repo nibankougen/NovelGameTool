@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useToast } from "../common/ToastProvider";
 import { Icon } from "../common/Icon";
 import { fsAccessSupported } from "../../lib/projectFs";
 import { listRecentProjects, removeRecentProject, type RecentProjectEntry } from "../../lib/recentProjects";
 
-function formatDate(ts: number): string {
-  return new Date(ts).toLocaleString();
-}
-
 export function ProjectLauncher() {
+  const { t, i18n } = useTranslation();
+  const formatDate = (ts: number): string => new Date(ts).toLocaleString(i18n.language);
   const { createProjectInDir, openProjectInDir, openRecentProject } = useProjectStore();
   const toast = useToast();
   const supported = fsAccessSupported();
@@ -26,7 +25,7 @@ export function ProjectLauncher() {
     setLoading(true);
     try {
       const result = await createProjectInDir();
-      if (result === "exists") toast("選択したフォルダには既にプロジェクトがあります。「プロジェクトを開く」を使ってください", true);
+      if (result === "exists") toast(t("editor.projectAlreadyExists"), true);
     } finally {
       setLoading(false);
     }
@@ -36,7 +35,7 @@ export function ProjectLauncher() {
     setLoading(true);
     try {
       const result = await openProjectInDir();
-      if (result === "invalid") toast("有効なプロジェクトフォルダではありません", true);
+      if (result === "invalid") toast(t("editor.invalidProjectFolder"), true);
       else if (result === "ok") refresh();
     } finally {
       setLoading(false);
@@ -47,9 +46,9 @@ export function ProjectLauncher() {
     setLoading(true);
     try {
       const result = await openRecentProject(entry);
-      if (result === "denied") toast("フォルダへのアクセス許可が得られませんでした", true);
+      if (result === "denied") toast(t("launcher.accessDenied"), true);
       else if (result === "invalid") {
-        toast("プロジェクトフォルダが見つかりませんでした。一覧から削除します", true);
+        toast(t("launcher.projectNotFound"), true);
         await removeRecentProject(entry.id);
         refresh();
       }
@@ -71,22 +70,22 @@ export function ProjectLauncher() {
 
       {!supported && (
         <p className="text-danger text-sm max-w-md text-center">
-          このブラウザはFile System Access APIに対応していません。Google ChromeまたはMicrosoft Edgeでお使いください。
+          {t("launcher.unsupportedBrowser")}
         </p>
       )}
 
       <div className="flex gap-3">
         <button className="btn-primary" disabled={!supported || loading} onClick={handleNew}>
-          <Icon name="file-plus" /> 新規プロジェクト
+          <Icon name="file-plus" /> {t("launcher.newProject")}
         </button>
         <button disabled={!supported || loading} onClick={handleOpen}>
-          <Icon name="folder-open" /> プロジェクトを開く
+          <Icon name="folder-open" /> {t("launcher.openProject")}
         </button>
       </div>
 
       {recents.length > 0 && (
         <div className="w-full max-w-md bg-panel border border-border rounded-[10px] p-2">
-          <h3 className="text-text-dim text-xs font-semibold px-2 py-1">最近開いたプロジェクト</h3>
+          <h3 className="text-text-dim text-xs font-semibold px-2 py-1">{t("launcher.recentProjects")}</h3>
           <div className="flex flex-col gap-0.5">
             {recents.map((r) => (
               <div key={r.id} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-accent-dim">
@@ -100,7 +99,7 @@ export function ProjectLauncher() {
                 <span className="text-text-dim text-[11px] shrink-0">{formatDate(r.lastOpenedAt)}</span>
                 <button
                   className="mini-btn shrink-0"
-                  title="一覧から削除"
+                  title={t("launcher.removeFromList")}
                   onClick={() => handleRemoveRecent(r.id)}
                 >
                   <Icon name="x" />

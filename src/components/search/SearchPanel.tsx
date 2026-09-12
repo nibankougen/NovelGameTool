@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { useProject } from "../../state/ProjectProvider";
 import { useEditorUi } from "../../state/EditorUiContext";
 import { useCharLookup } from "../../hooks/useCharLookup";
@@ -6,6 +7,7 @@ import { Icon } from "../common/Icon";
 import { buildSnippet, runSearch } from "../../lib/search";
 
 export function SearchPanel({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation();
   const project = useProject();
   const editorUi = useEditorUi();
   const findChar = useCharLookup();
@@ -18,7 +20,7 @@ export function SearchPanel({ onClose }: { onClose: () => void }) {
     inputRef.current?.select();
   }, []);
 
-  const { hits, total } = useMemo(() => runSearch(project, query, findChar), [project, query, findChar]);
+  const { hits, total } = useMemo(() => runSearch(project, query, findChar, t), [project, query, findChar, t]);
 
   useEffect(() => setActive((a) => Math.min(a, Math.max(0, hits.length - 1))), [hits.length]);
 
@@ -46,7 +48,7 @@ export function SearchPanel({ onClose }: { onClose: () => void }) {
           ref={inputRef}
           type="text"
           autoComplete="off"
-          placeholder="プロジェクト全体を検索（↑↓で選択、Enterでジャンプ）"
+          placeholder={t("search.placeholder")}
           className="flex-1 min-w-0 text-sm px-2 py-1"
           value={query}
           onChange={(e) => {
@@ -68,13 +70,13 @@ export function SearchPanel({ onClose }: { onClose: () => void }) {
             e.stopPropagation();
           }}
         />
-        <span className="text-text-dim text-[11px] whitespace-nowrap">{total ? `${total}件` : ""}</span>
-        <button className="mini-btn" title="閉じる (Esc)" onClick={onClose}>
+        <span className="text-text-dim text-[11px] whitespace-nowrap">{total ? t("search.hitCount", { count: total }) : ""}</span>
+        <button className="mini-btn" title={t("common.closeWithEsc")} onClick={onClose}>
           <Icon name="x" />
         </button>
       </div>
       <div className="overflow-y-auto max-h-[50vh]">
-        {total === 0 && query.trim() && <div className="px-3 py-2.5 text-text-dim text-xs">見つかりませんでした</div>}
+        {total === 0 && query.trim() && <div className="px-3 py-2.5 text-text-dim text-xs">{t("search.notFound")}</div>}
         {hits.map((hit, n) => (
           <div
             key={n}
@@ -88,7 +90,7 @@ export function SearchPanel({ onClose }: { onClose: () => void }) {
             </span>
           </div>
         ))}
-        {total > hits.length && <div className="px-3 py-2.5 text-text-dim text-xs">他 {total - hits.length} 件 — キーワードで絞り込んでください</div>}
+        {total > hits.length && <div className="px-3 py-2.5 text-text-dim text-xs">{t("search.more", { count: total - hits.length })}</div>}
       </div>
     </div>
   );

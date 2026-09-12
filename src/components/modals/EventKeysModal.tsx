@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useToast } from "../common/ToastProvider";
 import { useDragReorder } from "../../hooks/useDragReorder";
@@ -8,13 +9,10 @@ import { Modal, ModalHeader } from "./Modal";
 import { Icon } from "../common/Icon";
 import type { EventKeyValueType } from "../../types/project";
 
-const VALUE_TYPE_LABELS: Record<EventKeyValueType, string> = {
-  none: "なし",
-  number: "数値",
-  string: "文字列",
-};
+const VALUE_TYPES: EventKeyValueType[] = ["none", "number", "string"];
 
 export function EventKeysModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = useTranslation();
   const { project, patch } = useProjectStore();
   const toast = useToast();
   const [inputText, setInputText] = useState("");
@@ -48,13 +46,13 @@ export function EventKeysModal({ open, onClose }: { open: boolean; onClose: () =
         d.eventKeys.push({ id: uid(), name, valueType: "none" });
       }
     });
-    if (rejected) toast("同じ名前のイベントキーはスキップしました", true);
+    if (rejected) toast(t("eventKeys.duplicateSkipped"), true);
     setInputText("");
   };
 
   const renameKey = (id: string, name: string) => {
     if (project.eventKeys.some((k) => k.id !== id && k.name === name)) {
-      toast(`イベントキー「${name}」はすでに存在します`, true);
+      toast(t("eventKeys.alreadyExists", { name }), true);
       return;
     }
     patch((d) => {
@@ -76,7 +74,7 @@ export function EventKeysModal({ open, onClose }: { open: boolean; onClose: () =
 
   const removeKey = (id: string, name: string) => {
     const count = usageCounts.get(id) ?? 0;
-    if (count > 0 && !window.confirm(`イベントキー「${name}」は${count}件のセリフで使用中です。削除するとそれらのセリフからも外れます。削除しますか？`)) return;
+    if (count > 0 && !window.confirm(t("eventKeys.confirmDelete", { name, count }))) return;
     patch((d) => {
       d.eventKeys = d.eventKeys.filter((k) => k.id !== id);
       for (const sc of d.scenes)
@@ -91,17 +89,15 @@ export function EventKeysModal({ open, onClose }: { open: boolean; onClose: () =
   return (
     <Modal open={open} onRequestClose={onClose} className="w-[92vw] max-w-[600px] h-[70vh] max-h-[70vh] flex flex-col">
       <ModalHeader onClose={onClose}>
-        <Icon name="tag" /> イベントキー管理
+        <Icon name="tag" /> {t("eventKeys.title")}
       </ModalHeader>
-      <p className="text-text-dim text-xs mb-3 shrink-0">
-        セリフに付与できるカスタムイベントの種類を登録します。付与したセリフはゲーム用ファイルの書き出しに含まれます。値の種類を設定すると、セリフごとに数値または文字列を指定できます。
-      </p>
+      <p className="text-text-dim text-xs mb-3 shrink-0">{t("eventKeys.intro")}</p>
       <div className="flex-1 overflow-y-auto min-h-0">
-        {!project.eventKeys.length && <p className="text-text-dim text-xs mb-3">イベントキーが登録されていません</p>}
+        {!project.eventKeys.length && <p className="text-text-dim text-xs mb-3">{t("eventKeys.empty")}</p>}
         <div ref={drag.containerRef} onMouseDown={drag.onMouseDown} className="flex flex-col gap-0.5">
           {project.eventKeys.map((k) => (
             <div key={k.id} className="event-key-row group flex items-center gap-2 py-1.5 px-1 border-b border-hairline">
-              <span className="drag-handle invisible group-hover:visible" title="ドラッグで並べ替え">
+              <span className="drag-handle invisible group-hover:visible" title={t("common.dragToReorder")}>
                 <Icon name="grip-vertical" />
               </span>
               <input
@@ -118,16 +114,16 @@ export function EventKeysModal({ open, onClose }: { open: boolean; onClose: () =
                 className="text-xs w-24"
                 onChange={(e) => setValueType(k.id, e.target.value as EventKeyValueType)}
               >
-                {(Object.keys(VALUE_TYPE_LABELS) as EventKeyValueType[]).map((vt) => (
+                {VALUE_TYPES.map((vt) => (
                   <option key={vt} value={vt}>
-                    {VALUE_TYPE_LABELS[vt]}
+                    {t(`eventKeys.valueType.${vt}`)}
                   </option>
                 ))}
               </select>
               <span className="text-text-dim text-[11px] w-16 shrink-0 text-right">
-                {usageCounts.get(k.id) ? `使用${usageCounts.get(k.id)}回` : "未使用"}
+                {usageCounts.get(k.id) ? t("eventKeys.usedCount", { count: usageCounts.get(k.id) }) : t("eventKeys.unused")}
               </span>
-              <button className="mini-btn" title="削除" onClick={() => removeKey(k.id, k.name)}>
+              <button className="mini-btn" title={t("eventKeys.delete")} onClick={() => removeKey(k.id, k.name)}>
                 <Icon name="trash-2" />
               </button>
             </div>
@@ -137,7 +133,7 @@ export function EventKeysModal({ open, onClose }: { open: boolean; onClose: () =
       <input
         type="text"
         className="w-full mt-2.5 shrink-0"
-        placeholder="イベントキーを追加（カンマ区切りで複数可）"
+        placeholder={t("eventKeys.addPlaceholder")}
         value={inputText}
         onChange={(e) => setInputText(e.target.value)}
         onKeyDown={(e) => {

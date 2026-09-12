@@ -5,6 +5,9 @@ import { findScene } from "./lookup";
 
 export const SEARCH_MAX = 200;
 
+type T = (key: string, opts?: Record<string, unknown>) => string;
+const identityT: T = (key) => key;
+
 export function cmdSearchTexts(c: Command, project: Project, findChar: CharLookup): string[] {
   switch (c.type) {
     case "serif": {
@@ -86,7 +89,7 @@ export interface SearchOutcome {
   total: number;
 }
 
-export function runSearch(project: Project, query: string, findChar: CharLookup): SearchOutcome {
+export function runSearch(project: Project, query: string, findChar: CharLookup, t: T = identityT): SearchOutcome {
   const q = query.trim();
   if (!q) return { hits: [], total: 0 };
   const ql = q.toLowerCase();
@@ -95,14 +98,14 @@ export function runSearch(project: Project, query: string, findChar: CharLookup)
   for (const s of project.scenes) {
     if (s.name.toLowerCase().includes(ql)) {
       total++;
-      if (hits.length < SEARCH_MAX) hits.push({ sceneId: s.id, idx: null, sceneName: "シーン名", lineLabel: "", matchedText: s.name });
+      if (hits.length < SEARCH_MAX) hits.push({ sceneId: s.id, idx: null, sceneName: t("search.sceneName"), lineLabel: "", matchedText: s.name });
     }
     s.commands.forEach((c, i) => {
-      const t = cmdSearchTexts(c, project, findChar).find((t) => t.toLowerCase().includes(ql));
-      if (t !== undefined) {
+      const matched = cmdSearchTexts(c, project, findChar).find((txt) => txt.toLowerCase().includes(ql));
+      if (matched !== undefined) {
         total++;
         if (hits.length < SEARCH_MAX)
-          hits.push({ sceneId: s.id, idx: i, sceneName: s.name, lineLabel: String(i + 1), matchedText: t });
+          hits.push({ sceneId: s.id, idx: i, sceneName: s.name, lineLabel: String(i + 1), matchedText: matched });
       }
     });
   }

@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState, type ClipboardEvent, type KeyboardEvent, type RefObject } from "react";
+import { useTranslation } from "react-i18next";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useEditorUi } from "../../state/EditorUiContext";
 import { useAppActions } from "../../state/AppActionsContext";
@@ -12,6 +13,7 @@ import { insertTextAtCursor } from "../../lib/text";
 import { scenesInGroupOrder } from "../../lib/sceneUtils";
 
 export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | null> }) {
+  const { t } = useTranslation();
   const { project, mutate } = useProjectStore();
   const editorUi = useEditorUi();
   const appActions = useAppActions();
@@ -60,7 +62,7 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
     const raw = value;
     if (!raw.trim()) return;
     const speaker = { id: editorUi.speakerId, face: editorUi.speakerFace };
-    const err = parseInputDry(raw, project, speaker);
+    const err = parseInputDry(raw, project, speaker, undefined, t);
     if (err) {
       toast(err, true);
       return;
@@ -71,8 +73,8 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
     const sceneId = scene.id;
     const holder: { outcome: ParseOutcome | null } = { outcome: null };
     mutate((d) => {
-      const env = makeDraftParseEnv(d, { toast });
-      const r = parseInput(raw, env, speaker);
+      const env = makeDraftParseEnv(d, { toast }, t);
+      const r = parseInput(raw, env, speaker, undefined, t);
       holder.outcome = r;
       if (r.kind === "command") {
         const sc = d.scenes.find((s) => s.id === sceneId);
@@ -97,18 +99,18 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
       .map((l) => l.trim())
       .filter(Boolean);
     if (!lines.length) return;
-    if (!window.confirm(`${lines.length} 行をまとめて追加しますか？\n（@名前 や /コマンド の記法も解釈されます）`)) return;
+    if (!window.confirm(t("inputBar.confirmPasteMultiline", { count: lines.length }))) return;
     let added = 0;
     let errors = 0;
     let curSpeaker = { id: editorUi.speakerId, face: editorUi.speakerFace };
     let newSelIndex = editorUi.selIndex;
     const sceneId = editorUi.currentSceneId;
     mutate((d) => {
-      const env = makeDraftParseEnv(d, { toast });
+      const env = makeDraftParseEnv(d, { toast }, t);
       const sc = d.scenes.find((s) => s.id === sceneId);
       if (!sc) return;
       for (const line of lines) {
-        const r = parseInput(line, env, curSpeaker);
+        const r = parseInput(line, env, curSpeaker, undefined, t);
         if (r.kind === "command") {
           const at = newSelIndex === null ? sc.commands.length : newSelIndex + 1;
           sc.commands.splice(at, 0, r.cmd);
@@ -124,7 +126,7 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
     });
     editorUi.setSelIndex(newSelIndex);
     editorUi.setSpeaker(curSpeaker.id, curSpeaker.face);
-    toast(`${added} 行を追加しました` + (errors ? `（${errors} 行はエラーでスキップ）` : ""));
+    toast(t("inputBar.addedLines", { count: added }) + (errors ? t("inputBar.addedLinesWithErrors", { count: errors }) : ""));
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -258,7 +260,7 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
                 }}
               >
                 <span className="p-cmd font-bold text-sys w-[150px] shrink-0">{c.cmd}</span>
-                <span className="p-desc text-text-dim text-xs">{c.desc}</span>
+                <span className="p-desc text-text-dim text-xs">{t(c.descKey)}</span>
               </div>
             ))}
           </div>
@@ -277,7 +279,7 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
               }}
             >
               <span className="p-cmd font-bold w-[150px] shrink-0" style={{ color: "var(--narration)" }}>
-                地の文
+                {t("common.narration")}
               </span>
               <span className="p-desc text-text-dim text-xs">Ctrl+0</span>
             </div>
@@ -307,9 +309,9 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
               }}
             >
               <span className="p-cmd font-bold w-[150px] shrink-0 inline-flex items-center gap-1">
-                <Icon name="plus" /> 新規キャラ
+                <Icon name="plus" /> {t("inputBar.newCharacter")}
               </span>
-              <span className="p-desc text-text-dim text-xs">キャラクターを追加</span>
+              <span className="p-desc text-text-dim text-xs">{t("inputBar.addCharacterDesc")}</span>
             </div>
           </div>
         </div>
@@ -326,7 +328,7 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
                 inputRef.current?.focus();
               }}
             >
-              <span className="p-cmd text-text-dim">（表情なし）</span>
+              <span className="p-cmd text-text-dim">{t("serifEdit.noExpression")}</span>
             </div>
             {speakerCh.expressions.map((ex) => (
               <div
@@ -347,7 +349,7 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
               onMouseDown={(e) => {
                 e.preventDefault();
                 setFaceOpen(false);
-                const v = window.prompt("新しい表情名:");
+                const v = window.prompt(t("serifEdit.newExpressionPrompt"));
                 if (!v || !v.trim()) return;
                 const f = v.trim();
                 const charId = speakerCh.id;
@@ -360,9 +362,9 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
               }}
             >
               <span className="p-cmd inline-flex items-center gap-1">
-                <Icon name="plus" /> 新しい表情…
+                <Icon name="plus" /> {t("serifEdit.newExpressionMenuItem")}
               </span>
-              <span className="p-desc text-text-dim text-xs">表情候補に追加</span>
+              <span className="p-desc text-text-dim text-xs">{t("inputBar.addExpressionDesc")}</span>
             </div>
           </div>
         </div>
@@ -378,7 +380,7 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
                 lastGroup = groupName;
                 return (
                   <div key={s.id}>
-                    {header && <div className="popup-section px-3.5 pt-1.5 pb-0.5 text-text-dim text-[11px] font-bold border-t border-hairline first:border-t-0">{groupName || "未分類"}</div>}
+                    {header && <div className="popup-section px-3.5 pt-1.5 pb-0.5 text-text-dim text-[11px] font-bold border-t border-hairline first:border-t-0">{groupName || t("scene.ungrouped")}</div>}
                     <div
                       className="popup-item flex gap-3 py-1.5 px-3.5 cursor-pointer items-center hover:bg-accent-dim"
                       onMouseDown={(e) => {
@@ -389,7 +391,7 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
                       }}
                     >
                       <span className="p-cmd font-bold">{s.name}</span>
-                      <span className="p-desc text-text-dim text-xs">このシーンへジャンプ</span>
+                      <span className="p-desc text-text-dim text-xs">{t("inputBar.jumpToScene")}</span>
                     </div>
                   </div>
                 );
@@ -400,14 +402,14 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
               onMouseDown={(e) => {
                 e.preventDefault();
                 setJumpOpen(false);
-                const name = window.prompt("新規シーン名:");
+                const name = window.prompt(t("common.newScenePrompt"));
                 if (!name || !name.trim()) return;
                 const scene = project.scenes.find((s) => s.id === editorUi.currentSceneId);
                 if (!scene) return;
                 const at = editorUi.selIndex === null ? scene.commands.length : editorUi.selIndex + 1;
                 const sceneId = scene.id;
                 mutate((d) => {
-                  const env = makeDraftParseEnv(d, { toast });
+                  const env = makeDraftParseEnv(d, { toast }, t);
                   const targetId = env.ensureScene(name.trim());
                   const sc = d.scenes.find((s) => s.id === sceneId);
                   if (sc) sc.commands.splice(at, 0, { type: "jump", target: targetId });
@@ -417,9 +419,9 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
               }}
             >
               <span className="p-cmd inline-flex items-center gap-1">
-                <Icon name="plus" /> 新規シーン…
+                <Icon name="plus" /> {t("inputBar.newScene")}
               </span>
-              <span className="p-desc text-text-dim text-xs">シーンを作成してジャンプ</span>
+              <span className="p-desc text-text-dim text-xs">{t("inputBar.createSceneAndJump")}</span>
             </div>
           </div>
         </div>
@@ -432,11 +434,11 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
           type="button"
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-bg-3 border border-border cursor-pointer min-w-[96px] justify-center font-semibold shrink-0 select-none hover:border-accent"
           style={{ color: speakerCh ? speakerCh.color : "var(--narration)" }}
-          title="クリックで話者切替 (Ctrl+0〜9)"
+          title={t("inputBar.speakerChipTitle")}
           onClick={() => setSpeakerOpen((v) => !v)}
         >
           {speakerCh && <span className="inline-block w-3 h-3 rounded shrink-0" style={{ background: speakerCh.color }} />}
-          {speakerCh ? speakerCh.name : "地の文"}
+          {speakerCh ? speakerCh.name : t("common.narration")}
         </button>
         {speakerCh && (
           <button
@@ -445,10 +447,10 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
             type="button"
             className="flex items-center px-2.5 py-1.5 rounded-md bg-bg-3 border border-border cursor-pointer shrink-0 select-none text-sm hover:border-accent"
             style={{ color: editorUi.speakerFace ? "var(--text)" : "var(--text-dim)" }}
-            title="クリックで表情切替"
+            title={t("inputBar.faceChipTitle")}
             onClick={() => setFaceOpen((v) => !v)}
           >
-            {editorUi.speakerFace ? `（${editorUi.speakerFace}）` : "表情"}
+            {editorUi.speakerFace ? `（${editorUi.speakerFace}）` : t("serifEdit.faceButtonLabel")}
           </button>
         )}
         <input
@@ -467,7 +469,7 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
         />
         <button
           id="btnChoiceCmd"
-          title="選択肢を挿入 (/choice)"
+          title={t("inputBar.insertChoiceTitle")}
           onClick={() => appActions.openChoiceModal(null)}
         >
           <Icon name="split" />
@@ -475,7 +477,7 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
         <button
           ref={jumpBtnRef}
           id="btnJumpCmd"
-          title="シーンへのジャンプを挿入 (/jump)"
+          title={t("inputBar.insertJumpTitle")}
           onClick={() => {
             if (jumpOpen) {
               setJumpOpen(false);

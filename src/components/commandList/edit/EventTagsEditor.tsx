@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Icon } from "../../common/Icon";
 import { useClickOutside } from "../../../hooks/useClickOutside";
 import type { EventKeyDef, SerifEventTag } from "../../../types/project";
@@ -11,6 +12,7 @@ interface Props {
 
 /** セリフ編集行の下に置く、イベントキー付与チップ＋追加メニュー */
 export function EventTagsEditor({ events, setEvents, eventKeys }: Props) {
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
   const menuRef = useClickOutside<HTMLDivElement>(menuOpen, () => setMenuOpen(false), btnRef);
@@ -74,7 +76,7 @@ export function EventTagsEditor({ events, setEvents, eventKeys }: Props) {
             }}
           >
             <Icon name="plus" />
-            イベント
+            {t("eventKeys.event")}
           </button>
           {menuOpen && (
             <div

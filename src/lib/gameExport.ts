@@ -63,36 +63,38 @@ export function gameExportData(project: Project, cfg: ExportSettings, findChar: 
       return o;
     }),
   };
-  if (langs.length) root.languages = ["ja", ...langs];
+  if (langs.length) root.languages = [project.baseLanguage, ...langs];
   const ttr = pickTr(project.titleTr, langs);
   if (ttr) root.titleTr = ttr;
   return root;
 }
 
-function cmdToScriptLine(c: Command, project: Project, findChar: CharLookup): string {
+type T = (key: string, opts?: Record<string, unknown>) => string;
+
+function cmdToScriptLine(c: Command, project: Project, findChar: CharLookup, t: T): string {
   switch (c.type) {
     case "serif": {
       if (c.chara) {
         const ch = findCharacter(project.characters, c.chara);
-        return `${ch ? ch.name : "？"}${c.face ? `（${c.face}）` : ""}「${textToResolved(c.text, findChar)}」`;
+        return `${ch ? ch.name : t("common.unknownRef")}${c.face ? `（${c.face}）` : ""}「${textToResolved(c.text, findChar)}」`;
       }
       return `　${textToResolved(c.text, findChar)}`;
     }
     case "bg":
-      return `【背景】${c.value}`;
+      return t("gameExport.script.bg", { value: c.value });
     case "bgm":
-      return `【BGM】${c.value || "停止"}`;
+      return t("gameExport.script.bgm", { value: c.value || t("gameExport.script.bgmStopped") });
     case "se":
-      return `【SE】${c.value}`;
+      return t("gameExport.script.se", { value: c.value });
     case "wait":
-      return `【待機】${c.value}ms`;
+      return t("gameExport.script.wait", { ms: c.value });
     case "jump":
-      return `【ジャンプ】→ ${findScene(project.scenes, c.target)?.name ?? "？"}`;
+      return t("gameExport.script.jump", { target: findScene(project.scenes, c.target)?.name ?? t("common.unknownRef") });
     case "choice": {
-      const lines = ["【選択肢】"];
+      const lines = [t("gameExport.script.choiceHeader")];
       for (const o of c.options) {
-        const target = o.target ? (findScene(project.scenes, o.target)?.name ?? "？") : "続行";
-        lines.push(`　◆ ${o.text} → ${target}`);
+        const target = o.target ? (findScene(project.scenes, o.target)?.name ?? t("common.unknownRef")) : t("common.continue");
+        lines.push(t("gameExport.script.choiceLine", { text: o.text, target }));
       }
       return lines.join("\n");
     }
@@ -102,11 +104,11 @@ function cmdToScriptLine(c: Command, project: Project, findChar: CharLookup): st
 }
 
 /** 読みやすいテキスト台本を書き出す */
-export function buildScriptText(project: Project, findChar: CharLookup): string {
+export function buildScriptText(project: Project, findChar: CharLookup, t: T): string {
   let out = `${project.title}\n${"=".repeat(30)}\n\n`;
   for (const s of project.scenes) {
-    out += `■ シーン: ${s.name}\n${"-".repeat(30)}\n`;
-    for (const c of s.commands) out += cmdToScriptLine(c, project, findChar) + "\n";
+    out += `${t("gameExport.sceneHeader", { name: s.name })}\n${"-".repeat(30)}\n`;
+    for (const c of s.commands) out += cmdToScriptLine(c, project, findChar, t) + "\n";
     out += "\n";
   }
   return out;

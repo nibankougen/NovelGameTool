@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useProject } from "../../state/ProjectProvider";
 import { useEditorUi } from "../../state/EditorUiContext";
 import { useCharLookup } from "../../hooks/useCharLookup";
@@ -7,6 +8,7 @@ import { Icon } from "../common/Icon";
 import { scenesInGroupOrder, sceneStats } from "../../lib/sceneUtils";
 
 export function StatsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = useTranslation();
   const project = useProject();
   const editorUi = useEditorUi();
   const findChar = useCharLookup();
@@ -19,7 +21,7 @@ export function StatsModal({ open, onClose }: { open: boolean; onClose: () => vo
       const key = groupName || "";
       let g = map.get(key);
       if (!g) {
-        g = { name: groupName || "未分類", sceneIds: [], count: 0, chars: 0 };
+        g = { name: groupName || t("scene.ungrouped"), sceneIds: [], count: 0, chars: 0 };
         map.set(key, g);
       }
       const st = sceneStats(scene, findChar);
@@ -30,22 +32,22 @@ export function StatsModal({ open, onClose }: { open: boolean; onClose: () => vo
       totalChars += st.chars;
     }
     return { groups: [...map.values()], total: { count: totalCount, chars: totalChars } };
-  }, [project.scenes, project.sceneGroups, findChar]);
+  }, [project.scenes, project.sceneGroups, findChar, t]);
 
   const showGroupHeads = project.sceneGroups.length > 0;
 
   return (
     <Modal open={open} onRequestClose={onClose} className="w-[92vw] max-w-[640px] h-[80vh] max-h-[80vh] flex flex-col">
       <ModalHeader onClose={onClose}>
-        <Icon name="chart-column" /> 統計
+        <Icon name="chart-column" /> {t("stats.title")}
       </ModalHeader>
       <div className="grid grid-cols-[1fr_90px_90px] gap-2 items-center px-2 py-1.5 text-text-dim text-[11px] border-b border-border shrink-0">
-        <span>シーン</span>
-        <span className="text-right tabular-nums">セリフ数</span>
-        <span className="text-right tabular-nums">文字数</span>
+        <span>{t("stats.sceneHeading")}</span>
+        <span className="text-right tabular-nums">{t("stats.lineCountHeading")}</span>
+        <span className="text-right tabular-nums">{t("stats.charCountHeading")}</span>
       </div>
       <div className="flex-1 overflow-y-auto min-h-0">
-        {!project.scenes.length && <div className="py-8 px-2.5 text-text-dim text-sm text-center leading-loose">シーンがありません</div>}
+        {!project.scenes.length && <div className="py-8 px-2.5 text-text-dim text-sm text-center leading-loose">{t("stats.empty")}</div>}
         {groups.map((g) => (
           <div key={g.name}>
             {showGroupHeads && (
@@ -77,7 +79,7 @@ export function StatsModal({ open, onClose }: { open: boolean; onClose: () => vo
         ))}
       </div>
       <div className="grid grid-cols-[1fr_90px_90px] gap-2 items-center px-2 py-1.5 border-t-2 border-border mt-0.5 font-bold shrink-0">
-        <span>合計</span>
+        <span>{t("stats.total")}</span>
         <span className="text-right tabular-nums">{total.count}</span>
         <span className="text-right tabular-nums">{total.chars}</span>
       </div>

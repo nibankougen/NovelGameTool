@@ -2,14 +2,18 @@ import type { Command } from "../types/project";
 import { textToStorage } from "./text";
 
 export const SLASH_CMDS = [
-  { cmd: "/bg", desc: "背景を変更　例: /bg 教室" },
-  { cmd: "/bgm", desc: "BGMを変更（引数なしで停止）　例: /bgm 日常テーマ" },
-  { cmd: "/se", desc: "効果音を再生　例: /se ドア開閉" },
-  { cmd: "/wait", desc: "ウェイト（ミリ秒）　例: /wait 1000" },
-  { cmd: "/jump", desc: "シーンへジャンプ（未作成なら自動作成）　例: /jump ルートA" },
-  { cmd: "/choice", desc: "選択肢　例: /choice はい>ルートA | いいえ>ルートB（引数なしで編集画面）" },
-  { cmd: "/memo", desc: "コメント行（// でも可）" },
+  { cmd: "/bg", descKey: "parseInput.slash.bg" },
+  { cmd: "/bgm", descKey: "parseInput.slash.bgm" },
+  { cmd: "/se", descKey: "parseInput.slash.se" },
+  { cmd: "/wait", descKey: "parseInput.slash.wait" },
+  { cmd: "/jump", descKey: "parseInput.slash.jump" },
+  { cmd: "/choice", descKey: "parseInput.slash.choice" },
+  { cmd: "/memo", descKey: "parseInput.slash.memo" },
 ] as const;
+
+type T = (key: string, opts?: Record<string, unknown>) => string;
+
+const identityT: T = (key) => key;
 
 /** parseInput が入力を解釈するうえで必要とする、キャラ/シーンの自動作成などの副作用を注入するための環境。
  * 呼び出し側は「実際にドラフトへ作成する」実装と「作成せず構文検証のみ行う」実装を使い分けられる。 */
@@ -42,6 +46,7 @@ export function parseInput(
   env: ParseEnv,
   currentSpeaker: SpeakerState,
   opts: ParseOptions = {},
+  t: T = identityT,
 ): ParseOutcome {
   const sticky = opts.sticky ?? true;
   const text = raw.replace(/[\s　]+$/, "");
@@ -59,16 +64,16 @@ export function parseInput(
       case "bg":
       case "bgm":
       case "se": {
-        if (name !== "bgm" && !arg) return { kind: "error", message: `/${name} には名前を指定してください` };
+        if (name !== "bgm" && !arg) return { kind: "error", message: t("parseInput.errors.nameRequired", { name }) };
         return { kind: "command", cmd: { type: name, value: arg } };
       }
       case "wait": {
         const n = parseInt(arg, 10);
-        if (isNaN(n) || n < 0) return { kind: "error", message: "/wait にはミリ秒数を指定してください　例: /wait 1000" };
+        if (isNaN(n) || n < 0) return { kind: "error", message: t("parseInput.errors.waitRequiresMs") };
         return { kind: "command", cmd: { type: "wait", value: n } };
       }
       case "jump": {
-        if (!arg) return { kind: "error", message: "/jump ジャンプ先シーン名" };
+        if (!arg) return { kind: "error", message: t("parseInput.errors.jumpRequiresSceneName") };
         return { kind: "command", cmd: { type: "jump", target: env.ensureScene(arg) } };
       }
       case "choice": {
@@ -81,14 +86,14 @@ export function parseInput(
             return { text: label, target: target ? env.ensureScene(target) : null };
           })
           .filter((o): o is { text: string; target: string | null } => o !== null);
-        if (!options.length) return { kind: "error", message: "選択肢がありません　例: /choice はい>ルートA | いいえ>ルートB" };
+        if (!options.length) return { kind: "error", message: t("parseInput.errors.choiceRequiresOptions") };
         return { kind: "command", cmd: { type: "choice", options } };
       }
       case "memo":
       case "comment":
         return { kind: "command", cmd: { type: "comment", text: arg } };
       default:
-        return { kind: "error", message: `不明なコマンド: /${name}（F1でヘルプ）` };
+        return { kind: "error", message: t("parseInput.errors.unknownCommand", { name }) };
     }
   }
 

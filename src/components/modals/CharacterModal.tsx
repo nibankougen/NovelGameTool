@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useEditorUi } from "../../state/EditorUiContext";
 import { useToast } from "../common/ToastProvider";
@@ -19,6 +20,7 @@ export function CharacterModal({ open, charId, onClose }: { open: boolean; charI
 }
 
 function CharacterModalInner({ charId, onClose }: { charId: string | null; onClose: () => void }) {
+  const { t } = useTranslation();
   const { project, mutate, dirHandle } = useProjectStore();
   const editorUi = useEditorUi();
   const toast = useToast();
@@ -45,9 +47,9 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
   const isDirty = () => JSON.stringify({ name, color, thumb, memo, staged }) !== initialSnapshot;
 
   const flushExprInput = () => {
-    const t = exprInputText.trim();
-    if (!t) return;
-    const parts = t
+    const trimmedInput = exprInputText.trim();
+    if (!trimmedInput) return;
+    const parts = trimmedInput
       .split(/[,、，]/)
       .map((s) => s.trim())
       .filter(Boolean);
@@ -62,11 +64,11 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
   const handleSave = () => {
     const trimmed = name.trim();
     if (!trimmed) {
-      toast("名前を入力してください", true);
+      toast(t("characterModal.nameRequired"), true);
       return;
     }
     if (project.characters.some((c) => c.name === trimmed && c.id !== charId)) {
-      toast("同じ名前のキャラクターが既に存在します", true);
+      toast(t("characterModal.duplicateName"), true);
       return;
     }
     flushExprInput();
@@ -117,7 +119,7 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
 
   const handleDelete = () => {
     if (!existing) return;
-    if (!window.confirm(`キャラクター「${existing.name}」を削除しますか？（このキャラクターのセリフは地の文になります）`)) return;
+    if (!window.confirm(t("characterModal.confirmDelete", { name: existing.name }))) return;
     const targetId = existing.id;
     if (dirHandle) {
       const paths = [existing.thumb, ...Object.values(existing.exprImages)].filter((v): v is string => !!v);
@@ -135,7 +137,7 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
 
   const canClose = () => {
     if (!isDirty()) return true;
-    return window.confirm("編集内容が保存されていません。閉じてもよいですか？");
+    return window.confirm(t("characterModal.confirmDiscard"));
   };
 
   const saveExprTemplate = () => {
@@ -146,7 +148,7 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
     });
     const g = loadGlobalExprTemplate();
     if (g.enabled) saveGlobalExprTemplate({ enabled: true, template: names });
-    toast("表情テンプレートを保存しました");
+    toast(t("characterModal.exprTemplateSaved"));
   };
 
   const applyExprTemplate = () => {
@@ -156,14 +158,14 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
       for (const n of project.exprTemplate) if (!next.some((s) => s.name === n)) { next.push({ orig: null, name: n, img: null }); added++; }
       return next;
     });
-    toast(added ? `テンプレートから${added}件追加しました` : "テンプレートはすでに適用されています");
+    toast(added ? t("characterModal.exprTemplateAdded", { count: added }) : t("characterModal.exprTemplateAlreadyApplied"));
   };
 
   return (
     <Modal open={true} onRequestClose={onClose} canClose={canClose}>
-      <ModalHeader>{existing ? "キャラクター編集" : "キャラクター追加"}</ModalHeader>
+      <ModalHeader>{existing ? t("characterModal.editTitle") : t("characterModal.addTitle")}</ModalHeader>
       <div className="flex gap-2 items-center mb-2.5">
-        <label className="w-[70px] shrink-0 text-text-dim">名前</label>
+        <label className="w-[70px] shrink-0 text-text-dim">{t("characterModal.nameLabel")}</label>
         <input
           ref={(el) => {
             nameRef.current = el;
@@ -182,7 +184,7 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
         />
       </div>
       <div className="flex gap-2 items-center mb-2.5">
-        <label className="w-[70px] shrink-0 text-text-dim">色</label>
+        <label className="w-[70px] shrink-0 text-text-dim">{t("characterModal.colorLabel")}</label>
         <div className="flex gap-1.5 flex-wrap">
           {PALETTE.map((p) => (
             <button
@@ -206,7 +208,7 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
       </div>
       <div
         className={`flex gap-2 items-center mb-2.5 ${dragOverThumb ? "outline outline-2 outline-dashed outline-accent outline-offset-[3px] rounded-lg" : ""}`}
-        title="画像ファイルをドラッグ&ドロップでも設定できます"
+        title={t("characterModal.thumbDropHint")}
         onDragOver={(e) => {
           if (!hasFileDrag(e)) return;
           e.preventDefault();
@@ -219,50 +221,50 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
           if (!dirHandle) return;
           const file = firstImageFile(e);
           if (!file) {
-            toast("画像ファイルをドロップしてください", true);
+            toast(t("characterModal.dropImageFile"), true);
             return;
           }
           writeAssetFile(dirHandle, "characters", file).then(setThumb);
         }}
       >
         <label className="w-[70px] shrink-0 text-text-dim leading-tight">
-          デフォルト
+          {t("characterModal.defaultIllustration")}
           <br />
-          イラスト
+          {t("characterModal.illustration")}
         </label>
         <ImageThumbButton
           img={thumbUrl}
           own={!!thumb}
-          title={thumb ? "クリックで画像を外す" : "キャラの基本イラストを設定。表情画像を設定していない表情ではこの画像が使われます"}
+          title={thumb ? t("characterModal.removeImage") : t("characterModal.setDefaultIllustration")}
           onPick={(file) => dirHandle && writeAssetFile(dirHandle, "characters", file).then(setThumb)}
           onRemove={() => setThumb(null)}
         />
       </div>
       <div className="flex gap-2 mb-2.5 items-start">
-        <label className="w-[70px] shrink-0 pt-1.5 text-text-dim">表情</label>
+        <label className="w-[70px] shrink-0 pt-1.5 text-text-dim">{t("characterModal.expressionLabel")}</label>
         <div className="flex-1 min-w-0">
           <ExpressionTagEditor staged={staged} setStaged={setStaged} usageCounts={usageCounts} thumb={thumb} inputText={exprInputText} setInputText={setExprInputText} />
           <div className="flex gap-1.5 mt-1.5 items-center min-w-0">
-            <button type="button" onClick={applyExprTemplate} className="text-[11px] text-text-dim px-2 py-0.5" title="保存済みテンプレートの表情をこのキャラクターに追加します">
-              テンプレを適用
+            <button type="button" onClick={applyExprTemplate} className="text-[11px] text-text-dim px-2 py-0.5" title={t("characterModal.applyExprTemplateTitle")}>
+              {t("characterModal.applyExprTemplate")}
             </button>
             <button
               type="button"
               onClick={saveExprTemplate}
               className="text-[11px] text-text-dim px-2 py-0.5"
-              title="現在の表情一覧をテンプレートとして保存します。以後の新規キャラクターに自動適用されます"
+              title={t("characterModal.saveExprTemplateTitle")}
             >
-              現在の表情一覧をテンプレに保存
+              {t("characterModal.saveExprTemplate")}
             </button>
           </div>
         </div>
       </div>
       <div className="flex gap-2 mb-2.5 items-start">
-        <label className="w-[70px] shrink-0 pt-1.5 text-text-dim">メモ</label>
+        <label className="w-[70px] shrink-0 pt-1.5 text-text-dim">{t("characterModal.memoLabel")}</label>
         <textarea
           value={memo}
           onChange={(e) => setMemo(e.target.value)}
-          placeholder="設定メモ（口調、外見、関係など）。ゲーム用出力には含まれません"
+          placeholder={t("characterModal.memoPlaceholder")}
           className="flex-1 min-h-[70px] resize-y leading-relaxed"
         />
       </div>
@@ -270,7 +272,7 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
         {existing && (
           <button className="btn-danger mr-auto" onClick={handleDelete}>
             <Icon name="trash-2" />
-            削除
+            {t("common.delete")}
           </button>
         )}
         <button
@@ -278,10 +280,10 @@ function CharacterModalInner({ charId, onClose }: { charId: string | null; onClo
             if (canClose()) onClose();
           }}
         >
-          キャンセル
+          {t("common.cancel")}
         </button>
         <button className="btn-primary" onClick={handleSave}>
-          保存
+          {t("common.save")}
         </button>
       </ModalFoot>
     </Modal>

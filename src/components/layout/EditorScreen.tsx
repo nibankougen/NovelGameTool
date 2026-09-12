@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useEditorUi } from "../../state/EditorUiContext";
 import { useModalRegistry } from "../modals/ModalRegistry";
 import { useToast } from "../common/ToastProvider";
 import { useCharLookup } from "../../hooks/useCharLookup";
 import { useGlobalHotkeys } from "../../hooks/useGlobalHotkeys";
+import i18n from "../../i18n";
 import { usePersistentState } from "../../state/usePersistentState";
-import { SIDEBAR_LS_KEY, THEME_LS_KEY, THUMB_SIZE_LS_KEY } from "../../lib/storage";
+import { SIDEBAR_LS_KEY, THEME_LS_KEY, THUMB_SIZE_LS_KEY, LANG_LS_KEY } from "../../lib/storage";
+import { detectDefaultLanguage, type LanguageCode } from "../../lib/language";
 import { download, safeName } from "../../lib/download";
 import { buildScriptText } from "../../lib/gameExport";
 import { loadGlobalExprTemplate, saveGlobalExprTemplate } from "../../state/projectReducer";
@@ -33,6 +36,7 @@ function applyThemeAttribute(theme: ThemeChoice) {
 }
 
 export function EditorScreen() {
+  const { t } = useTranslation();
   const { project, undo, redo, createProjectInDir, openProjectInDir, saveNow } = useProjectStore();
   const editorUi = useEditorUi();
   const toast = useToast();
@@ -43,9 +47,13 @@ export function EditorScreen() {
   const [sidebarCollapsed, setSidebarCollapsed] = usePersistentState(SIDEBAR_LS_KEY, false);
   const [thumbSizeStep, setThumbSizeStep] = usePersistentState(THUMB_SIZE_LS_KEY, 0);
   const [theme, setThemeState] = usePersistentState<ThemeChoice>(THEME_LS_KEY, null);
+  const [uiLanguage, setUiLanguageState] = usePersistentState<LanguageCode>(LANG_LS_KEY, detectDefaultLanguage());
   const [exprCarryOver, setExprCarryOverState] = useState(() => loadGlobalExprTemplate().enabled);
 
   useEffect(() => applyThemeAttribute(theme), [theme]);
+  useEffect(() => {
+    void i18n.changeLanguage(uiLanguage);
+  }, [uiLanguage]);
 
   const setExprCarryOver = useCallback((v: boolean) => {
     setExprCarryOverState(v);
@@ -70,24 +78,24 @@ export function EditorScreen() {
   const [searchOpen, setSearchOpen] = useState(false);
 
   const exportTxt = useCallback(() => {
-    download(`${safeName(project.title)}.txt`, buildScriptText(project, findChar), "text/plain");
-    toast("台本テキストを書き出しました");
-  }, [project, findChar, toast]);
+    download(`${safeName(project.title)}.txt`, buildScriptText(project, findChar, t), "text/plain");
+    toast(t("editor.scriptExported"));
+  }, [project, findChar, toast, t]);
 
   const handleNewProject = useCallback(async () => {
     const result = await createProjectInDir();
-    if (result === "exists") toast("選択したフォルダには既にプロジェクトがあります。「プロジェクトを開く」を使ってください", true);
-  }, [createProjectInDir, toast]);
+    if (result === "exists") toast(t("editor.projectAlreadyExists"), true);
+  }, [createProjectInDir, toast, t]);
 
   const handleOpenProject = useCallback(async () => {
     const result = await openProjectInDir();
-    if (result === "invalid") toast("有効なプロジェクトフォルダではありません", true);
-  }, [openProjectInDir, toast]);
+    if (result === "invalid") toast(t("editor.invalidProjectFolder"), true);
+  }, [openProjectInDir, toast, t]);
 
   const handleSaveNow = useCallback(async () => {
     await saveNow();
-    toast("保存しました");
-  }, [saveNow, toast]);
+    toast(t("editor.saved"));
+  }, [saveNow, toast, t]);
 
   useGlobalHotkeys({
     mainInputRef,
@@ -126,6 +134,8 @@ export function EditorScreen() {
     setThumbSizeStep,
     theme,
     setTheme: setThemeState,
+    uiLanguage,
+    setUiLanguage: setUiLanguageState,
     exprTemplateCarryOver: exprCarryOver,
     setExprTemplateCarryOver: setExprCarryOver,
     exportTxt,

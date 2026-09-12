@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useEditorUi } from "../../state/EditorUiContext";
 import { useAppActions } from "../../state/AppActionsContext";
@@ -8,6 +9,7 @@ import { CharacterRow } from "./CharacterRow";
 import { CharacterMemoPanel } from "./CharacterMemoPanel";
 
 export function CharacterList() {
+  const { t } = useTranslation();
   const { project, mutate } = useProjectStore();
   const editorUi = useEditorUi();
   const a = useAppActions();
@@ -27,8 +29,8 @@ export function CharacterList() {
   return (
     <>
       <div className="side-head flex items-center justify-between px-2.5 pt-2 pb-1 text-text-dim text-xs font-semibold border-t border-border">
-        <span>キャラクター</span>
-        <button onClick={() => a.openCharModal(null)} title="キャラクターを追加" className="text-sm px-2 py-0">
+        <span>{t("character.listLabel")}</span>
+        <button onClick={() => a.openCharModal(null)} title={t("character.addTitle")} className="text-sm px-2 py-0">
           <Icon name="plus" />
         </button>
       </div>

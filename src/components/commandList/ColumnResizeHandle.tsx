@@ -1,7 +1,9 @@
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 /** 列境界のドラッグハンドル（Excelの列幅変更のイメージ）。ドラッグ中はcolumn幅を都度更新して全行に反映する。 */
 export function ColumnResizeHandle({ width, onResize }: { width: number; onResize: (px: number) => void }) {
+  const { t } = useTranslation();
   const [dragging, setDragging] = useState(false);
   const startRef = useRef({ x: 0, width: 0 });
 
@@ -25,7 +27,7 @@ export function ColumnResizeHandle({ width, onResize }: { width: number; onResiz
   return (
     <span
       className="col-resize-handle absolute -right-1.5 top-0 bottom-0 w-3 cursor-col-resize select-none z-10 flex justify-center"
-      title="ドラッグで列幅を変更"
+      title={t("common.dragToResizeColumn")}
       onMouseDown={onMouseDown}
       onClick={(e) => e.stopPropagation()}
       onDoubleClick={(e) => e.stopPropagation()}

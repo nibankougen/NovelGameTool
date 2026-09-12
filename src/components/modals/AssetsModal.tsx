@@ -1,4 +1,5 @@
 import { useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useToast } from "../common/ToastProvider";
 import { useAssetUrl } from "../../hooks/useAssetUrl";
@@ -10,6 +11,7 @@ import { deleteAssetFile, writeAssetFile } from "../../lib/projectFs";
 import type { ProjectAssets } from "../../types/project";
 
 function ImageAssetRow({ name, path, onPick, onRemove }: { name: string; path: string | undefined; onPick: (file: File) => void; onRemove: () => void }) {
+  const { t } = useTranslation();
   const toast = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const src = useAssetUrl(path ?? null);
@@ -23,7 +25,7 @@ function ImageAssetRow({ name, path, onPick, onRemove }: { name: string; path: s
         e.preventDefault();
         const file = firstFile(e);
         if (!file || !file.type.startsWith("image/")) {
-          toast("画像ファイルをドロップしてください", true);
+          toast(t("assets.dropImageFile"), true);
           return;
         }
         onPick(file);
@@ -37,10 +39,10 @@ function ImageAssetRow({ name, path, onPick, onRemove }: { name: string; path: s
         </span>
       )}
       <span className="flex-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-sm">{name}</span>
-      <button onClick={() => fileRef.current?.click()}>選択…</button>
+      <button onClick={() => fileRef.current?.click()}>{t("assets.choose")}</button>
       {path && (
-        <button onClick={onRemove}>
-          <Icon name="x" />
+        <button onClick={onRemove} title={t("common.delete")}>
+          <Icon name="trash-2" />
         </button>
       )}
       <input
@@ -59,6 +61,7 @@ function ImageAssetRow({ name, path, onPick, onRemove }: { name: string; path: s
 }
 
 function AudioAssetRow({ name, path, onPick, onRemove }: { name: string; path: string | undefined; onPick: (file: File) => void; onRemove: () => void }) {
+  const { t } = useTranslation();
   const toast = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const src = useAssetUrl(path ?? null);
@@ -72,7 +75,7 @@ function AudioAssetRow({ name, path, onPick, onRemove }: { name: string; path: s
         e.preventDefault();
         const file = firstFile(e);
         if (!file || !file.type.startsWith("audio/")) {
-          toast("音声ファイルをドロップしてください", true);
+          toast(t("assets.dropAudioFile"), true);
           return;
         }
         onPick(file);
@@ -83,11 +86,11 @@ function AudioAssetRow({ name, path, onPick, onRemove }: { name: string; path: s
       </span>
       <span className="w-32 shrink-0 overflow-hidden text-ellipsis whitespace-nowrap text-sm">{name}</span>
       {src && <audio controls src={src} className="h-8 flex-1 min-w-0" />}
-      {!src && <span className="flex-1 text-text-dim text-xs">未登録</span>}
-      <button onClick={() => fileRef.current?.click()}>選択…</button>
+      {!src && <span className="flex-1 text-text-dim text-xs">{t("assets.unregistered")}</span>}
+      <button onClick={() => fileRef.current?.click()}>{t("assets.choose")}</button>
       {path && (
-        <button onClick={onRemove}>
-          <Icon name="x" />
+        <button onClick={onRemove} title={t("common.delete")}>
+          <Icon name="trash-2" />
         </button>
       )}
       <input
@@ -106,6 +109,7 @@ function AudioAssetRow({ name, path, onPick, onRemove }: { name: string; path: s
 }
 
 export function AssetsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = useTranslation();
   const { project, mutate, dirHandle } = useProjectStore();
   const toast = useToast();
 
@@ -121,7 +125,7 @@ export function AssetsModal({ open, onClose }: { open: boolean; onClose: () => v
         d.assets[kind][name] = newPath;
       });
     } catch {
-      toast("ファイルの保存に失敗しました", true);
+      toast(t("assets.saveFailed"), true);
     }
   };
 
@@ -136,24 +140,22 @@ export function AssetsModal({ open, onClose }: { open: boolean; onClose: () => v
   return (
     <Modal open={open} onRequestClose={onClose} className="w-[92vw] max-w-[700px] h-[80vh] max-h-[80vh] flex flex-col">
       <ModalHeader onClose={onClose}>
-        <Icon name="music" /> 素材管理
+        <Icon name="music" /> {t("assets.title")}
       </ModalHeader>
-      <p className="text-text-dim text-xs mb-3 shrink-0">
-        シナリオ中で使われている背景・BGM・効果音の名前に、テストプレイで実際に描画・再生する画像/音声ファイルを紐付けます。未登録のものはラベル表示のみになります（プロジェクトフォルダに保存されます）。
-      </p>
+      <p className="text-text-dim text-xs mb-3 shrink-0">{t("assets.intro")}</p>
       <div className="flex-1 overflow-y-auto min-h-0">
-        <h4 className="text-accent font-semibold text-sm mb-1.5 mt-2">背景画像</h4>
-        {!names.bg.length && <p className="text-text-dim text-xs mb-3">/bg で使われている名前はありません</p>}
+        <h4 className="text-accent font-semibold text-sm mb-1.5 mt-2">{t("assets.bgHeading")}</h4>
+        {!names.bg.length && <p className="text-text-dim text-xs mb-3">{t("assets.bgEmpty")}</p>}
         {names.bg.map((n) => (
           <ImageAssetRow key={n} name={n} path={project.assets.bg[n]} onPick={(f) => pickAsset("bg", n, f)} onRemove={() => removeAsset("bg", n)} />
         ))}
-        <h4 className="text-accent font-semibold text-sm mb-1.5 mt-4">BGM</h4>
-        {!names.bgm.length && <p className="text-text-dim text-xs mb-3">/bgm で使われている名前はありません</p>}
+        <h4 className="text-accent font-semibold text-sm mb-1.5 mt-4">{t("assets.bgmHeading")}</h4>
+        {!names.bgm.length && <p className="text-text-dim text-xs mb-3">{t("assets.bgmEmpty")}</p>}
         {names.bgm.map((n) => (
           <AudioAssetRow key={n} name={n} path={project.assets.bgm[n]} onPick={(f) => pickAsset("bgm", n, f)} onRemove={() => removeAsset("bgm", n)} />
         ))}
-        <h4 className="text-accent font-semibold text-sm mb-1.5 mt-4">効果音</h4>
-        {!names.se.length && <p className="text-text-dim text-xs mb-3">/se で使われている名前はありません</p>}
+        <h4 className="text-accent font-semibold text-sm mb-1.5 mt-4">{t("assets.seHeading")}</h4>
+        {!names.se.length && <p className="text-text-dim text-xs mb-3">{t("assets.seEmpty")}</p>}
         {names.se.map((n) => (
           <AudioAssetRow key={n} name={n} path={project.assets.se[n]} onPick={(f) => pickAsset("se", n, f)} onRemove={() => removeAsset("se", n)} />
         ))}

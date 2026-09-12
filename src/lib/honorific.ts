@@ -12,6 +12,7 @@ export function honorificIssues(
   rules: HonorificRule[],
   vocab: HonorificVocab,
   findChar: CharLookup,
+  t: (key: string, opts?: Record<string, unknown>) => string,
 ): string[] {
   if (!cmd.chara) return [];
   const myRules = rules.filter((r) => r.speakerId === cmd.chara);
@@ -25,7 +26,7 @@ export function honorificIssues(
     const re = compileAlternation(selfRules.map((r) => r.pattern));
     if (re) {
       for (const w of vocab.self) {
-        if (w && text.includes(w) && !re.test(w)) issues.push(`一人称「${w}」`);
+        if (w && text.includes(w) && !re.test(w)) issues.push(t("honorific.issue.self", { word: w }));
       }
     }
   }
@@ -36,7 +37,7 @@ export function honorificIssues(
     const re = compileAlternation(secondRules.map((r) => r.pattern));
     if (re) {
       for (const w of vocab.second) {
-        if (w && text.includes(w) && !re.test(w)) issues.push(`二人称「${w}」`);
+        if (w && text.includes(w) && !re.test(w)) issues.push(t("honorific.issue.second", { word: w }));
       }
     }
   }
@@ -74,9 +75,9 @@ export function honorificIssues(
       const rest = text.slice(idx);
       const suffix = vocab.suffix.find((s) => s && rest.startsWith(s));
       if (suffix) {
-        if (!re || !re.test(rest)) issues.push(`「${name}${suffix}」`);
+        if (!re || !re.test(rest)) issues.push(t("honorific.issue.nameSuffix", { name, suffix }));
       } else if (!allowBare) {
-        issues.push(`「${name}」を呼び捨て`);
+        issues.push(t("honorific.issue.bareName", { name }));
       }
     }
   }

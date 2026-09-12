@@ -1,4 +1,5 @@
 import { createContext, useContext, type ReactNode } from "react";
+import type { LanguageCode } from "../lib/language";
 
 export type ThemeChoice = "light" | "dark" | null;
 
@@ -33,6 +34,8 @@ export interface AppActionsValue {
   setThumbSizeStep: (step: number) => void;
   theme: ThemeChoice;
   setTheme: (t: ThemeChoice) => void;
+  uiLanguage: LanguageCode;
+  setUiLanguage: (l: LanguageCode) => void;
   exprTemplateCarryOver: boolean;
   setExprTemplateCarryOver: (v: boolean) => void;
   exportTxt: () => void;

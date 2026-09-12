@@ -10,6 +10,8 @@ import {
   type Scene,
 } from "../types/project";
 import { EXPR_TMPL_LS_KEY, readLocalStorage, writeLocalStorage } from "../lib/storage";
+import { detectDefaultLanguage, isSupportedLanguage } from "../lib/language";
+import i18n from "../i18n";
 
 const HISTORY_LIMIT = 200;
 
@@ -32,13 +34,14 @@ export function saveGlobalExprTemplate(state: GlobalExprTemplateState): void {
 
 export function defaultProject(): Project {
   return {
-    title: "新規プロジェクト",
+    title: i18n.t("project.newProjectTitle"),
     characters: [],
-    scenes: [{ id: uid(), name: "オープニング", commands: [], groupId: null, synopsis: "" }],
+    scenes: [{ id: uid(), name: i18n.t("project.openingSceneName"), commands: [], groupId: null, synopsis: "" }],
     sceneGroups: [],
     exportSettings: { ...EXPORT_DEFAULTS },
     exprTemplate: [],
     languages: [],
+    baseLanguage: detectDefaultLanguage(),
     overview: "",
     honorificRules: [],
     honorificVocab: { ...HONOR_VOCAB_DEFAULTS },
@@ -104,7 +107,7 @@ export function normalizeProject(raw: unknown): Project {
       else delete cmd.events;
     }
   }
-  if (!scenes.length) scenes.push({ id: uid(), name: "シーン1", commands: [], groupId: null, synopsis: "" });
+  if (!scenes.length) scenes.push({ id: uid(), name: i18n.t("project.scene1Name"), commands: [], groupId: null, synopsis: "" });
 
   const exportSettings = { ...EXPORT_DEFAULTS, ...(p.exportSettings && typeof p.exportSettings === "object" ? p.exportSettings : {}) };
 
@@ -138,7 +141,7 @@ export function normalizeProject(raw: unknown): Project {
   };
 
   return {
-    title: typeof p.title === "string" && p.title ? p.title : "無題",
+    title: typeof p.title === "string" && p.title ? p.title : i18n.t("translation.preview.untitled"),
     titleTr: p.titleTr && typeof p.titleTr === "object" ? (p.titleTr as Record<string, string>) : undefined,
     characters,
     scenes,
@@ -146,6 +149,7 @@ export function normalizeProject(raw: unknown): Project {
     exportSettings,
     exprTemplate: Array.isArray(p.exprTemplate) ? (p.exprTemplate as string[]) : [],
     languages: Array.isArray(p.languages) ? (p.languages as string[]) : [],
+    baseLanguage: isSupportedLanguage(p.baseLanguage) ? p.baseLanguage : detectDefaultLanguage(),
     overview: typeof p.overview === "string" ? p.overview : "",
     honorificRules,
     honorificVocab,

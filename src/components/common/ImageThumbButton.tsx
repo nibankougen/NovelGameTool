@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Icon } from "./Icon";
 
 interface Props {
@@ -16,6 +17,7 @@ interface Props {
 
 /** 表情画像・デフォルトイラスト共通の画像設定ボタン。画像がある間はホバーで削除アイコンをオーバーレイする */
 export function ImageThumbButton({ img, own, dimmed, onPick, onRemove, title, className }: Props) {
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleClick = () => {
@@ -28,7 +30,7 @@ export function ImageThumbButton({ img, own, dimmed, onPick, onRemove, title, cl
       {img ? (
         <div
           className={`group/thumb relative w-16 h-16 rounded-lg shrink-0 cursor-pointer overflow-hidden bg-bg-2 ${className ?? ""}`}
-          title={title ?? (own ? "クリックで画像を外す" : "クリックで画像を設定")}
+          title={title ?? (own ? t("imageThumb.clickToRemove") : t("imageThumb.clickToSet"))}
           onClick={handleClick}
         >
           <img src={img} alt="" className={`w-full h-full object-cover ${dimmed ? "opacity-35" : ""}`} />
@@ -42,7 +44,7 @@ export function ImageThumbButton({ img, own, dimmed, onPick, onRemove, title, cl
         <button
           type="button"
           className={`w-16 h-16 min-h-0 rounded-lg border border-dashed border-border shrink-0 text-text-dim bg-transparent ${className ?? ""}`}
-          title={title ?? "画像を設定"}
+          title={title ?? t("imageThumb.setImage")}
           onClick={handleClick}
         >
           <Icon name="image" />

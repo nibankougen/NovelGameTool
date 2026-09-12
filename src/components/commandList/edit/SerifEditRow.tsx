@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useProjectStore } from "../../../state/ProjectProvider";
 import { useEditorUi } from "../../../state/EditorUiContext";
 import { useAppActions } from "../../../state/AppActionsContext";
@@ -23,6 +24,7 @@ interface ChipMenuItem {
 }
 
 export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifCommand; scene: Scene }) {
+  const { t } = useTranslation();
   const { project, mutate } = useProjectStore();
   const editorUi = useEditorUi();
   const appActions = useAppActions();
@@ -51,7 +53,7 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
   const openSpeakerMenu = () => {
     const items: ChipMenuItem[] = [
       {
-        label: "地の文",
+        label: t("common.narration"),
         color: "var(--narration)",
         pick: () => {
           setSpk(null);
@@ -72,15 +74,15 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
       });
     }
     items.push({
-      label: "新規キャラ…",
+      label: t("serifEdit.newCharacterMenuItem"),
       icon: "plus",
       color: "var(--text-dim)",
       pick: () => {
-        const name = window.prompt("新しいキャラクター名:");
+        const name = window.prompt(t("serifEdit.newCharacterPrompt"));
         if (name && name.trim()) {
           const trimmed = name.trim();
           mutate((d) => {
-            const env = makeDraftParseEnv(d, { toast });
+            const env = makeDraftParseEnv(d, { toast }, t);
             const id = env.ensureChar(trimmed);
             setSpk(id);
           });
@@ -95,7 +97,7 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
     if (!ch) return;
     const items: ChipMenuItem[] = [
       {
-        label: "（表情なし）",
+        label: t("serifEdit.noExpression"),
         color: "var(--text-dim)",
         pick: () => {
           setFace(null);
@@ -113,16 +115,16 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
       });
     }
     items.push({
-      label: "新しい表情…",
+      label: t("serifEdit.newExpressionMenuItem"),
       icon: "plus",
       color: "var(--text-dim)",
       pick: () => {
-        const ex = window.prompt("新しい表情名:");
+        const ex = window.prompt(t("serifEdit.newExpressionPrompt"));
         if (ex && ex.trim()) {
           const trimmed = ex.trim();
           const charId = ch.id;
           mutate((d) => {
-            const env = makeDraftParseEnv(d, { toast });
+            const env = makeDraftParseEnv(d, { toast }, t);
             env.ensureExpression(charId, trimmed);
           });
           setFace(trimmed);
@@ -139,10 +141,10 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
     setMenu(null);
     const sceneId = scene.id;
     if (commit) {
-      const t = text.replace(/[\s　]+$/, "");
-      if (/^[@＠/]/.test(t)) {
+      const trimmedText = text.replace(/[\s　]+$/, "");
+      if (/^[@＠/]/.test(trimmedText)) {
         const speaker = { id: spk, face };
-        const err = parseInputDry(t, project, speaker, { sticky: false });
+        const err = parseInputDry(trimmedText, project, speaker, { sticky: false }, t);
         if (err) {
           toast(err, true);
           doneRef.current = false;
@@ -152,14 +154,14 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
         editorUi.stopEdit();
         mutate((d) => {
           const env = makeDraftParseEnv(d, { toast });
-          const r = parseInput(t, env, speaker, { sticky: false });
+          const r = parseInput(trimmedText, env, speaker, { sticky: false }, t);
           if (r.kind !== "command") return;
           const sc = d.scenes.find((s) => s.id === sceneId);
           if (!sc) return;
           const newCmd = r.cmd.type === "serif" && events.length ? { ...r.cmd, events } : r.cmd;
           sc.commands[index] = carryTr(sc.commands[index], newCmd);
         });
-      } else if (t) {
+      } else if (trimmedText) {
         editorUi.stopEdit();
         mutate((d) => {
           const sc = d.scenes.find((s) => s.id === sceneId);
@@ -168,7 +170,7 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
             type: "serif",
             chara: spk,
             face: spk ? face : null,
-            text: textToStorage(t, d.characters),
+            text: textToStorage(trimmedText, d.characters),
             events: events.length ? events : undefined,
           });
         });
@@ -236,7 +238,7 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
                 className="edit-thumb w-full h-full rounded object-cover bg-bg-3"
                 src={thumbSrc}
                 alt=""
-                title="話者のサムネイル（表情画像がない場合はデフォルトイラスト）"
+                title={t("serifEdit.thumbTitle")}
               />
             )}
           </div>
@@ -246,7 +248,7 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
               type="button"
               className="edit-chip edit-chip-spk flex items-center gap-1 px-1 h-[26px] w-full min-h-0 rounded font-bold text-sm hover:bg-bg-3 hover:outline hover:outline-1 hover:outline-accent"
               style={{ color: ch ? ch.color : "var(--narration)" }}
-              title="クリックで話者切替／Backspaceで削除（地の文に）"
+              title={t("serifEdit.speakerChipTitle")}
               onClick={(e) => {
                 e.stopPropagation();
                 openSpeakerMenu();
@@ -260,7 +262,7 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
                 }
               }}
             >
-              <span className="truncate flex-1 min-w-0 text-left">{ch ? ch.name : "地の文"}</span>
+              <span className="truncate flex-1 min-w-0 text-left">{ch ? ch.name : t("common.narration")}</span>
             </button>
             <ColumnResizeHandle width={speakerColWidth} onResize={setSpeakerColWidth} />
           </div>
@@ -271,7 +273,7 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
                 type="button"
                 className="edit-chip edit-chip-face flex items-center gap-1 px-1 h-[26px] w-full min-h-0 rounded font-normal text-xs hover:bg-bg-3 hover:outline hover:outline-1 hover:outline-accent"
                 style={{ color: face ? undefined : "var(--text-dim)" }}
-                title="クリックで表情切替／Backspaceで表情削除"
+                title={t("serifEdit.faceChipTitle")}
                 onClick={(e) => {
                   e.stopPropagation();
                   openFaceMenu();
@@ -289,7 +291,7 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
                 ) : (
                   <>
                     <Icon name="plus" />
-                    <span className="truncate flex-1 min-w-0 text-left">表情</span>
+                    <span className="truncate flex-1 min-w-0 text-left">{t("serifEdit.faceButtonLabel")}</span>
                   </>
                 )}
               </button>

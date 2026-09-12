@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useReducer, useRef, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import type { Draft } from "immer";
 import type { Project } from "../types/project";
 import { clearAssetUrlCache, pickDirectory, projectFileExists, readProjectJson, writeProjectJson } from "../lib/projectFs";
@@ -26,6 +27,7 @@ interface ProjectContextValue {
 const ProjectContext = createContext<ProjectContextValue | null>(null);
 
 export function ProjectProvider({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
   const [state, dispatch] = useReducer(
     projectHistoryReducer,
     undefined,
@@ -43,11 +45,11 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     if (!dir) return;
     try {
       await writeProjectJson(dir, project);
-      setSaveStatus(`自動保存済 ${new Date().toLocaleTimeString()}`);
+      setSaveStatus(t("editor.autosaved", { time: new Date().toLocaleTimeString() }));
     } catch {
-      setSaveStatus("自動保存失敗");
+      setSaveStatus(t("editor.autosaveFailed"));
     }
-  }, []);
+  }, [t]);
 
   const mutate = useCallback((recipe: (draft: Draft<Project>) => void) => dispatch({ type: "MUTATE", recipe }), []);
   const patch = useCallback((recipe: (draft: Draft<Project>) => void) => dispatch({ type: "PATCH", recipe }), []);

@@ -1,4 +1,5 @@
 import type { MouseEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { Icon } from "../common/Icon";
 import { RenameInput } from "../common/RenameInput";
 import type { SceneGroup } from "../../types/project";
@@ -28,6 +29,7 @@ export function SceneGroupHeader({
   onDelete,
   onAddScene,
 }: Props) {
+  const { t } = useTranslation();
   const isUngrouped = !group;
 
   if (renaming && group) {
@@ -56,24 +58,24 @@ export function SceneGroupHeader({
       onDoubleClick={handleDoubleClick}
     >
       {!isUngrouped && (
-        <span className="drag-handle invisible group-hover:visible -ml-1" title="ドラッグで並べ替え">
+        <span className="drag-handle invisible group-hover:visible -ml-1" title={t("common.dragToReorder")}>
           <Icon name="grip-vertical" />
         </span>
       )}
       <span className="inline-flex shrink-0">
         <Icon name={collapsed ? "chevron-right" : "chevron-down"} />
       </span>
-      <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">{isUngrouped ? "未分類" : group!.name}</span>
+      <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">{isUngrouped ? t("scene.ungrouped") : group!.name}</span>
       <span className="text-text-dim text-[11px]">{count}</span>
       {!isUngrouped && (
         <span className="hidden group-hover:flex gap-0.5">
-          <button className="mini-btn" data-act="add" title="このグループにシーンを追加" onClick={onAddScene}>
+          <button className="mini-btn" data-act="add" title={t("scene.addSceneToGroupTitle")} onClick={onAddScene}>
             <Icon name="plus" />
           </button>
-          <button className="mini-btn" data-act="ren" title="名前変更" onClick={onStartRename}>
+          <button className="mini-btn" data-act="ren" title={t("scene.rename")} onClick={onStartRename}>
             <Icon name="pencil" />
           </button>
-          <button className="mini-btn" data-act="del" title="グループを削除（シーンは削除されず未分類になります）" onClick={onDelete}>
+          <button className="mini-btn" data-act="del" title={t("scene.deleteGroupTitle")} onClick={onDelete}>
             <Icon name="trash-2" />
           </button>
         </span>

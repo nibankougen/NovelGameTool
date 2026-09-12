@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useEditorUi } from "../../state/EditorUiContext";
 import { useAppActions } from "../../state/AppActionsContext";
@@ -13,6 +14,7 @@ import { ContextMenu } from "../common/ContextMenu";
 import { uid } from "../../lib/id";
 
 export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDivElement | null> }) {
+  const { t } = useTranslation();
   const { project, mutate, patch, mutateVersion } = useProjectStore();
   const editorUi = useEditorUi();
   const appActions = useAppActions();
@@ -90,11 +92,11 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
   const splitSelectedToScene = () => {
     const idxs = [...selectedIdx].sort((a, b) => a - b);
     if (!idxs.length) return;
-    if (!window.confirm(`選択した${idxs.length}行を新しいシーンとして分離しますか？`)) return;
+    if (!window.confirm(t("commandList.confirmSplitToScene", { count: idxs.length }))) return;
     const removedSet = new Set(idxs);
     const sceneId = scene.id;
     const newSceneId = uid();
-    const newSceneName = scene.name + "（分離）";
+    const newSceneName = t("commandList.splitSceneName", { name: scene.name });
     mutate((d) => {
       const sc = d.scenes.find((s) => s.id === sceneId)!;
       const moved = sc.commands.filter((_, i) => removedSet.has(i));
@@ -111,11 +113,16 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
   if (!cmds.length) {
     return (
       <div id="emptyHint" className="text-text-dim text-center py-15 px-5 leading-loose">
-        下の入力欄にセリフを入力して <kbd className="bg-bg-3 border border-border rounded px-1.5 text-xs">Enter</kbd> で追加できます。
+        <Trans i18nKey="commandList.emptyHint.line1" components={[<kbd key="0" className="bg-bg-3 border border-border rounded px-1.5 text-xs" />]} />
         <br />
-        <kbd className="bg-bg-3 border border-border rounded px-1.5 text-xs">@名前 セリフ</kbd> で話者切替、
-        <kbd className="bg-bg-3 border border-border rounded px-1.5 text-xs">/</kbd> でコマンド入力、
-        <kbd className="bg-bg-3 border border-border rounded px-1.5 text-xs">F1</kbd> でヘルプ。
+        <Trans
+          i18nKey="commandList.emptyHint.line2"
+          components={[
+            <kbd key="0" className="bg-bg-3 border border-border rounded px-1.5 text-xs" />,
+            <kbd key="1" className="bg-bg-3 border border-border rounded px-1.5 text-xs" />,
+            <kbd key="2" className="bg-bg-3 border border-border rounded px-1.5 text-xs" />,
+          ]}
+        />
       </div>
     );
   }
@@ -133,7 +140,7 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
             broken={cmdBroken(cmd, project.characters, project.scenes)}
             selected={editorUi.selIndex === i}
             multiSelected={selectedIdx.has(i)}
-            honorIssues={cmd.type === "serif" ? honorificIssues(cmd, project.honorificRules, project.honorificVocab, findChar) : []}
+            honorIssues={cmd.type === "serif" ? honorificIssues(cmd, project.honorificRules, project.honorificVocab, findChar, t) : []}
             acked={cmd.type === "serif" && !!cmd.honorAckText && cmd.honorAckText === cmd.text}
             characters={project.characters}
             scenes={project.scenes}
@@ -215,7 +222,10 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
           onClose={() => setCtxMenu(null)}
           items={[
             {
-              label: selectedIdx.size >= 1 ? `選択した${selectedIdx.size}行を新しいシーンとして分離` : "分離する行を選択してください（Shift+クリック）",
+              label:
+                selectedIdx.size >= 1
+                  ? t("commandList.splitSelected", { count: selectedIdx.size })
+                  : t("commandList.selectRowsToSplit"),
               disabled: selectedIdx.size < 1,
               onClick: splitSelectedToScene,
             },

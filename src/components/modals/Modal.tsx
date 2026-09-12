@@ -1,4 +1,5 @@
 import { useEffect, type MouseEvent, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { useModalRegistry } from "./ModalRegistry";
 import { Icon } from "../common/Icon";
 
@@ -58,8 +59,15 @@ export function ModalFoot({ children }: { children: ReactNode }) {
 }
 
 export function ModalCloseButton({ onClick, className }: { onClick: () => void; className?: string }) {
+  const { t } = useTranslation();
   return (
-    <button type="button" className={`mini-btn${className ? ` ${className}` : ""}`} onClick={onClick} title="閉じる (Esc)" aria-label="閉じる">
+    <button
+      type="button"
+      className={`mini-btn${className ? ` ${className}` : ""}`}
+      onClick={onClick}
+      title={t("common.closeWithEsc")}
+      aria-label={t("common.close")}
+    >
       <Icon name="x" />
     </button>
   );

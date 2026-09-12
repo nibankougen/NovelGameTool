@@ -1,14 +1,16 @@
+import { useTranslation } from "react-i18next";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useUndoableSession } from "../../hooks/useUndoableSession";
 import type { Character } from "../../types/project";
 
 export function CharacterMemoPanel({ character }: { character: Character }) {
+  const { t } = useTranslation();
   const { patch } = useProjectStore();
   const onFocus = useUndoableSession();
   return (
     <div className="char-memo-panel mx-1.5 mb-1.5 ml-[26px]">
       <textarea
-        placeholder="設定メモ…"
+        placeholder={t("character.memoPlaceholder")}
         value={character.memo}
         onFocus={onFocus}
         onChange={(e) => {

@@ -4,6 +4,7 @@ export const SIDEBAR_LS_KEY = "novelGameTool.sidebarCollapsed.v1";
 export const THEME_LS_KEY = "novelGameTool.theme.v1";
 export const SPEAKER_COL_W_LS_KEY = "novelGameTool.speakerColWidth.v1";
 export const FACE_COL_W_LS_KEY = "novelGameTool.faceColWidth.v1";
+export const LANG_LS_KEY = "novelGameTool.uiLanguage.v1";
 
 export function readLocalStorage<T>(key: string): T | null {
   try {

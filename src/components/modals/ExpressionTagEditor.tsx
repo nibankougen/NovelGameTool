@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Icon } from "../common/Icon";
 import { ImageThumbButton } from "../common/ImageThumbButton";
 import { hasFileDrag, firstImageFile } from "../../lib/image";
@@ -54,6 +55,7 @@ function ExprRow({
   onDelete: () => void;
   setStaged: (updater: (prev: StagedExpr[]) => StagedExpr[]) => void;
 }) {
+  const { t } = useTranslation();
   const toast = useToast();
   const ownUrl = useAssetUrl(s.img);
   const img = ownUrl || (s.img ? null : thumbUrl);
@@ -76,20 +78,20 @@ function ExprRow({
         if (!dirHandle) return;
         const file = firstImageFile(e);
         if (!file) {
-          toast("画像ファイルをドロップしてください", true);
+          toast(t("expression.dropImageFile"), true);
           return;
         }
         writeAssetFile(dirHandle, "characters", file).then(setImg);
       }}
     >
-      <span className="drag-handle invisible group-hover:visible" title="ドラッグで並べ替え">
+      <span className="drag-handle invisible group-hover:visible" title={t("common.dragToReorder")}>
         <Icon name="grip-vertical" />
       </span>
       <ImageThumbButton
         img={img}
         own={!!s.img}
         dimmed={isDefaultPreview}
-        title={s.img ? "クリックで画像を外す" : "デフォルトイラストを使用中（クリックで個別に設定）"}
+        title={s.img ? t("expression.removeImage") : t("expression.usingDefaultIllustration")}
         onPick={(file) => dirHandle && writeAssetFile(dirHandle, "characters", file).then(setImg)}
         onRemove={() => setImg(null)}
       />
@@ -116,12 +118,12 @@ function ExprRow({
             {s.name}
           </span>
         )}
-        <span className="text-text-dim text-[11px]">{count > 0 ? `使用回数: ${count}回` : "未使用"}</span>
+        <span className="text-text-dim text-[11px]">{count > 0 ? t("expression.usedCount", { count }) : t("expression.unused")}</span>
       </div>
-      <button type="button" className="border-none bg-transparent p-1 min-h-0 text-text-dim shrink-0" title="名前変更" onClick={startRename}>
+      <button type="button" className="border-none bg-transparent p-1 min-h-0 text-text-dim shrink-0" title={t("expression.rename")} onClick={startRename}>
         <Icon name="pencil" />
       </button>
-      <button type="button" className="border-none bg-transparent p-1 min-h-0 text-text-dim shrink-0" title="削除" onClick={onDelete}>
+      <button type="button" className="border-none bg-transparent p-1 min-h-0 text-text-dim shrink-0" title={t("expression.delete")} onClick={onDelete}>
         <Icon name="x" />
       </button>
     </div>
@@ -129,6 +131,7 @@ function ExprRow({
 }
 
 export function ExpressionTagEditor({ staged, setStaged, usageCounts, thumb, inputText, setInputText }: Props) {
+  const { t } = useTranslation();
   const toast = useToast();
   const { dirHandle } = useProjectStore();
   const thumbUrl = useAssetUrl(thumb);
@@ -158,7 +161,7 @@ export function ExpressionTagEditor({ staged, setStaged, usageCounts, thumb, inp
       const next = [...prev];
       for (const name of parts) {
         if (next.some((s) => s.name === name)) {
-          toast(`表情「${name}」はすでに追加されています`, true);
+          toast(t("expression.alreadyAdded", { name }), true);
           continue;
         }
         next.push({ orig: usageCounts.has(name) ? name : null, name, img: null });
@@ -184,7 +187,7 @@ export function ExpressionTagEditor({ staged, setStaged, usageCounts, thumb, inp
         ref={drag.containerRef}
         onMouseDown={drag.onMouseDown}
         className="flex flex-col gap-1.5 mb-1.5 max-h-[360px] overflow-y-auto pr-1"
-        title="各表情に画像ファイルをドラッグ&ドロップでも設定できます。左端のハンドルをドラッグで並べ替え"
+        title={t("expression.dragHint")}
       >
         {staged.map((s, i) => (
           <ExprRow
@@ -202,7 +205,7 @@ export function ExpressionTagEditor({ staged, setStaged, usageCounts, thumb, inp
             commitRename={(v) => commitRename(i, v)}
             cancelRename={() => setRenamingIndex(null)}
             onDelete={() => {
-              if (usageCounts.get(s.name) && !window.confirm(`表情「${s.name}」は${usageCounts.get(s.name)}箇所で使用中です。削除すると使用箇所は警告表示になります。削除しますか？`)) return;
+              if (usageCounts.get(s.name) && !window.confirm(t("expression.confirmDelete", { name: s.name, count: usageCounts.get(s.name) }))) return;
               setStaged((prev) => prev.filter((_, xi) => xi !== i));
             }}
             setStaged={setStaged}
@@ -212,19 +215,19 @@ export function ExpressionTagEditor({ staged, setStaged, usageCounts, thumb, inp
           <div
             key={`missing-${name}`}
             className="flex items-center gap-2.5 py-1.5 px-2 rounded-lg border border-danger text-danger cursor-pointer"
-            title="使用中の表情が候補から外れています。クリックで候補に戻す"
+            title={t("expression.missingHint")}
             onClick={() => addNames(name)}
           >
             <Icon name="triangle-alert" />
             <span className="text-[11px]">{name}</span>
           </div>
         ))}
-        {!staged.length && !usedButMissing.length && <div className="text-text-dim">表情が登録されていません</div>}
+        {!staged.length && !usedButMissing.length && <div className="text-text-dim">{t("expression.empty")}</div>}
       </div>
       <input
         type="text"
         className="w-full"
-        placeholder="表情を追加"
+        placeholder={t("expression.addPlaceholder")}
         value={inputText}
         onChange={(e) => setInputText(e.target.value)}
         onKeyDown={(e) => {
@@ -245,7 +248,7 @@ export function ExpressionTagEditor({ staged, setStaged, usageCounts, thumb, inp
     setRenamingIndex(null);
     if (!v) return;
     if (staged.some((s, xi) => xi !== i && s.name === v)) {
-      toast(`表情「${v}」はすでに存在します`, true);
+      toast(t("expression.alreadyExists", { name: v }), true);
       return;
     }
     setStaged((prev) => prev.map((x, xi) => (xi === i ? { ...x, name: v } : x)));

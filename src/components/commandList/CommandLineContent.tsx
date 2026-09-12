@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Icon } from "../common/Icon";
 import { MentionText } from "../common/MentionText";
 import { ColumnResizeHandle } from "./ColumnResizeHandle";
@@ -39,11 +40,12 @@ function EventTagsRow({ cmd, eventKeys }: { cmd: Command; eventKeys: EventKeyDef
 }
 
 function GotoSceneButton({ sceneId, onGotoScene }: { sceneId: string; onGotoScene: (id: string) => void }) {
+  const { t } = useTranslation();
   return (
     <button
       type="button"
       className="opt-goto inline-flex items-center px-0.5 min-h-0 ml-1 border-none bg-transparent text-text-dim rounded hover:text-accent hover:bg-bg-3 align-middle"
-      title="このシーンへ移動"
+      title={t("commandList.gotoScene")}
       onClick={(e) => {
         e.stopPropagation();
         onGotoScene(sceneId);
@@ -64,6 +66,7 @@ function BrokenRef({ children }: { children: ReactNode }) {
 }
 
 export function CommandLineContent({ cmd, findChar, scenes, eventKeys, honorIssues, acked, onToggleHonorAck, onGotoScene }: Props) {
+  const { t } = useTranslation();
   const { speakerColWidth, faceColWidth, setSpeakerColWidth, setFaceColWidth } = useSerifColumns();
   const serifChar = cmd.type === "serif" && cmd.chara ? findChar(cmd.chara) : null;
   const serifImgPath = serifChar ? (cmd.type === "serif" && cmd.face && serifChar.exprImages[cmd.face]) || serifChar.thumb : null;
@@ -73,13 +76,13 @@ export function CommandLineContent({ cmd, findChar, scenes, eventKeys, honorIssu
       const ch = serifChar;
       const faceBroken = !!(cmd.face && ch && !ch.expressions.includes(cmd.face));
       const badge = honorIssues.length > 0;
-      const ackTitle = acked ? "確認済み（クリックで戻す）" : "クリックで確認済みにする（薄く表示）";
+      const ackTitle = acked ? t("commandList.honorAck.confirmed") : t("commandList.honorAck.markConfirmed");
       const badgeEl = badge && (
         <div className="honor-badge-row flex">
           <span
             className={`honor-badge inline-flex items-center shrink-0 text-warn pb-0.5 cursor-pointer${acked ? " opacity-35" : ""}`}
             data-act="honor-ack"
-            title={`${ackTitle}\n人称の表記ゆれ: ${honorIssues.join("、")}`}
+            title={t("commandList.honorAck.tooltip", { ackTitle, issues: honorIssues.join(t("commandList.honorAck.separator")) })}
             onClick={(e) => {
               e.stopPropagation();
               onToggleHonorAck();
@@ -102,7 +105,7 @@ export function CommandLineContent({ cmd, findChar, scenes, eventKeys, honorIssu
                   style={{ color: ch ? ch.color : "var(--danger)" }}
                   title={ch ? ch.name : undefined}
                 >
-                  {ch ? ch.name : <BrokenRef>（削除済キャラ）</BrokenRef>}
+                  {ch ? ch.name : <BrokenRef>{t("commandList.deletedCharacter")}</BrokenRef>}
                 </span>
               )}
             </div>
@@ -115,7 +118,7 @@ export function CommandLineContent({ cmd, findChar, scenes, eventKeys, honorIssu
                 (faceBroken ? (
                   <span
                     className="face-tag broken-ref text-danger text-xs font-normal truncate flex-1 min-w-0"
-                    title="表情候補から削除された表情です"
+                    title={t("commandList.expressionRemoved")}
                   >
                     <Icon name="triangle-alert" />（{cmd.face}）
                   </span>
@@ -140,28 +143,28 @@ export function CommandLineContent({ cmd, findChar, scenes, eventKeys, honorIssu
     case "bg":
       return (
         <span className="sys-cmd text-sys text-sm">
-          <span className="sys-tag inline-block bg-accent-dim rounded px-1.5 mr-2 text-[11px]">背景</span>
+          <span className="sys-tag inline-block bg-accent-dim rounded px-1.5 mr-2 text-[11px]">{t("commandList.tags.bg")}</span>
           {cmd.value}
         </span>
       );
     case "bgm":
       return (
         <span className="sys-cmd text-sys text-sm">
-          <span className="sys-tag inline-block bg-accent-dim rounded px-1.5 mr-2 text-[11px]">BGM</span>
-          {cmd.value || "（停止）"}
+          <span className="sys-tag inline-block bg-accent-dim rounded px-1.5 mr-2 text-[11px]">{t("commandList.tags.bgm")}</span>
+          {cmd.value || t("commandList.stopped")}
         </span>
       );
     case "se":
       return (
         <span className="sys-cmd text-sys text-sm">
-          <span className="sys-tag inline-block bg-accent-dim rounded px-1.5 mr-2 text-[11px]">効果音</span>
+          <span className="sys-tag inline-block bg-accent-dim rounded px-1.5 mr-2 text-[11px]">{t("commandList.tags.se")}</span>
           {cmd.value}
         </span>
       );
     case "wait":
       return (
         <span className="sys-cmd text-sys text-sm">
-          <span className="sys-tag inline-block bg-accent-dim rounded px-1.5 mr-2 text-[11px]">待機</span>
+          <span className="sys-tag inline-block bg-accent-dim rounded px-1.5 mr-2 text-[11px]">{t("commandList.tags.wait")}</span>
           {cmd.value}ms
         </span>
       );
@@ -169,14 +172,14 @@ export function CommandLineContent({ cmd, findChar, scenes, eventKeys, honorIssu
       const s = scenes.find((s) => s.id === cmd.target);
       return (
         <span className="sys-cmd text-sys text-sm">
-          <span className="sys-tag inline-block bg-accent-dim rounded px-1.5 mr-2 text-[11px]">ジャンプ</span>
+          <span className="sys-tag inline-block bg-accent-dim rounded px-1.5 mr-2 text-[11px]">{t("commandList.tags.jump")}</span>
           {s ? (
             <>
               → {s.name}
               <GotoSceneButton sceneId={s.id} onGotoScene={onGotoScene} />
             </>
           ) : (
-            <BrokenRef>→（削除済シーン）</BrokenRef>
+            <BrokenRef>→{t("commandList.deletedSceneRef")}</BrokenRef>
           )}
         </span>
       );
@@ -185,7 +188,7 @@ export function CommandLineContent({ cmd, findChar, scenes, eventKeys, honorIssu
       return (
         <>
           <span className="choice-cmd text-sys text-sm">
-            <span className="sys-tag inline-block bg-accent-dim rounded px-1.5 mr-2 text-[11px]">選択肢</span>
+            <span className="sys-tag inline-block bg-accent-dim rounded px-1.5 mr-2 text-[11px]">{t("commandList.tags.choice")}</span>
           </span>
           {cmd.options.map((o, i) => {
             const s = o.target ? scenes.find((sc) => sc.id === o.target) : null;
@@ -200,11 +203,11 @@ export function CommandLineContent({ cmd, findChar, scenes, eventKeys, honorIssu
                     </span>
                   ) : (
                     <span className="opt-arrow broken-ref text-danger text-xs ml-2 inline-flex items-center gap-1">
-                      <Icon name="triangle-alert" />→（削除済シーン）
+                      <Icon name="triangle-alert" />→{t("commandList.deletedSceneRef")}
                     </span>
                   )
                 ) : (
-                  <span className="opt-arrow text-text-dim text-xs ml-2">→ 続行</span>
+                  <span className="opt-arrow text-text-dim text-xs ml-2">→ {t("common.continue")}</span>
                 )}
               </span>
             );
