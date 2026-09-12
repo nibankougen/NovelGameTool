@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useRef, useState, type MouseEvent, type RefObject } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useEditorUi } from "../../state/EditorUiContext";
@@ -48,24 +48,17 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
     itemSelector: ".cmd-row",
     scrollerRef: scrollWrapRef,
     onDrop: (from, to) => {
-      if (from === to) return;
-      const sceneId = scene.id;
-      let newSel = editorUi.selIndex;
-      if (newSel !== null) {
-        if (newSel === from) newSel = to;
-        else {
-          if (from < newSel) newSel--;
-          if (to <= newSel) newSel++;
-        }
+      if (from !== to) {
+        const sceneId = scene.id;
+        mutate((d) => {
+          const sc = d.scenes.find((s) => s.id === sceneId);
+          if (!sc) return;
+          const [c] = sc.commands.splice(from, 1);
+          sc.commands.splice(to, 0, c);
+        });
       }
-      mutate((d) => {
-        const sc = d.scenes.find((s) => s.id === sceneId);
-        if (!sc) return;
-        const [c] = sc.commands.splice(from, 1);
-        sc.commands.splice(to, 0, c);
-      });
       editorUi.stopEdit();
-      editorUi.setSelIndex(newSel);
+      editorUi.setSelIndex(to);
     },
   });
 
@@ -82,6 +75,7 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
 
   const handleEdit = (i: number, clickInfo: ClickInfo | null) => {
     const c = cmds[i];
+    editorUi.setSelIndex(i);
     if (c.type === "choice") {
       appActions.openChoiceModal(i);
       return;
@@ -110,6 +104,14 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
     setSelectedIdx(new Set());
   };
 
+  const handleContainerClick = (e: MouseEvent<HTMLDivElement>) => {
+    if (e.target !== e.currentTarget) return;
+    editorUi.stopEdit();
+    editorUi.setSelIndex(null);
+    setSelectedIdx(new Set());
+    anchorRef.current = null;
+  };
+
   if (!cmds.length) {
     return (
       <div id="emptyHint" className="text-text-dim text-center py-15 px-5 leading-loose">
@@ -128,7 +130,13 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
   }
 
   return (
-    <div ref={drag.containerRef} onMouseDown={drag.onMouseDown} id="cmdList" className="max-w-[860px] mx-auto">
+    <div
+      ref={drag.containerRef}
+      onMouseDown={drag.onMouseDown}
+      onClick={handleContainerClick}
+      id="cmdList"
+      className="max-w-[860px] mx-auto min-h-full"
+    >
       {cmds.map((cmd, i) =>
         editorUi.editIndex === i ? (
           <InlineEditRow key={i} index={i} cmd={cmd} scene={scene} />
@@ -165,7 +173,7 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
                 const sc = d.scenes.find((s) => s.id === sceneId)!;
                 sc.commands.splice(i + 1, 0, JSON.parse(JSON.stringify(sc.commands[i])));
               });
-              if (editorUi.selIndex === i) editorUi.setSelIndex(i + 1);
+              editorUi.setSelIndex(i + 1);
             }}
             onMoveUp={() => {
               const j = i - 1;

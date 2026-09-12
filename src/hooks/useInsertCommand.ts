@@ -18,7 +18,7 @@ export function useInsertCommand() {
         if (!sc) return;
         sc.commands.splice(at, 0, cmd);
       });
-      if (editorUi.selIndex !== null) editorUi.setSelIndex(at);
+      editorUi.setSelIndex(at);
     },
     [project, mutate, editorUi],
   );

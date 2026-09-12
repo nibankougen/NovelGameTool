@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type ClipboardEvent, type KeyboardEvent, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type KeyboardEvent, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useEditorUi } from "../../state/EditorUiContext";
@@ -14,7 +14,7 @@ import { scenesInGroupOrder } from "../../lib/sceneUtils";
 
 export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | null> }) {
   const { t } = useTranslation();
-  const { project, mutate } = useProjectStore();
+  const { project, mutate, mutateVersion } = useProjectStore();
   const editorUi = useEditorUi();
   const appActions = useAppActions();
   const toast = useToast();
@@ -30,6 +30,18 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
   const speakerChipRef = useRef<HTMLButtonElement>(null);
   const faceChipRef = useRef<HTMLButtonElement>(null);
   const jumpBtnRef = useRef<HTMLButtonElement>(null);
+
+  // mutate()のrecipeはdispatch呼び出し時点では未実行のため、recipe内で書き込んだ値を
+  // mutate()直後に読むのは不可（実際に反映されるのはmutateVersion更新後）。
+  // そのため事後処理はmutateVersionの変化を待ってから実行するキューに積む。
+  const afterMutateQueueRef = useRef<Array<() => void>>([]);
+  useEffect(() => {
+    const queue = afterMutateQueueRef.current;
+    if (!queue.length) return;
+    afterMutateQueueRef.current = [];
+    for (const fn of queue) fn();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mutateVersion]);
 
   const speakerCh = editorUi.speakerId ? project.characters.find((c) => c.id === editorUi.speakerId) : null;
 
@@ -83,11 +95,13 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
     });
     setValue("");
     setSlashHl(0);
-    const finalOutcome = holder.outcome;
-    if (finalOutcome) {
-      applyOutcome(finalOutcome);
-      if (finalOutcome.kind === "command" && editorUi.selIndex !== null) editorUi.setSelIndex(at);
-    }
+    afterMutateQueueRef.current.push(() => {
+      const finalOutcome = holder.outcome;
+      if (finalOutcome) {
+        applyOutcome(finalOutcome);
+        if (finalOutcome.kind === "command") editorUi.setSelIndex(at);
+      }
+    });
   };
 
   const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
@@ -100,33 +114,45 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
       .filter(Boolean);
     if (!lines.length) return;
     if (!window.confirm(t("inputBar.confirmPasteMultiline", { count: lines.length }))) return;
-    let added = 0;
-    let errors = 0;
-    let curSpeaker = { id: editorUi.speakerId, face: editorUi.speakerFace };
-    let newSelIndex = editorUi.selIndex;
+    const initialSpeaker = { id: editorUi.speakerId, face: editorUi.speakerFace };
+    const initialSelIndex = editorUi.selIndex;
+    const holder = {
+      added: 0,
+      errors: 0,
+      curSpeaker: initialSpeaker,
+      newSelIndex: initialSelIndex,
+    };
     const sceneId = editorUi.currentSceneId;
     mutate((d) => {
+      // StrictModeの開発時二重呼び出しでrecipeが2回走っても結果が変わらないよう、
+      // recipe内で読み書きするholderの状態はここで初期値にリセットしておく。
+      holder.added = 0;
+      holder.errors = 0;
+      holder.curSpeaker = initialSpeaker;
+      holder.newSelIndex = initialSelIndex;
       const env = makeDraftParseEnv(d, { toast }, t);
       const sc = d.scenes.find((s) => s.id === sceneId);
       if (!sc) return;
       for (const line of lines) {
-        const r = parseInput(line, env, curSpeaker, undefined, t);
+        const r = parseInput(line, env, holder.curSpeaker, undefined, t);
         if (r.kind === "command") {
-          const at = newSelIndex === null ? sc.commands.length : newSelIndex + 1;
+          const at = holder.newSelIndex === null ? sc.commands.length : holder.newSelIndex + 1;
           sc.commands.splice(at, 0, r.cmd);
-          if (newSelIndex !== null) newSelIndex = at;
-          if (r.setSpeaker) curSpeaker = r.setSpeaker;
-          added++;
+          holder.newSelIndex = at;
+          if (r.setSpeaker) holder.curSpeaker = r.setSpeaker;
+          holder.added++;
         } else if (r.kind === "switchSpeaker") {
-          curSpeaker = r.speaker;
+          holder.curSpeaker = r.speaker;
         } else if (r.kind === "error") {
-          errors++;
+          holder.errors++;
         }
       }
     });
-    editorUi.setSelIndex(newSelIndex);
-    editorUi.setSpeaker(curSpeaker.id, curSpeaker.face);
-    toast(t("inputBar.addedLines", { count: added }) + (errors ? t("inputBar.addedLinesWithErrors", { count: errors }) : ""));
+    afterMutateQueueRef.current.push(() => {
+      editorUi.setSelIndex(holder.newSelIndex);
+      editorUi.setSpeaker(holder.curSpeaker.id, holder.curSpeaker.face);
+      toast(t("inputBar.addedLines", { count: holder.added }) + (holder.errors ? t("inputBar.addedLinesWithErrors", { count: holder.errors }) : ""));
+    });
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -414,7 +440,7 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
                   const sc = d.scenes.find((s) => s.id === sceneId);
                   if (sc) sc.commands.splice(at, 0, { type: "jump", target: targetId });
                 });
-                if (editorUi.selIndex !== null) editorUi.setSelIndex(at);
+                editorUi.setSelIndex(at);
                 inputRef.current?.focus();
               }}
             >

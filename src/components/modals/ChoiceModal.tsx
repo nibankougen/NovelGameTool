@@ -90,20 +90,18 @@ function ChoiceModalInner({ cmdIndex, onClose }: { cmdIndex: number | null; onCl
     const sceneId = scene.id;
     const editingIndex = cmdIndex;
     const selIndexAtSave = editorUi.selIndex;
-    let newSelIndex = selIndexAtSave;
+    // mutate()のrecipeはdispatch呼び出し時点ではまだ実行されないため、挿入位置はここで
+    // （recipe実行前の現在のscene.commands.lengthから）確定させ、recipe内での再計算に頼らない。
+    const ci = editingIndex !== null ? editingIndex : selIndexAtSave === null ? scene.commands.length : selIndexAtSave + 1;
 
     mutate((d) => {
       const sc = d.scenes.find((s) => s.id === sceneId)!;
       const env = makeDraftParseEnv(d, { toast });
       const cmd: ChoiceCommand = { type: "choice", options: parsed.map((o) => ({ text: o.text, target: o.target })) };
-      let ci: number;
       if (editingIndex !== null) {
-        ci = editingIndex;
         sc.commands[ci] = carryTr(sc.commands[ci], cmd);
       } else {
-        ci = selIndexAtSave === null ? sc.commands.length : selIndexAtSave + 1;
         sc.commands.splice(ci, 0, cmd);
-        if (selIndexAtSave !== null) newSelIndex = ci;
       }
 
       const branchCmdList = parsed.map((o) => {
@@ -145,7 +143,7 @@ function ChoiceModalInner({ cmdIndex, onClose }: { cmdIndex: number | null; onCl
       }
     });
 
-    if (selIndexAtSave !== null) editorUi.setSelIndex(newSelIndex);
+    editorUi.setSelIndex(ci);
     onClose();
   };
 
