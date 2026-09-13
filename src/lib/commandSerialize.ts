@@ -1,4 +1,4 @@
-import type { CharLookup } from "./text";
+import { textToDisplay, type CharLookup } from "./text";
 import type { Command, Scene } from "../types/project";
 
 /** コマンドオブジェクトから「/」「@」構文のテキスト表現を再構築する（プレーン編集欄のプレフィル用）。
@@ -23,7 +23,7 @@ export function cmdToInputText(c: Command, scenes: Scene[], findChar: CharLookup
       return `/jump ${scene ? scene.name : ""}`;
     }
     case "comment":
-      return `//${c.text}`;
+      return `//${textToDisplay(c.text, findChar)}`;
     case "choice":
       return null;
     default:

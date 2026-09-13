@@ -1,6 +1,7 @@
-import type { MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Icon } from "../common/Icon";
+import { ContextMenu } from "../common/ContextMenu";
 import { CommandLineContent } from "./CommandLineContent";
 import type { ClickInfo } from "../../lib/editClickMapping";
 import { computeClickInfo } from "../../lib/editClickMapping";
@@ -15,6 +16,7 @@ interface Props {
   multiSelected: boolean;
   honorIssues: string[];
   acked: boolean;
+  anonymousLabel: string;
   characters: Character[];
   scenes: Scene[];
   eventKeys: EventKeyDef[];
@@ -26,6 +28,7 @@ interface Props {
   onEdit: (clickInfo: ClickInfo | null) => void;
   onGotoScene: (sceneId: string) => void;
   onToggleHonorAck: () => void;
+  onToggleAnonymous: () => void;
   onShiftSelect: () => void;
   onContextMenu: (x: number, y: number) => void;
 }
@@ -38,6 +41,7 @@ export function CommandRow({
   multiSelected,
   honorIssues,
   acked,
+  anonymousLabel,
   characters,
   scenes,
   eventKeys,
@@ -49,10 +53,13 @@ export function CommandRow({
   onEdit,
   onGotoScene,
   onToggleHonorAck,
+  onToggleAnonymous,
   onShiftSelect,
   onContextMenu,
 }: Props) {
   const { t } = useTranslation();
+  const [rowMenu, setRowMenu] = useState<{ x: number; y: number } | null>(null);
+  const canAnonymize = cmd.type === "serif" && !!cmd.chara;
   const handleClick = (e: MouseEvent) => {
     const act = (e.target as HTMLElement).closest("[data-act]")?.getAttribute("data-act");
     if (act === "del") return onDelete();
@@ -60,7 +67,7 @@ export function CommandRow({
     if (act === "edit") return onEdit(null);
     if (act === "up") return onMoveUp();
     if (act === "down") return onMoveDown();
-    if (act === "goto-scene" || act === "honor-ack") return; // これらは各要素側で処理・伝播停止済み
+    if (act === "goto-scene" || act === "honor-ack" || act === "row-menu") return; // これらは各要素側で処理・伝播停止済み
     if (e.shiftKey) return onShiftSelect();
     onEdit(computeClickInfo(e, cmd, characters, scenes, findChar));
   };
@@ -90,6 +97,7 @@ export function CommandRow({
           eventKeys={eventKeys}
           honorIssues={honorIssues}
           acked={acked}
+          anonymousLabel={anonymousLabel}
           onToggleHonorAck={onToggleHonorAck}
           onGotoScene={onGotoScene}
         />
@@ -110,7 +118,35 @@ export function CommandRow({
         <button data-act="del" title={t("common.deleteWithKey")} className="mini-btn">
           <Icon name="trash-2" />
         </button>
+        {canAnonymize && (
+          <button
+            data-act="row-menu"
+            title={t("commandList.rowMenu.title")}
+            className="mini-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              const rect = e.currentTarget.getBoundingClientRect();
+              setRowMenu({ x: rect.left, y: rect.bottom + 4 });
+            }}
+          >
+            <Icon name="ellipsis" />
+          </button>
+        )}
       </span>
+      {rowMenu && (
+        <ContextMenu
+          x={rowMenu.x}
+          y={rowMenu.y}
+          onClose={() => setRowMenu(null)}
+          items={[
+            {
+              label:
+                cmd.type === "serif" && cmd.anonymous ? t("commandList.anonymize.menuOff") : t("commandList.anonymize.menuOn"),
+              onClick: onToggleAnonymous,
+            },
+          ]}
+        />
+      )}
     </div>
   );
 }

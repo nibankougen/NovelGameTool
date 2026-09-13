@@ -34,7 +34,7 @@ export function cmdSearchTexts(c: Command, project: Project, findChar: CharLooku
       return a;
     }
     case "comment":
-      return [c.text];
+      return [textToResolved(c.text, findChar)];
     default:
       return [];
   }

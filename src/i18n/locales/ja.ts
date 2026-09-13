@@ -38,6 +38,7 @@ export const ja = {
       stats: { label: "統計", title: "統計 — シーン・章・全体のセリフ数と文字数" },
       translation: { label: "翻訳", title: "翻訳画面 — セリフ・選択肢・キャラ名を他言語に翻訳" },
       honorific: { label: "人称チェック", title: "人称チェック設定 — キャラごとの一人称・呼び方を登録して表記ゆれを検出" },
+      anonymity: { label: "匿名化", title: "匿名化設定 — 話者名の代わりに表示する文字列を言語ごとに設定" },
       assets: { label: "素材", title: "素材管理 — テストプレイで使う背景画像・BGM・効果音を登録" },
       eventKeys: { label: "イベントキー", title: "イベントキー管理 — セリフに付与できるカスタムイベントの種類を登録" },
     },
@@ -139,6 +140,13 @@ export const ja = {
       tooltip: "{{ackTitle}}\n人称の表記ゆれ: {{issues}}",
       separator: "、",
     },
+    anonymize: {
+      menuOn: "匿名化する",
+      menuOff: "匿名化を解除",
+    },
+    rowMenu: {
+      title: "その他の操作",
+    },
   },
   serifEdit: {
     newCharacterPrompt: "新しいキャラクター名:",
@@ -168,6 +176,11 @@ export const ja = {
     unused: "未使用",
     delete: "削除",
     addPlaceholder: "イベントキーを追加（カンマ区切りで複数可）",
+  },
+  anonymity: {
+    title: "匿名化設定",
+    intro: "まだ姿を現していない・名乗っていないキャラクターのセリフ行を匿名化すると、話者名の先頭に<1></1>が付き、代わりにここで設定した文字列が表示されます。表示のされ方は言語ごとに変更できます。行ごとの匿名化のON/OFFは、行にカーソルを合わせたときに右側に出る<0></0>から切り替えます。",
+    baseLanguageSuffix: "原文",
   },
   translation: {
     title: "翻訳",
@@ -490,6 +503,8 @@ export const ja = {
     translationDesc: "<0></0> で翻訳画面を開き、言語を追加してセリフ・選択肢・キャラ名を翻訳できます",
     honorificKey: "人称チェック",
     honorificDesc: "<0></0> で設定画面を開き、キャラごとの一人称・二人称・呼び方を登録すると表記ゆれを検出します",
+    anonymityKey: "匿名化",
+    anonymityDesc: "セリフ行にカーソルを合わせたときに右側に出る<0></0>から「匿名化する」を選ぶと、その行の話者名を「???」など設定した文字列（先頭に<1></1>付き）で伏せられます。まだ姿を現していない・名乗っていないキャラクターに使えます。表示文字列は<2></2>で言語ごとに設定できます",
     eventKeyKey: "イベントキー",
     eventKeyDesc: "<0></0> で登録したキーを、セリフ編集行の下から複数付与できます。値の種類（数値/文字列）を設定したキーはセリフごとに値も指定でき、ゲーム用ファイルの書き出しに含まれます",
     testPlayKey: "テストプレイ",

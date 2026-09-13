@@ -25,6 +25,9 @@ export interface SerifCommand {
   honorAckText?: string;
   /** このセリフに付与されたイベントキー。プロジェクト共通の project.eventKeys を参照する */
   events?: SerifEventTag[];
+  /** trueの場合、話者名の代わりに project.anonymousLabel（言語ごとの表記）を表示する。
+   * まだ姿を現していない・名乗っていないキャラクターの正体を伏せるための機能 */
+  anonymous?: boolean;
 }
 export interface BgCommand {
   type: "bg";
@@ -143,7 +146,12 @@ export interface Project {
   honorificVocab: HonorificVocab;
   assets: ProjectAssets;
   eventKeys: EventKeyDef[];
+  /** 匿名化されたキャラクターの表示名（言語コード→表示文字列）。未設定の言語は ANONYMOUS_LABEL_DEFAULT を使う */
+  anonymousLabel: TrMap;
 }
+
+/** 匿名化されたキャラクターの表示名の既定値（anonymousLabelに未設定の言語で使う） */
+export const ANONYMOUS_LABEL_DEFAULT = "???";
 
 export const PALETTE = [
   "#ff7a7a",

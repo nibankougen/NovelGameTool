@@ -40,6 +40,7 @@ export const ko: typeof ja = {
       stats: { label: "통계", title: "통계 — 씬·챕터·전체의 대사 수와 글자 수" },
       translation: { label: "번역", title: "번역 화면 — 대사·선택지·캐릭터 이름을 다른 언어로 번역" },
       honorific: { label: "인칭 체크", title: "인칭 체크 설정 — 캐릭터별 1인칭·호칭을 등록해 표기 불일치를 감지" },
+      anonymity: { label: "익명화", title: "익명화 설정 — 화자 이름 대신 표시할 문자열을 언어별로 설정" },
       assets: { label: "에셋", title: "에셋 관리 — 테스트 플레이에서 사용할 배경 이미지·BGM·음향 효과 등록" },
       eventKeys: { label: "이벤트 키", title: "이벤트 키 관리 — 대사에 부여할 수 있는 커스텀 이벤트 종류 등록" },
     },
@@ -141,6 +142,13 @@ export const ko: typeof ja = {
       tooltip: "{{ackTitle}}\n인칭 표기 불일치: {{issues}}",
       separator: ", ",
     },
+    anonymize: {
+      menuOn: "익명화하기",
+      menuOff: "익명화 해제",
+    },
+    rowMenu: {
+      title: "기타 작업",
+    },
   },
   serifEdit: {
     newCharacterPrompt: "새 캐릭터 이름:",
@@ -170,6 +178,11 @@ export const ko: typeof ja = {
     unused: "미사용",
     delete: "삭제",
     addPlaceholder: "이벤트 키 추가（쉼표로 구분하여 여러 개 가능）",
+  },
+  anonymity: {
+    title: "익명화 설정",
+    intro: "아직 등장하지 않았거나 이름을 밝히지 않은 캐릭터의 대사 행을 익명화하면, 화자 이름 앞에 <1></1> 표시가 붙고 여기서 설정한 문자열이 대신 표시됩니다. 표시 방식은 언어별로 변경할 수 있습니다. 행에 마우스를 올렸을 때 오른쪽에 나타나는 <0></0> 에서 해당 행의 익명화를 켜고 끌 수 있습니다.",
+    baseLanguageSuffix: "원문",
   },
   translation: {
     title: "번역",
@@ -492,6 +505,8 @@ export const ko: typeof ja = {
     translationDesc: "<0></0> 로 번역 화면을 열고, 언어를 추가하여 대사·선택지·캐릭터 이름을 번역할 수 있습니다.",
     honorificKey: "인칭 체크",
     honorificDesc: "<0></0> 로 설정 화면을 열고, 캐릭터별 1인칭·2인칭·호칭을 등록하면 표기 불일치를 감지합니다.",
+    anonymityKey: "익명화",
+    anonymityDesc: "대사 행에 마우스를 올렸을 때 나타나는 <0></0> 에서 「익명화하기」를 선택하면 해당 행의 화자 이름을 설정한 문자열(예: 「???」, 앞에 <1></1> 표시)로 가릴 수 있습니다. 아직 등장하지 않았거나 이름을 밝히지 않은 캐릭터에 사용합니다. 표시할 문자열은 <2></2> 에서 언어별로 설정할 수 있습니다.",
     eventKeyKey: "이벤트 키",
     eventKeyDesc: "<0></0> 로 등록한 키를 대사 편집 줄 아래에서 여러 개 부여할 수 있습니다. 값 종류（숫자/문자열）를 설정한 키는 대사마다 값도 지정할 수 있으며, 게임 파일 내보내기에 포함됩니다.",
     testPlayKey: "테스트 플레이",

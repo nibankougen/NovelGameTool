@@ -40,6 +40,7 @@ export const en: typeof ja = {
       stats: { label: "Stats", title: "Stats — line and character counts per scene, chapter, and overall" },
       translation: { label: "Translation", title: "Translation screen — translate lines, choices, and character names" },
       honorific: { label: "Pronoun Check", title: "Pronoun check settings — register each character's forms of address to catch inconsistencies" },
+      anonymity: { label: "Anonymity", title: "Anonymity settings — set what's shown in place of a speaker's name, per language" },
       assets: { label: "Assets", title: "Asset manager — register background images, BGM, and sound effects used in test play" },
       eventKeys: { label: "Event Keys", title: "Event key manager — register custom event types that can be attached to lines" },
     },
@@ -141,6 +142,13 @@ export const en: typeof ja = {
       tooltip: "{{ackTitle}}\nPronoun inconsistency: {{issues}}",
       separator: ", ",
     },
+    anonymize: {
+      menuOn: "Anonymize",
+      menuOff: "Un-anonymize",
+    },
+    rowMenu: {
+      title: "More actions",
+    },
   },
   serifEdit: {
     newCharacterPrompt: "New character name:",
@@ -170,6 +178,11 @@ export const en: typeof ja = {
     unused: "Unused",
     delete: "Delete",
     addPlaceholder: "Add event key(s) (comma-separated for multiple)",
+  },
+  anonymity: {
+    title: "Anonymity Settings",
+    intro: "Anonymizing a line for a character who hasn't appeared or given their name yet marks the speaker name with <1></1> and shows the text you set here instead. What's shown can be changed per language. Toggle anonymity for a line from the <0></0> that appears on the right when you hover the line.",
+    baseLanguageSuffix: "original",
   },
   translation: {
     title: "Translation",
@@ -492,6 +505,8 @@ export const en: typeof ja = {
     translationDesc: "<0></0> opens the translation screen, where you can add a language and translate lines, choices, and character names.",
     honorificKey: "Pronoun Check",
     honorificDesc: "<0></0> opens the settings screen, where registering each character's first/second person and forms of address lets you catch inconsistent wording.",
+    anonymityKey: "Anonymity",
+    anonymityDesc: "Choosing \"Anonymize\" from the <0></0> that appears when you hover a line hides that speaker's name behind the text you set (e.g. \"???\", marked with <1></1>). Useful for characters who haven't appeared or given their name yet. Set the text shown per language in <2></2>.",
     eventKeyKey: "Event Keys",
     eventKeyDesc: "<0></0> registers keys that can be attached to a line under its edit row, several at once. A key with a value type set (number/string) also lets you specify a value per line, and both are included in the game file export.",
     testPlayKey: "Test play",

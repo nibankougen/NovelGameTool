@@ -25,6 +25,7 @@ import { OutlineModal } from "../modals/OutlineModal";
 import { StatsModal } from "../modals/StatsModal";
 import { TranslationModal } from "../modals/TranslationModal";
 import { HonorificModal } from "../modals/HonorificModal";
+import { AnonymityModal } from "../modals/AnonymityModal";
 import { PlayModal } from "../modals/PlayModal";
 import { AssetsModal } from "../modals/AssetsModal";
 import { EventKeysModal } from "../modals/EventKeysModal";
@@ -71,6 +72,7 @@ export function EditorScreen() {
   const [statsOpen, setStatsOpen] = useState(false);
   const [transOpen, setTransOpen] = useState(false);
   const [honorOpen, setHonorOpen] = useState(false);
+  const [anonOpen, setAnonOpen] = useState(false);
   const [playOpen, setPlayOpen] = useState(false);
   const [assetsOpen, setAssetsOpen] = useState(false);
   const [eventKeysOpen, setEventKeysOpen] = useState(false);
@@ -121,6 +123,7 @@ export function EditorScreen() {
     openStats: () => setStatsOpen(true),
     openTranslation: () => setTransOpen(true),
     openHonorific: () => setHonorOpen(true),
+    openAnonymity: () => setAnonOpen(true),
     openPlay: () => setPlayOpen(true),
     openAssets: () => setAssetsOpen(true),
     openEventKeys: () => setEventKeysOpen(true),
@@ -166,6 +169,7 @@ export function EditorScreen() {
       <StatsModal open={statsOpen} onClose={() => setStatsOpen(false)} />
       <TranslationModal open={transOpen} onClose={() => setTransOpen(false)} />
       <HonorificModal open={honorOpen} onClose={() => setHonorOpen(false)} />
+      <AnonymityModal open={anonOpen} onClose={() => setAnonOpen(false)} />
       <PlayModal open={playOpen} onClose={() => setPlayOpen(false)} />
       <AssetsModal open={assetsOpen} onClose={() => setAssetsOpen(false)} />
       <EventKeysModal open={eventKeysOpen} onClose={() => setEventKeysOpen(false)} />

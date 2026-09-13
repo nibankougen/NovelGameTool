@@ -63,6 +63,27 @@ export function computeClickInfo(
     return { zone: "text", offset: off };
   }
 
+  if (c.type === "comment") {
+    // serifと同様、《名前》参照があると1つのテキストノードに収まらないため、
+    // コメント本文全体を囲うコンテナ内での絶対位置から算出する。
+    const container = parent.closest(".comment-text");
+    let resolvedOff: number;
+    if (container) {
+      const range = document.createRange();
+      range.selectNodeContents(container);
+      range.setEnd(node, offset);
+      resolvedOff = range.toString().length;
+    } else {
+      resolvedOff = offset;
+    }
+    resolvedOff = Math.max(0, resolvedOff);
+    const off = Math.max(
+      0,
+      Math.min(resolvedOffsetToDisplayOffset(c.text, resolvedOff, findChar), textToDisplay(c.text, findChar).length),
+    );
+    return { zone: "text", offset: off + 2 }; // "//" 分のオフセット
+  }
+
   if (parent.classList.contains("sys-tag")) return null; // ラベル部分（背景/BGM等の見出し語）は対象外
   if (!(parent.classList.contains("sys-cmd") || parent.classList.contains("comment-cmd"))) return null;
   if (cmdBroken(c, characters, scenes)) return null; // 壊れた参照は表示文字列が値と一致しないため対象外

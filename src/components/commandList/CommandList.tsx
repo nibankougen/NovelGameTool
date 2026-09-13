@@ -8,6 +8,7 @@ import { useCharLookup } from "../../hooks/useCharLookup";
 import { useDragReorder } from "../../hooks/useDragReorder";
 import { cmdBroken } from "../../lib/sceneUtils";
 import { honorificIssues } from "../../lib/honorific";
+import { anonymousLabelFor } from "../../lib/anonymize";
 import { CommandRow } from "./CommandRow";
 import { InlineEditRow } from "./edit/InlineEditRow";
 import { ContextMenu } from "../common/ContextMenu";
@@ -21,6 +22,7 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
   const findChar = useCharLookup();
   const scene = project.scenes.find((s) => s.id === editorUi.currentSceneId) ?? project.scenes[0];
   const cmds = scene.commands;
+  const anonymousLabel = anonymousLabelFor(project, project.baseLanguage);
 
   const [selectedIdx, setSelectedIdx] = useState<Set<number>>(new Set());
   const anchorRef = useRef<number | null>(null);
@@ -150,6 +152,7 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
             multiSelected={selectedIdx.has(i)}
             honorIssues={cmd.type === "serif" ? honorificIssues(cmd, project.honorificRules, project.honorificVocab, findChar, t) : []}
             acked={cmd.type === "serif" && !!cmd.honorAckText && cmd.honorAckText === cmd.text}
+            anonymousLabel={anonymousLabel}
             characters={project.characters}
             scenes={project.scenes}
             eventKeys={project.eventKeys}
@@ -207,6 +210,16 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
                 if (c.type !== "serif") return;
                 if (c.honorAckText === c.text) delete c.honorAckText;
                 else c.honorAckText = c.text;
+              });
+            }}
+            onToggleAnonymous={() => {
+              const sceneId = scene.id;
+              patch((d) => {
+                const sc = d.scenes.find((s) => s.id === sceneId)!;
+                const c = sc.commands[i];
+                if (c.type !== "serif") return;
+                if (c.anonymous) delete c.anonymous;
+                else c.anonymous = true;
               });
             }}
             onShiftSelect={() => {

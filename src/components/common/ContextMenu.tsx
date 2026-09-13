@@ -54,7 +54,8 @@ export function ContextMenu({ x, y, items, onClose }: { x: number; y: number; it
           className={`em-item px-3.5 py-1.5 text-sm whitespace-nowrap ${
             it.disabled ? "text-text-dim cursor-default" : "cursor-pointer hover:bg-accent-dim"
           }`}
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             if (it.disabled) return;
             it.onClick();
             onClose();

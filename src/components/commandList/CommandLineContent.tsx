@@ -15,6 +15,7 @@ interface Props {
   eventKeys: EventKeyDef[];
   honorIssues: string[];
   acked: boolean;
+  anonymousLabel: string;
   onToggleHonorAck: () => void;
   onGotoScene: (sceneId: string) => void;
 }
@@ -65,7 +66,17 @@ function BrokenRef({ children }: { children: ReactNode }) {
   );
 }
 
-export function CommandLineContent({ cmd, findChar, scenes, eventKeys, honorIssues, acked, onToggleHonorAck, onGotoScene }: Props) {
+export function CommandLineContent({
+  cmd,
+  findChar,
+  scenes,
+  eventKeys,
+  honorIssues,
+  acked,
+  anonymousLabel,
+  onToggleHonorAck,
+  onGotoScene,
+}: Props) {
   const { t } = useTranslation();
   const { speakerColWidth, faceColWidth, setSpeakerColWidth, setFaceColWidth } = useSerifColumns();
   const serifChar = cmd.type === "serif" && cmd.chara ? findChar(cmd.chara) : null;
@@ -101,11 +112,25 @@ export function CommandLineContent({ cmd, findChar, scenes, eventKeys, honorIssu
             <div className="h-[26px] flex items-center">
               {cmd.chara && (
                 <span
-                  className="speaker-name font-bold text-sm truncate flex-1 min-w-0"
+                  className="speaker-name font-bold text-sm truncate flex-1 min-w-0 inline-flex items-center gap-1"
                   style={{ color: ch ? ch.color : "var(--danger)" }}
                   title={ch ? ch.name : undefined}
                 >
-                  {ch ? ch.name : <BrokenRef>{t("commandList.deletedCharacter")}</BrokenRef>}
+                  {ch ? (
+                    cmd.anonymous ? (
+                      <>
+                        <Icon name="venetian-mask" className="shrink-0" />
+                        <span className="truncate">
+                          {anonymousLabel}
+                          <span className="font-normal text-text-dim">（{ch.name}）</span>
+                        </span>
+                      </>
+                    ) : (
+                      ch.name
+                    )
+                  ) : (
+                    <BrokenRef>{t("commandList.deletedCharacter")}</BrokenRef>
+                  )}
                 </span>
               )}
             </div>
@@ -215,7 +240,14 @@ export function CommandLineContent({ cmd, findChar, scenes, eventKeys, honorIssu
         </>
       );
     case "comment":
-      return <span className="comment-cmd text-comment text-sm">💬 {cmd.text}</span>;
+      return (
+        <span className="comment-cmd text-comment text-sm">
+          💬{" "}
+          <span className="comment-text">
+            <MentionText text={cmd.text} findChar={findChar} />
+          </span>
+        </span>
+      );
     default:
       return null;
   }

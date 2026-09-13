@@ -87,6 +87,19 @@ export function HelpModal({ open, onClose }: { open: boolean; onClose: () => voi
           <Row k={t("help.charSettingsKey")} v={t("help.charSettingsDesc")} />
           <Row k={t("help.translationKey")} v={<Trans i18nKey="help.translationDesc" components={[<Icon key="0" name="languages" className="inline" />]} />} />
           <Row k={t("help.honorificKey")} v={<Trans i18nKey="help.honorificDesc" components={[<Icon key="0" name="users" className="inline" />]} />} />
+          <Row
+            k={t("help.anonymityKey")}
+            v={
+              <Trans
+                i18nKey="help.anonymityDesc"
+                components={[
+                  <Icon key="0" name="ellipsis" className="inline" />,
+                  <Icon key="1" name="venetian-mask" className="inline" />,
+                  <Icon key="2" name="venetian-mask" className="inline" />,
+                ]}
+              />
+            }
+          />
           <Row k={t("help.eventKeyKey")} v={<Trans i18nKey="help.eventKeyDesc" components={[<Icon key="0" name="tag" className="inline" />]} />} />
           <Row k={t("help.testPlayKey")} v={t("help.testPlayDesc")} />
           <Row k={t("help.exportGameKey")} v={t("help.exportGameDesc")} />

@@ -21,6 +21,7 @@ export interface AppActionsValue {
   openStats: () => void;
   openTranslation: () => void;
   openHonorific: () => void;
+  openAnonymity: () => void;
   openPlay: () => void;
   openAssets: () => void;
   openEventKeys: () => void;

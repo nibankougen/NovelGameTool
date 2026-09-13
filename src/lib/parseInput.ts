@@ -53,7 +53,7 @@ export function parseInput(
   if (!text.trim()) return { kind: "empty" };
 
   if (text.startsWith("//")) {
-    return { kind: "command", cmd: { type: "comment", text: text.slice(2).trim() } };
+    return { kind: "command", cmd: { type: "comment", text: textToStorage(text.slice(2).trim(), env.characters) } };
   }
 
   if (text.startsWith("/")) {
@@ -91,7 +91,7 @@ export function parseInput(
       }
       case "memo":
       case "comment":
-        return { kind: "command", cmd: { type: "comment", text: arg } };
+        return { kind: "command", cmd: { type: "comment", text: textToStorage(arg, env.characters) } };
       default:
         return { kind: "error", message: t("parseInput.errors.unknownCommand", { name }) };
     }

@@ -24,6 +24,7 @@ function ToolbarButtons({ showLabels }: { showLabels: boolean }) {
     { label: t("topbar.toolsMenu.stats.label"), icon: "chart-column", title: t("topbar.toolsMenu.stats.title"), onClick: a.openStats },
     { label: t("topbar.toolsMenu.translation.label"), icon: "languages", title: t("topbar.toolsMenu.translation.title"), onClick: a.openTranslation },
     { label: t("topbar.toolsMenu.honorific.label"), icon: "users", title: t("topbar.toolsMenu.honorific.title"), onClick: a.openHonorific },
+    { label: t("topbar.toolsMenu.anonymity.label"), icon: "venetian-mask", title: t("topbar.toolsMenu.anonymity.title"), onClick: a.openAnonymity },
     { label: t("topbar.toolsMenu.assets.label"), icon: "music", title: t("topbar.toolsMenu.assets.title"), onClick: a.openAssets },
     { label: t("topbar.toolsMenu.eventKeys.label"), icon: "tag", title: t("topbar.toolsMenu.eventKeys.title"), onClick: a.openEventKeys },
   ];

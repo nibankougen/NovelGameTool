@@ -40,6 +40,7 @@ export const zhTW: typeof ja = {
       stats: { label: "統計", title: "統計 — 各場景、章節與全篇的台詞數與字數" },
       translation: { label: "翻譯", title: "翻譯畫面 — 將台詞、選項與角色名稱翻譯成其他語言" },
       honorific: { label: "人稱檢查", title: "人稱檢查設定 — 登錄每個角色的自稱、稱呼方式以偵測用詞不一致" },
+      anonymity: { label: "匿名化", title: "匿名化設定 — 依語言設定代替說話者姓名顯示的文字" },
       assets: { label: "素材", title: "素材管理 — 登錄試玩時使用的背景圖片、BGM與音效" },
       eventKeys: { label: "事件鍵", title: "事件鍵管理 — 登錄可附加到台詞上的自訂事件類型" },
     },
@@ -141,6 +142,13 @@ export const zhTW: typeof ja = {
       tooltip: "{{ackTitle}}\n人稱用詞不一致：{{issues}}",
       separator: "、",
     },
+    anonymize: {
+      menuOn: "匿名化",
+      menuOff: "取消匿名化",
+    },
+    rowMenu: {
+      title: "更多操作",
+    },
   },
   serifEdit: {
     newCharacterPrompt: "新角色名稱：",
@@ -170,6 +178,11 @@ export const zhTW: typeof ja = {
     unused: "未使用",
     delete: "刪除",
     addPlaceholder: "新增事件鍵（以逗號分隔可新增多個）",
+  },
+  anonymity: {
+    title: "匿名化設定",
+    intro: "將尚未登場、尚未報上姓名的角色的台詞行匿名化後，說話者姓名前會加上<1></1>標記，並以此處設定的文字代替顯示。顯示方式可依語言分別設定。將滑鼠停留在某行上時，右側會出現<0></0>，從中可切換該行的匿名化開關。",
+    baseLanguageSuffix: "原文",
   },
   translation: {
     title: "翻譯",
@@ -492,6 +505,8 @@ export const zhTW: typeof ja = {
     translationDesc: "點擊<0></0>開啟翻譯畫面，新增語言後可翻譯台詞、選項、角色名稱。",
     honorificKey: "人稱檢查",
     honorificDesc: "點擊<0></0>開啟設定畫面，為每個角色登錄第一人稱・第二人稱・稱呼方式後即可偵測用詞不一致。",
+    anonymityKey: "匿名化",
+    anonymityDesc: "將滑鼠停留在台詞行上時，從右側出現的<0></0>中選擇「匿名化」，即可用設定的文字（如「???」，前面帶有<1></1>標記）遮蓋該行的說話者姓名。適用於尚未登場、尚未報上姓名的角色。可在<2></2>中依語言設定顯示的文字。",
     eventKeyKey: "事件鍵",
     eventKeyDesc: "點擊<0></0>登錄的鍵，可以在台詞編輯行下方附加多個。設定了值類型（數值/字串）的鍵還可以為每句台詞指定值，兩者都會包含在遊戲檔案的匯出中。",
     testPlayKey: "試玩",

@@ -2,6 +2,7 @@ import type { CharLookup } from "./text";
 import { textToResolved } from "./text";
 import type { Command, ExportSettings, Project, TrMap } from "../types/project";
 import { findCharacter, findScene } from "./lookup";
+import { anonymousLabelFor } from "./anonymize";
 
 function pickTr(tr: TrMap | undefined, langs: string[]): TrMap | null {
   if (!tr) return null;
@@ -33,6 +34,7 @@ export function gameExportData(project: Project, cfg: ExportSettings, findChar: 
           if (c.type === "serif") {
             const out: Record<string, unknown> = { type: "serif", chara: c.chara, text: textToResolved(c.text, findChar) };
             if (cfg.face && c.face) out.face = c.face;
+            if (c.anonymous) out.anonymous = true;
             const tr = pickTr(c.tr, langs);
             if (tr) out.tr = tr;
             if (c.events?.length) {
@@ -58,6 +60,7 @@ export function gameExportData(project: Project, cfg: ExportSettings, findChar: 
               }),
             };
           }
+          if (c.type === "comment") return { type: "comment", text: textToResolved(c.text, findChar) };
           return c;
         });
       return o;
@@ -66,6 +69,12 @@ export function gameExportData(project: Project, cfg: ExportSettings, findChar: 
   if (langs.length) root.languages = [project.baseLanguage, ...langs];
   const ttr = pickTr(project.titleTr, langs);
   if (ttr) root.titleTr = ttr;
+  const hasAnonymous = project.scenes.some((s) => s.commands.some((c) => c.type === "serif" && c.anonymous));
+  if (hasAnonymous) {
+    const anonymousLabel: TrMap = {};
+    for (const l of [project.baseLanguage, ...langs]) anonymousLabel[l] = anonymousLabelFor(project, l);
+    root.anonymousLabel = anonymousLabel;
+  }
   return root;
 }
 
@@ -76,7 +85,8 @@ function cmdToScriptLine(c: Command, project: Project, findChar: CharLookup, t: 
     case "serif": {
       if (c.chara) {
         const ch = findCharacter(project.characters, c.chara);
-        return `${ch ? ch.name : t("common.unknownRef")}${c.face ? `（${c.face}）` : ""}「${textToResolved(c.text, findChar)}」`;
+        const name = c.anonymous ? anonymousLabelFor(project, project.baseLanguage) : ch ? ch.name : t("common.unknownRef");
+        return `${name}${c.face ? `（${c.face}）` : ""}「${textToResolved(c.text, findChar)}」`;
       }
       return `　${textToResolved(c.text, findChar)}`;
     }
@@ -99,7 +109,7 @@ function cmdToScriptLine(c: Command, project: Project, findChar: CharLookup, t: 
       return lines.join("\n");
     }
     case "comment":
-      return `※ ${c.text}`;
+      return `※ ${textToResolved(c.text, findChar)}`;
   }
 }
 

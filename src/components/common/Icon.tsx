@@ -35,6 +35,7 @@ import {
   Trash2,
   Upload,
   Users,
+  VenetianMask,
   Wrench,
   X,
   type LucideIcon,
@@ -79,6 +80,7 @@ const ICONS: Record<string, LucideIcon> = {
   settings: Settings,
   wrench: Wrench,
   tag: Tag,
+  "venetian-mask": VenetianMask,
 };
 
 export type IconName = keyof typeof ICONS;

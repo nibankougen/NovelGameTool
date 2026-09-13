@@ -8,6 +8,7 @@ import {
   type EventKeyValueType,
   type Project,
   type Scene,
+  type TrMap,
 } from "../types/project";
 import { EXPR_TMPL_LS_KEY, readLocalStorage, writeLocalStorage } from "../lib/storage";
 import { detectDefaultLanguage, isSupportedLanguage } from "../lib/language";
@@ -47,6 +48,7 @@ export function defaultProject(): Project {
     honorificVocab: { ...HONOR_VOCAB_DEFAULTS },
     assets: { bg: {}, bgm: {}, se: {} },
     eventKeys: [],
+    anonymousLabel: {},
   };
 }
 
@@ -90,6 +92,7 @@ export function normalizeProject(raw: unknown): Project {
     if (!Array.isArray(s.commands)) s.commands = [];
     for (const cmd of s.commands) {
       if (cmd.type !== "serif") continue;
+      if (cmd.anonymous !== true) delete cmd.anonymous;
       if (!Array.isArray(cmd.events)) {
         delete cmd.events;
         continue;
@@ -133,6 +136,12 @@ export function normalizeProject(raw: unknown): Project {
       : [...HONOR_VOCAB_DEFAULTS.suffix],
   };
 
+  const rawAnonLabel = (
+    p.anonymousLabel && typeof p.anonymousLabel === "object" && !Array.isArray(p.anonymousLabel) ? p.anonymousLabel : {}
+  ) as Record<string, unknown>;
+  const anonymousLabel: TrMap = {};
+  for (const [k, v] of Object.entries(rawAnonLabel)) if (typeof v === "string" && v) anonymousLabel[k] = v;
+
   const rawAssets = (p.assets && typeof p.assets === "object" ? p.assets : {}) as Record<string, unknown>;
   const assets = {
     bg: (rawAssets.bg && typeof rawAssets.bg === "object" ? rawAssets.bg : {}) as Record<string, string>,
@@ -155,6 +164,7 @@ export function normalizeProject(raw: unknown): Project {
     honorificVocab,
     assets,
     eventKeys,
+    anonymousLabel,
   };
 }
 
