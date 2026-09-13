@@ -7,7 +7,8 @@ import { EditorScreen } from "./components/layout/EditorScreen";
 import { ProjectLauncher } from "./components/layout/ProjectLauncher";
 
 function AppInner() {
-  const { dirHandle } = useProjectStore();
+  const { dirHandle, restoring } = useProjectStore();
+  if (restoring) return null;
   if (!dirHandle) return <ProjectLauncher />;
   return (
     <EditorUiProvider>
