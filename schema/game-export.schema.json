@@ -1,0 +1,225 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "game-export.schema.json",
+  "title": "Serifu Dev Tool - Game Export",
+  "description": "Serifu Dev Tool の「ゲーム用ファイルとして書き出し」で生成される .game.json のスキーマ。エクスポート設定（表情/シーン名/色/コメント行の出力有無）により、印を付けた項目は出力されないことがある。",
+  "type": "object",
+  "required": ["title", "characters", "scenes"],
+  "additionalProperties": false,
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "プロジェクトタイトル（原文）"
+    },
+    "titleTr": {
+      "$ref": "#/$defs/trMap",
+      "description": "タイトルの言語別翻訳。1件以上の翻訳が存在する場合のみ出力される"
+    },
+    "languages": {
+      "type": "array",
+      "description": "翻訳が1件以上存在する場合のみ出力される言語コード一覧。先頭要素が原文言語（baseLanguage）",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "anonymousLabel": {
+      "$ref": "#/$defs/trMap",
+      "description": "匿名化された話者の代替表示名（言語コード→表示文字列）。匿名化された台詞が1件以上存在する場合のみ出力される"
+    },
+    "characters": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/character" }
+    },
+    "scenes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/scene" }
+    }
+  },
+  "$defs": {
+    "trMap": {
+      "type": "object",
+      "description": "言語コード（例: en, zh-CN, ko）をキーとした翻訳文字列のマップ",
+      "additionalProperties": { "type": "string" }
+    },
+    "character": {
+      "type": "object",
+      "required": ["id", "name"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "キャラクターID。serifコマンドの chara から参照される"
+        },
+        "name": { "type": "string" },
+        "tr": { "$ref": "#/$defs/trMap" },
+        "color": {
+          "type": "string",
+          "description": "エクスポート設定で「色」が有効な場合のみ出力される表示色（例: #ff7a7a）"
+        },
+        "expressions": {
+          "type": "array",
+          "description": "エクスポート設定で「表情」が有効な場合のみ出力される表情候補一覧",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "scene": {
+      "type": "object",
+      "required": ["id", "commands"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "シーンID。jumpコマンドの target や choiceの選択肢の target から参照される"
+        },
+        "name": {
+          "type": "string",
+          "description": "エクスポート設定で「シーン名」が有効な場合のみ出力される"
+        },
+        "commands": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/command" }
+        }
+      }
+    },
+    "command": {
+      "oneOf": [
+        { "$ref": "#/$defs/serifCommand" },
+        { "$ref": "#/$defs/bgCommand" },
+        { "$ref": "#/$defs/bgmCommand" },
+        { "$ref": "#/$defs/seCommand" },
+        { "$ref": "#/$defs/waitCommand" },
+        { "$ref": "#/$defs/jumpCommand" },
+        { "$ref": "#/$defs/choiceCommand" },
+        { "$ref": "#/$defs/commentCommand" }
+      ]
+    },
+    "serifCommand": {
+      "type": "object",
+      "description": "セリフ・地の文",
+      "required": ["type", "chara", "text"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "serif" },
+        "chara": {
+          "type": ["string", "null"],
+          "description": "話者のキャラクターID。null の場合は地の文（ナレーション）"
+        },
+        "text": {
+          "type": "string",
+          "description": "本文。《キャラ名》形式の名前参照は表示用の名前に解決済み"
+        },
+        "face": {
+          "type": "string",
+          "description": "エクスポート設定で「表情」が有効かつ表情が設定されている場合のみ出力される表情名"
+        },
+        "anonymous": {
+          "const": true,
+          "description": "trueの場合、話者名の代わりに anonymousLabel を表示する想定"
+        },
+        "tr": { "$ref": "#/$defs/trMap" },
+        "events": {
+          "type": "array",
+          "description": "このセリフに付与されたイベントキー",
+          "items": {
+            "type": "object",
+            "required": ["key"],
+            "additionalProperties": false,
+            "properties": {
+              "key": { "type": "string", "description": "イベントキー名" },
+              "value": {
+                "type": ["number", "string"],
+                "description": "イベントキーの値種別（valueType）が number/string の場合のみ存在する"
+              }
+            }
+          }
+        }
+      }
+    },
+    "bgCommand": {
+      "type": "object",
+      "description": "背景変更",
+      "required": ["type", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "bg" },
+        "value": { "type": "string", "description": "背景名" }
+      }
+    },
+    "bgmCommand": {
+      "type": "object",
+      "description": "BGM変更。valueが空文字の場合はBGM停止",
+      "required": ["type", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "bgm" },
+        "value": { "type": "string", "description": "BGM名（空文字で停止）" }
+      }
+    },
+    "seCommand": {
+      "type": "object",
+      "description": "効果音再生",
+      "required": ["type", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "se" },
+        "value": { "type": "string", "description": "効果音名" }
+      }
+    },
+    "waitCommand": {
+      "type": "object",
+      "description": "ウェイト",
+      "required": ["type", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "wait" },
+        "value": { "type": "integer", "minimum": 0, "description": "待機時間（ミリ秒）" }
+      }
+    },
+    "jumpCommand": {
+      "type": "object",
+      "description": "シーンへのジャンプ",
+      "required": ["type", "target"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "jump" },
+        "target": { "type": "string", "description": "ジャンプ先シーンのID（scenes[].id）" }
+      }
+    },
+    "choiceCommand": {
+      "type": "object",
+      "description": "選択肢",
+      "required": ["type", "options"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "choice" },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["text", "target"],
+            "additionalProperties": false,
+            "properties": {
+              "text": { "type": "string", "description": "選択肢の表示文" },
+              "target": {
+                "type": ["string", "null"],
+                "description": "選択後にジャンプするシーンのID（scenes[].id）。null の場合はこの選択肢直後の分岐台詞を継続再生"
+              },
+              "tr": { "$ref": "#/$defs/trMap" }
+            }
+          }
+        }
+      }
+    },
+    "commentCommand": {
+      "type": "object",
+      "description": "コメント行（メモ）。エクスポート設定で「コメント行を出力」が有効な場合のみ含まれる",
+      "required": ["type", "text"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "comment" },
+        "text": { "type": "string" }
+      }
+    }
+  }
+}
