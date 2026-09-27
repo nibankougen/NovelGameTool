@@ -24,7 +24,7 @@ interface ChipMenuItem {
 }
 
 export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifCommand; scene: Scene }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { project, mutate } = useProjectStore();
   const editorUi = useEditorUi();
   const appActions = useAppActions();
@@ -144,7 +144,7 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
       const trimmedText = text.replace(/[\s　]+$/, "");
       if (/^[@＠/]/.test(trimmedText)) {
         const speaker = { id: spk, face };
-        const err = parseInputDry(trimmedText, project, speaker, { sticky: false }, t);
+        const err = parseInputDry(trimmedText, project, speaker, { sticky: false, uiLang: i18n.language }, t);
         if (err) {
           toast(err, true);
           doneRef.current = false;
@@ -154,7 +154,7 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
         editorUi.stopEdit();
         mutate((d) => {
           const env = makeDraftParseEnv(d, { toast });
-          const r = parseInput(trimmedText, env, speaker, { sticky: false }, t);
+          const r = parseInput(trimmedText, env, speaker, { sticky: false, uiLang: i18n.language }, t);
           if (r.kind !== "command") return;
           const sc = d.scenes.find((s) => s.id === sceneId);
           if (!sc) return;

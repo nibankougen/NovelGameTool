@@ -13,7 +13,7 @@ import { carryTr } from "../../../lib/carryTr";
 import type { Command, Scene } from "../../../types/project";
 
 export function PlainEditRow({ index, cmd, scene }: { index: number; cmd: Command; scene: Scene }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { project, mutate } = useProjectStore();
   const editorUi = useEditorUi();
   const appActions = useAppActions();
@@ -45,7 +45,7 @@ export function PlainEditRow({ index, cmd, scene }: { index: number; cmd: Comman
     doneRef.current = true;
     if (commit) {
       const speaker = { id: editorUi.speakerId, face: editorUi.speakerFace };
-      const err = parseInputDry(value, project, speaker, { sticky: false }, t);
+      const err = parseInputDry(value, project, speaker, { sticky: false, uiLang: i18n.language }, t);
       if (err) {
         toast(err, true);
         doneRef.current = false;
@@ -56,7 +56,7 @@ export function PlainEditRow({ index, cmd, scene }: { index: number; cmd: Comman
       editorUi.stopEdit();
       mutate((d) => {
         const env = makeDraftParseEnv(d, { toast }, t);
-        const r = parseInput(value, env, speaker, { sticky: false }, t);
+        const r = parseInput(value, env, speaker, { sticky: false, uiLang: i18n.language }, t);
         if (r.kind !== "command") return;
         const sc = d.scenes.find((s) => s.id === sceneId);
         if (!sc) return;

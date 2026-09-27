@@ -23,7 +23,7 @@ export function ChoiceModal({ open, cmdIndex, onClose }: { open: boolean; cmdInd
 }
 
 function ChoiceModalInner({ cmdIndex, onClose }: { cmdIndex: number | null; onClose: () => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { project, mutate } = useProjectStore();
   const editorUi = useEditorUi();
   const toast = useToast();
@@ -76,7 +76,7 @@ function ChoiceModalInner({ cmdIndex, onClose }: { cmdIndex: number | null; onCl
     let branchError: string | null = null;
     for (const o of parsed) {
       if (o.target || !o.branch) continue;
-      const err = parseInputDry(o.branch, project, currentSpeaker, { sticky: false }, t);
+      const err = parseInputDry(o.branch, project, currentSpeaker, { sticky: false, uiLang: i18n.language }, t);
       if (err) {
         branchError = t("choice.branchError", { text: o.text, error: err });
         break;
@@ -106,7 +106,7 @@ function ChoiceModalInner({ cmdIndex, onClose }: { cmdIndex: number | null; onCl
 
       const branchCmdList = parsed.map((o) => {
         if (o.target || !o.branch) return null;
-        const r = parseInput(o.branch, env, currentSpeaker, { sticky: false }, t);
+        const r = parseInput(o.branch, env, currentSpeaker, { sticky: false, uiLang: i18n.language }, t);
         return r.kind === "command" ? r.cmd : null;
       });
       const needsSplit = branchCmdList.some(Boolean);

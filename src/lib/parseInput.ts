@@ -39,6 +39,8 @@ export type ParseOutcome =
 export interface ParseOptions {
   /** true(既定): @name での話者切替を次回入力まで保持するsetSpeakerを結果に含める */
   sticky?: boolean;
+  /** UIの言語（i18n.language）。"ja"始まりの場合のみ "・・" コメント記法を有効にする */
+  uiLang?: string;
 }
 
 export function parseInput(
@@ -52,7 +54,9 @@ export function parseInput(
   const text = raw.replace(/[\s　]+$/, "");
   if (!text.trim()) return { kind: "empty" };
 
-  if (text.startsWith("//")) {
+  // "//" の代わりに "・・"（ちょうど2つ、3つ以上は対象外）でもコメント扱いにする（UIが日本語の場合のみ）
+  const isNakatenComment = !!opts.uiLang?.startsWith("ja") && text.startsWith("・・") && !text.startsWith("・・・");
+  if (text.startsWith("//") || isNakatenComment) {
     return { kind: "command", cmd: { type: "comment", text: textToStorage(text.slice(2).trim(), env.characters) } };
   }
 

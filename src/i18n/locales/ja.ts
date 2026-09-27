@@ -399,7 +399,7 @@ export const ja = {
       wait: "ウェイト（ミリ秒）　例: /wait 1000",
       jump: "シーンへジャンプ（未作成なら自動作成）　例: /jump ルートA",
       choice: "選択肢　例: /choice はい>ルートA | いいえ>ルートB（引数なしで編集画面）",
-      memo: "コメント行（// でも可）",
+      memo: "コメント行（// や ・・ でも可）",
     },
     errors: {
       nameRequired: "/{{name}} には名前を指定してください",

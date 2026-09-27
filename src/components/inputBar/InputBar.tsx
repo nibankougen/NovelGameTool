@@ -13,7 +13,7 @@ import { insertTextAtCursor } from "../../lib/text";
 import { scenesInGroupOrder } from "../../lib/sceneUtils";
 
 export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | null> }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { project, mutate, mutateVersion } = useProjectStore();
   const editorUi = useEditorUi();
   const appActions = useAppActions();
@@ -74,7 +74,7 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
     const raw = value;
     if (!raw.trim()) return;
     const speaker = { id: editorUi.speakerId, face: editorUi.speakerFace };
-    const err = parseInputDry(raw, project, speaker, undefined, t);
+    const err = parseInputDry(raw, project, speaker, { uiLang: i18n.language }, t);
     if (err) {
       toast(err, true);
       return;
@@ -86,7 +86,7 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
     const holder: { outcome: ParseOutcome | null } = { outcome: null };
     mutate((d) => {
       const env = makeDraftParseEnv(d, { toast }, t);
-      const r = parseInput(raw, env, speaker, undefined, t);
+      const r = parseInput(raw, env, speaker, { uiLang: i18n.language }, t);
       holder.outcome = r;
       if (r.kind === "command") {
         const sc = d.scenes.find((s) => s.id === sceneId);
@@ -134,7 +134,7 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
       const sc = d.scenes.find((s) => s.id === sceneId);
       if (!sc) return;
       for (const line of lines) {
-        const r = parseInput(line, env, holder.curSpeaker, undefined, t);
+        const r = parseInput(line, env, holder.curSpeaker, { uiLang: i18n.language }, t);
         if (r.kind === "command") {
           const at = holder.newSelIndex === null ? sc.commands.length : holder.newSelIndex + 1;
           sc.commands.splice(at, 0, r.cmd);
