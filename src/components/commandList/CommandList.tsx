@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MouseEvent, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type RefObject } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useEditorUi } from "../../state/EditorUiContext";
@@ -29,29 +29,44 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
   const [selectedIdx, setSelectedIdx] = useState<Set<number>>(new Set());
   const anchorRef = useRef<number | null>(null);
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null);
+  const reorderScrollRef = useRef<{ sceneId: string; top: number } | null>(null);
+  const previousScrollTargetRef = useRef<{ sceneId: string; index: number | null; length: number } | null>(null);
 
   useEffect(() => {
     setSelectedIdx(new Set());
     anchorRef.current = null;
   }, [mutateVersion, scene.id]);
 
-  // 選択行の変化・行の追加時にスクロール位置を追従させる（scrollToInsertPoint相当）
-  useEffect(() => {
+  // 並べ替え後は描画前に位置を復元し、選択行への自動追従を抑止する。
+  // 毎コミットで確認することで、選択番号が変わらないドロップも処理する。
+  useLayoutEffect(() => {
     const wrap = scrollWrapRef.current;
     if (!wrap) return;
+    const previous = previousScrollTargetRef.current;
+    previousScrollTargetRef.current = { sceneId: scene.id, index: editorUi.selIndex, length: cmds.length };
+    const preserved = reorderScrollRef.current;
+    reorderScrollRef.current = null;
+    if (preserved?.sceneId === scene.id) {
+      wrap.scrollTop = preserved.top;
+      return;
+    }
+    if (previous?.sceneId === scene.id && previous.index === editorUi.selIndex && previous.length === cmds.length) return;
     if (editorUi.selIndex === null) {
       wrap.scrollTop = wrap.scrollHeight;
     } else {
       const row = wrap.querySelector(`[data-idx="${editorUi.selIndex}"]`);
       row?.scrollIntoView({ block: "nearest" });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editorUi.selIndex, cmds.length, scene.id]);
+  });
 
   const drag = useDragReorder<HTMLDivElement>({
     itemSelector: ".cmd-row",
     scrollerRef: scrollWrapRef,
     onDrop: (from, to) => {
+      const wrap = scrollWrapRef.current;
+      if (wrap && (from !== to || editorUi.editIndex !== null || editorUi.selIndex !== to)) {
+        reorderScrollRef.current = { sceneId: scene.id, top: wrap.scrollTop };
+      }
       if (from !== to) {
         const sceneId = scene.id;
         mutate((d) => {
