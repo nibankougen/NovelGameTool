@@ -28,6 +28,7 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
 
   const [selectedIdx, setSelectedIdx] = useState<Set<number>>(new Set());
   const anchorRef = useRef<number | null>(null);
+  const backgroundMouseDownRef = useRef(false);
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null);
   const reorderScrollRef = useRef<{ sceneId: string; top: number } | null>(null);
   const previousScrollTargetRef = useRef<{ sceneId: string; index: number | null; length: number } | null>(null);
@@ -124,7 +125,11 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
   };
 
   const handleContainerClick = (e: MouseEvent<HTMLDivElement>) => {
-    if (e.target !== e.currentTarget) return;
+    // 入力欄から外へ選択ドラッグすると、共通祖先のリストにclickが発生する。
+    // 余白から押し始めたクリックだけで選択解除する。
+    const startedOnBackground = backgroundMouseDownRef.current;
+    backgroundMouseDownRef.current = false;
+    if (!startedOnBackground || e.target !== e.currentTarget) return;
     editorUi.stopEdit();
     editorUi.setSelIndex(null);
     setSelectedIdx(new Set());
@@ -151,6 +156,9 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
   return (
     <div
       ref={drag.containerRef}
+      onMouseDownCapture={(e) => {
+        backgroundMouseDownRef.current = e.button === 0 && e.target === e.currentTarget;
+      }}
       onMouseDown={drag.onMouseDown}
       onClick={handleContainerClick}
       id="cmdList"
