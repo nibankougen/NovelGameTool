@@ -2,6 +2,7 @@ import type { Command } from "../types/project";
 import { textToStorage } from "./text";
 
 export const SLASH_CMDS = [
+  { cmd: "/count", descKey: "counter.insert" },
   { cmd: "/bg", descKey: "parseInput.slash.bg" },
   { cmd: "/bgm", descKey: "parseInput.slash.bgm" },
   { cmd: "/se", descKey: "parseInput.slash.se" },
@@ -65,6 +66,8 @@ export function parseInput(
     const name = m[1].toLowerCase();
     const arg = m[2].trim();
     switch (name) {
+      case "count":
+        return { kind: "command", cmd: { type: "counter" } };
       case "bg":
       case "bgm":
       case "se": {

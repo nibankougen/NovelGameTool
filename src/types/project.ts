@@ -64,6 +64,7 @@ export interface CommentCommand {
 }
 
 export type Command =
+  | { type: "counter" }
   | SerifCommand
   | BgCommand
   | BgmCommand

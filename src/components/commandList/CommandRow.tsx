@@ -7,8 +7,10 @@ import type { ClickInfo } from "../../lib/editClickMapping";
 import { computeClickInfo } from "../../lib/editClickMapping";
 import type { Character, Command, EventKeyDef, Scene } from "../../types/project";
 import type { CharLookup } from "../../lib/text";
+import type { CounterReading } from "../../lib/characterCounter";
 
 interface Props {
+  counter?: CounterReading;
   index: number;
   cmd: Command;
   broken: boolean;
@@ -34,6 +36,7 @@ interface Props {
 }
 
 export function CommandRow({
+  counter,
   index,
   cmd,
   broken,
@@ -92,6 +95,7 @@ export function CommandRow({
       <div className="row-body flex-1 min-w-0 break-words whitespace-pre-wrap">
         <CommandLineContent
           cmd={cmd}
+          counter={counter}
           findChar={findChar}
           scenes={scenes}
           eventKeys={eventKeys}

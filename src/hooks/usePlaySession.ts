@@ -149,6 +149,7 @@ export function usePlaySession(project: Project, dirHandle: FileSystemDirectoryH
           continue;
         case "wait":
         case "comment":
+        case "counter":
           continue;
         case "jump": {
           const target = findScene(project.scenes, cmd.target);

@@ -1,4 +1,9 @@
 export const ja = {
+  counter: {
+    insert: "文字カウンターを挿入 (/count)",
+    reading: "文字カウンター #{{index}}　累計 {{total}} 字　前回から {{delta}} 字",
+    help: "シーン内のここまでの本文と最長の選択肢文を集計します。コメント・話者名・別シーンは対象外。空白・改行は含みます。台本・ゲーム用ファイルには出力されません。",
+  },
   common: {
     close: "閉じる",
     closeWithEsc: "閉じる (Esc)",

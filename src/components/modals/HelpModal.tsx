@@ -47,6 +47,7 @@ export function HelpModal({ open, onClose }: { open: boolean; onClose: () => voi
           <Row k={<Code>{t("help.bgmCode")}</Code>} v={<Trans i18nKey="help.bgmDesc" components={[<Code key="0" />]} />} />
           <Row k={<Code>{t("help.seCode")}</Code>} v={t("help.seDesc")} />
           <Row k={<Code>{t("help.waitCode")}</Code>} v={t("help.waitDesc")} />
+          <Row k={<Code>/count</Code>} v={t("counter.help")} />
           <Row k={<Code>{t("help.jumpCode")}</Code>} v={t("help.jumpDesc")} />
           <Row
             k={<Code>{t("help.choiceCode")}</Code>}

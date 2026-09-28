@@ -1,6 +1,11 @@
 import type { ja } from "./ja";
 
 export const zhTW: typeof ja = {
+  counter: {
+    insert: "插入字數計數器 (/count)",
+    reading: "計數器 #{{index}} · 累計 {{total}} 字 · 距上次 {{delta}} 字",
+    help: "統計本場景截至此行的正文和最長選項文字。不含註解、角色名和其他場景，包含空格和換行。不匯出到劇本或遊戲檔案。",
+  },
   common: {
     close: "關閉",
     closeWithEsc: "關閉 (Esc)",

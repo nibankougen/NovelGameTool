@@ -29,7 +29,7 @@ export function gameExportData(project: Project, cfg: ExportSettings, findChar: 
       const o: Record<string, unknown> = { id: s.id };
       if (cfg.sceneName) o.name = s.name;
       o.commands = s.commands
-        .filter((c) => cfg.comment || c.type !== "comment")
+        .filter((c) => c.type !== "counter" && (cfg.comment || c.type !== "comment"))
         .map((c): unknown => {
           if (c.type === "serif") {
             const out: Record<string, unknown> = { type: "serif", chara: c.chara, text: textToResolved(c.text, findChar) };
@@ -82,6 +82,8 @@ type T = (key: string, opts?: Record<string, unknown>) => string;
 
 function cmdToScriptLine(c: Command, project: Project, findChar: CharLookup, t: T): string {
   switch (c.type) {
+    case "counter":
+      return "";
     case "serif": {
       if (c.chara) {
         const ch = findCharacter(project.characters, c.chara);
@@ -118,7 +120,9 @@ export function buildScriptText(project: Project, findChar: CharLookup, t: T): s
   let out = `${project.title}\n${"=".repeat(30)}\n\n`;
   for (const s of project.scenes) {
     out += `${t("gameExport.sceneHeader", { name: s.name })}\n${"-".repeat(30)}\n`;
-    for (const c of s.commands) out += cmdToScriptLine(c, project, findChar, t) + "\n";
+    for (const c of s.commands) {
+      if (c.type !== "counter") out += cmdToScriptLine(c, project, findChar, t) + "\n";
+    }
     out += "\n";
   }
   return out;

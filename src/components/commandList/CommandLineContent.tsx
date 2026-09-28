@@ -7,8 +7,10 @@ import { useSerifColumns } from "../../state/SerifColumnsContext";
 import { useAssetUrl } from "../../hooks/useAssetUrl";
 import type { CharLookup } from "../../lib/text";
 import type { Command, EventKeyDef, Scene } from "../../types/project";
+import type { CounterReading } from "../../lib/characterCounter";
 
 interface Props {
+  counter?: CounterReading;
   cmd: Command;
   findChar: CharLookup;
   scenes: Scene[];
@@ -67,6 +69,7 @@ function BrokenRef({ children }: { children: ReactNode }) {
 }
 
 export function CommandLineContent({
+  counter,
   cmd,
   findChar,
   scenes,
@@ -83,6 +86,12 @@ export function CommandLineContent({
   const serifImgPath = serifChar ? (cmd.type === "serif" && cmd.face && serifChar.exprImages[cmd.face]) || serifChar.thumb : null;
   const img = useAssetUrl(serifImgPath);
   switch (cmd.type) {
+    case "counter":
+      return (
+        <span className="counter-cmd text-accent text-sm" title={t("counter.help")}>
+          {counter && t("counter.reading", { ...counter })}
+        </span>
+      );
     case "serif": {
       const ch = serifChar;
       const faceBroken = !!(cmd.face && ch && !ch.expressions.includes(cmd.face));

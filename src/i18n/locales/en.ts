@@ -1,6 +1,11 @@
 import type { ja } from "./ja";
 
 export const en: typeof ja = {
+  counter: {
+    insert: "Insert character counter (/count)",
+    reading: "Counter #{{index}} · Total {{total}} characters · Since previous {{delta}}",
+    help: "Counts scene text up to this row and the longest choice label. Excludes comments, speaker names and other scenes; includes spaces and line breaks. Omitted from script and game exports.",
+  },
   common: {
     close: "Close",
     closeWithEsc: "Close (Esc)",

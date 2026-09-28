@@ -13,6 +13,7 @@ import { CommandRow } from "./CommandRow";
 import { InlineEditRow } from "./edit/InlineEditRow";
 import { ContextMenu } from "../common/ContextMenu";
 import { uid } from "../../lib/id";
+import { characterCounters } from "../../lib/characterCounter";
 
 export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDivElement | null> }) {
   const { t } = useTranslation();
@@ -22,6 +23,7 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
   const findChar = useCharLookup();
   const scene = project.scenes.find((s) => s.id === editorUi.currentSceneId) ?? project.scenes[0];
   const cmds = scene.commands;
+  const counters = characterCounters(cmds, findChar);
   const anonymousLabel = anonymousLabelFor(project, project.baseLanguage);
 
   const [selectedIdx, setSelectedIdx] = useState<Set<number>>(new Set());
@@ -147,6 +149,7 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
             key={i}
             index={i}
             cmd={cmd}
+            counter={counters.get(i)}
             broken={cmdBroken(cmd, project.characters, project.scenes)}
             selected={editorUi.selIndex === i}
             multiSelected={selectedIdx.has(i)}

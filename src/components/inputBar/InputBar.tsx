@@ -501,6 +501,17 @@ export function InputBar({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
           <Icon name="split" />
         </button>
         <button
+          id="btnCounterCmd"
+          title={t("counter.insert")}
+          aria-label={t("counter.insert")}
+          onClick={() => {
+            insertCommand({ type: "counter" });
+            inputRef.current?.focus();
+          }}
+        >
+          #
+        </button>
+        <button
           ref={jumpBtnRef}
           id="btnJumpCmd"
           title={t("inputBar.insertJumpTitle")}
