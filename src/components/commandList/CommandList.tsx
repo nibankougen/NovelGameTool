@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useProjectStore } from "../../state/ProjectProvider";
 import { useEditorUi } from "../../state/EditorUiContext";
@@ -14,6 +14,7 @@ import { InlineEditRow } from "./edit/InlineEditRow";
 import { ContextMenu } from "../common/ContextMenu";
 import { uid } from "../../lib/id";
 import { characterCounters } from "../../lib/characterCounter";
+import { reorderSelection } from "../../lib/reorderSelection";
 
 export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDivElement | null> }) {
   const { t } = useTranslation();
@@ -28,25 +29,27 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
 
   const [selectedIdx, setSelectedIdx] = useState<Set<number>>(new Set());
   const anchorRef = useRef<number | null>(null);
-  const backgroundMouseDownRef = useRef(false);
+  const reorderedSelectionRef = useRef<{ sceneId: string; indices: Set<number>; anchor: number | null } | null>(null);
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null);
-  const reorderScrollRef = useRef<{ sceneId: string; top: number } | null>(null);
+  const preservedScrollRef = useRef<{ sceneId: string; top: number } | null>(null);
   const previousScrollTargetRef = useRef<{ sceneId: string; index: number | null; length: number } | null>(null);
 
   useEffect(() => {
-    setSelectedIdx(new Set());
-    anchorRef.current = null;
+    const reordered = reorderedSelectionRef.current;
+    reorderedSelectionRef.current = null;
+    setSelectedIdx(reordered?.sceneId === scene.id ? reordered.indices : new Set());
+    anchorRef.current = reordered?.sceneId === scene.id ? reordered.anchor : null;
   }, [mutateVersion, scene.id]);
 
-  // 並べ替え後は描画前に位置を復元し、選択行への自動追従を抑止する。
+  // 並べ替え・余白での選択解除後は描画前に位置を復元し、自動追従を抑止する。
   // 毎コミットで確認することで、選択番号が変わらないドロップも処理する。
   useLayoutEffect(() => {
     const wrap = scrollWrapRef.current;
     if (!wrap) return;
     const previous = previousScrollTargetRef.current;
     previousScrollTargetRef.current = { sceneId: scene.id, index: editorUi.selIndex, length: cmds.length };
-    const preserved = reorderScrollRef.current;
-    reorderScrollRef.current = null;
+    const preserved = preservedScrollRef.current;
+    preservedScrollRef.current = null;
     if (preserved?.sceneId === scene.id) {
       wrap.scrollTop = preserved.top;
       return;
@@ -60,26 +63,44 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
     }
   });
 
+  const moveRows = (from: number, rawTo: number) => {
+    const moving = selectedIdx.has(from) ? selectedIdx : new Set([from]);
+    const result = reorderSelection(cmds.length, moving, rawTo);
+    const to = result.order.indexOf(from);
+    const changed = result.order.some((oldIndex, newIndex) => oldIndex !== newIndex);
+    const wrap = scrollWrapRef.current;
+    if (wrap && (changed || editorUi.editIndex !== null || editorUi.selIndex !== to)) {
+      preservedScrollRef.current = { sceneId: scene.id, top: wrap.scrollTop };
+    }
+    if (changed) {
+      const sceneId = scene.id;
+      reorderedSelectionRef.current = {
+        sceneId,
+        indices: selectedIdx.has(from) ? result.selected : new Set(),
+        anchor: anchorRef.current === null ? null : result.order.indexOf(anchorRef.current),
+      };
+      mutate((d) => {
+        const sc = d.scenes.find((s) => s.id === sceneId);
+        if (!sc) return;
+        sc.commands = result.order.map((i) => sc.commands[i]);
+      });
+    }
+    editorUi.stopEdit();
+    editorUi.setSelIndex(to);
+  };
+
+  const moveRowsBy = (from: number, direction: -1 | 1) => {
+    const moving = selectedIdx.has(from) ? [...selectedIdx] : [from];
+    const first = Math.min(...moving);
+    const last = Math.max(...moving);
+    if (direction === -1 && first > 0) moveRows(from, first - 1);
+    if (direction === 1 && last < cmds.length - 1) moveRows(from, last + 2);
+  };
+
   const drag = useDragReorder<HTMLDivElement>({
     itemSelector: ".cmd-row",
     scrollerRef: scrollWrapRef,
-    onDrop: (from, to) => {
-      const wrap = scrollWrapRef.current;
-      if (wrap && (from !== to || editorUi.editIndex !== null || editorUi.selIndex !== to)) {
-        reorderScrollRef.current = { sceneId: scene.id, top: wrap.scrollTop };
-      }
-      if (from !== to) {
-        const sceneId = scene.id;
-        mutate((d) => {
-          const sc = d.scenes.find((s) => s.id === sceneId);
-          if (!sc) return;
-          const [c] = sc.commands.splice(from, 1);
-          sc.commands.splice(to, 0, c);
-        });
-      }
-      editorUi.stopEdit();
-      editorUi.setSelIndex(to);
-    },
+    onDrop: (from, _to, rawTo) => moveRows(from, rawTo),
   });
 
   const selectRange = (clickedIdx: number) => {
@@ -124,17 +145,32 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
     setSelectedIdx(new Set());
   };
 
-  const handleContainerClick = (e: MouseEvent<HTMLDivElement>) => {
-    // 入力欄から外へ選択ドラッグすると、共通祖先のリストにclickが発生する。
-    // 余白から押し始めたクリックだけで選択解除する。
-    const startedOnBackground = backgroundMouseDownRef.current;
-    backgroundMouseDownRef.current = false;
-    if (!startedOnBackground || e.target !== e.currentTarget) return;
-    editorUi.stopEdit();
-    editorUi.setSelIndex(null);
-    setSelectedIdx(new Set());
-    anchorRef.current = null;
-  };
+  useEffect(() => {
+    const wrap = scrollWrapRef.current;
+    if (!wrap) return;
+    // リスト外の左右の余白も含める。行内から余白への文字選択ドラッグは除外する。
+    const isBackground = (target: EventTarget | null) => target === wrap || target === drag.containerRef.current;
+    let startedOnBackground = false;
+    const onMouseDown = (e: MouseEvent) => {
+      startedOnBackground = e.button === 0 && isBackground(e.target);
+    };
+    const onClick = (e: MouseEvent) => {
+      const shouldClear = startedOnBackground && isBackground(e.target);
+      startedOnBackground = false;
+      if (!shouldClear) return;
+      preservedScrollRef.current = { sceneId: scene.id, top: wrap.scrollTop };
+      editorUi.stopEdit();
+      editorUi.setSelIndex(null);
+      setSelectedIdx(new Set());
+      anchorRef.current = null;
+    };
+    wrap.addEventListener("mousedown", onMouseDown, true);
+    wrap.addEventListener("click", onClick);
+    return () => {
+      wrap.removeEventListener("mousedown", onMouseDown, true);
+      wrap.removeEventListener("click", onClick);
+    };
+  }, [scrollWrapRef, drag.containerRef, editorUi, scene.id]);
 
   if (!cmds.length) {
     return (
@@ -156,11 +192,7 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
   return (
     <div
       ref={drag.containerRef}
-      onMouseDownCapture={(e) => {
-        backgroundMouseDownRef.current = e.button === 0 && e.target === e.currentTarget;
-      }}
       onMouseDown={drag.onMouseDown}
-      onClick={handleContainerClick}
       id="cmdList"
       className="max-w-[860px] mx-auto min-h-full"
     >
@@ -204,28 +236,8 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
               });
               editorUi.setSelIndex(i + 1);
             }}
-            onMoveUp={() => {
-              const j = i - 1;
-              if (j < 0) return;
-              const sceneId = scene.id;
-              mutate((d) => {
-                const sc = d.scenes.find((s) => s.id === sceneId)!;
-                const [c] = sc.commands.splice(i, 1);
-                sc.commands.splice(j, 0, c);
-              });
-              if (editorUi.selIndex === i) editorUi.setSelIndex(j);
-            }}
-            onMoveDown={() => {
-              const j = i + 1;
-              if (j >= cmds.length) return;
-              const sceneId = scene.id;
-              mutate((d) => {
-                const sc = d.scenes.find((s) => s.id === sceneId)!;
-                const [c] = sc.commands.splice(i, 1);
-                sc.commands.splice(j, 0, c);
-              });
-              if (editorUi.selIndex === i) editorUi.setSelIndex(j);
-            }}
+            onMoveUp={() => moveRowsBy(i, -1)}
+            onMoveDown={() => moveRowsBy(i, 1)}
             onEdit={(clickInfo) => handleEdit(i, clickInfo)}
             onGotoScene={(sceneId) => editorUi.gotoScene(sceneId)}
             onToggleHonorAck={() => {
