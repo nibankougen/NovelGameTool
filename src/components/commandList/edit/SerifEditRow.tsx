@@ -8,7 +8,7 @@ import { useAssetUrl } from "../../../hooks/useAssetUrl";
 import { useToast } from "../../common/ToastProvider";
 import { Icon, type IconName } from "../../common/Icon";
 import { textToDisplay, textToStorage, insertTextAtCursor } from "../../../lib/text";
-import { parseInput } from "../../../lib/parseInput";
+import { isCommentInput, parseInput } from "../../../lib/parseInput";
 import { parseInputDry, makeDraftParseEnv } from "../../../lib/parseEnvDraft";
 import { carryTr } from "../../../lib/carryTr";
 import { ColumnResizeHandle } from "../ColumnResizeHandle";
@@ -142,7 +142,7 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
     const sceneId = scene.id;
     if (commit) {
       const trimmedText = text.replace(/[\s　]+$/, "");
-      if (/^[@＠/]/.test(trimmedText)) {
+      if (/^[@＠/]/.test(trimmedText) || isCommentInput(trimmedText, i18n.language)) {
         const speaker = { id: spk, face };
         const err = parseInputDry(trimmedText, project, speaker, { sticky: false, uiLang: i18n.language }, t);
         if (err) {

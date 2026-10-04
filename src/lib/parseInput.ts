@@ -44,6 +44,11 @@ export interface ParseOptions {
   uiLang?: string;
 }
 
+/** 日本語UIでは、中点ちょうど2つもコメントの開始記号として扱う。 */
+export function isCommentInput(text: string, uiLang?: string): boolean {
+  return text.startsWith("//") || (!!uiLang?.startsWith("ja") && text.startsWith("・・") && !text.startsWith("・・・"));
+}
+
 export function parseInput(
   raw: string,
   env: ParseEnv,
@@ -55,9 +60,7 @@ export function parseInput(
   const text = raw.replace(/[\s　]+$/, "");
   if (!text.trim()) return { kind: "empty" };
 
-  // "//" の代わりに "・・"（ちょうど2つ、3つ以上は対象外）でもコメント扱いにする（UIが日本語の場合のみ）
-  const isNakatenComment = !!opts.uiLang?.startsWith("ja") && text.startsWith("・・") && !text.startsWith("・・・");
-  if (text.startsWith("//") || isNakatenComment) {
+  if (isCommentInput(text, opts.uiLang)) {
     return { kind: "command", cmd: { type: "comment", text: textToStorage(text.slice(2).trim(), env.characters) } };
   }
 
