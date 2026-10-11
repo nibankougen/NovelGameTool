@@ -254,6 +254,8 @@ export const en: typeof ja = {
     addGroupTitle: "Add a group (chapter)",
     addGroupLabel: "Chapter",
     addSceneTitle: "Add a scene",
+    duplicate: "Duplicate scene",
+    copyName: "{{name}} (copy)",
     confirmMerge: "Merge scene(s) \"{{names}}\" into one?\n(Lines will be gathered into the first scene, and the remaining scenes will be deleted. Jump/choice targets pointing to them will be redirected to the merged scene automatically.)",
     merged: "Merged {{count}} scene(s) into \"{{name}}\"",
     cannotDeleteLast: "You can't delete the last scene",

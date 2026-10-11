@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { produce } from "immer";
 
 const source = readFileSync(new URL("../src/hooks/useDragReorder.ts", import.meta.url), "utf8");
 const compiled = ts.transpileModule(source, {
@@ -127,28 +128,36 @@ test("non-primary mouse buttons do not initiate reordering", () => {
   assert.deepEqual(s.drops, []);
 });
 
-function sceneDropSetup(target = null) {
+function sceneDropSetup(target = null, sceneOverrides = {}) {
   const source = readFileSync(new URL("../src/components/scenes/SceneList.tsx", import.meta.url), "utf8");
   const compiled = ts.transpileModule(source, {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
-  const project = {
-    scenes: ["a", "b", "c"].map((id) => ({ id, groupId: "group", commands: [] })),
+  let project = {
+    scenes: ["a", "b", "c"].map((id) => ({ id, name: id, groupId: "group", commands: [], synopsis: "", ...sceneOverrides })),
     sceneGroups: [{ id: "group" }], characters: [],
   };
   let mutations = 0;
+  let selectedSceneId = null;
+  let nextId = 0;
+  const rows = [];
+  const jsx = (_type, props) => {
+    if (props?.onDuplicate) rows.push(props);
+    return null;
+  };
   const drags = [];
   const modules = {
     react: {
       useState: (initial) => [initial, () => {}], useRef: (current) => ({ current }),
       useMemo: (fn) => fn(), useEffect: () => {},
     },
-    "react/jsx-runtime": { jsx: () => null, jsxs: () => null },
-    "react-i18next": { useTranslation: () => ({ t: (key) => key }) },
+    "react/jsx-runtime": { jsx, jsxs: jsx },
+    "react-i18next": { useTranslation: () => ({ t: (key, options) => key === "scene.copyName" ? `${options.name} (copy)` : key }) },
+    "../../lib/id": { uid: () => `copy-${++nextId}` },
     "../../state/ProjectProvider": { useProjectStore: () => ({
-      project, mutate: (fn) => { mutations++; fn(project); },
+      project, mutate: (fn) => { mutations++; project = produce(project, fn); },
     }) },
-    "../../state/EditorUiContext": { useEditorUi: () => ({}) },
+    "../../state/EditorUiContext": { useEditorUi: () => ({ gotoScene: (id) => { selectedSceneId = id; } }) },
     "../common/ToastProvider": { useToast: () => () => {} },
     "../../state/AppActionsContext": { useAppActions: () => ({}) },
     "../../hooks/useDragReorder": { useDragReorder: (options) => {
@@ -162,9 +171,15 @@ function sceneDropSetup(target = null) {
     "../../lib/sceneUtils": { sceneHasAlert: () => false },
   };
   const exports = {};
-  vm.runInNewContext(compiled, { exports, require: (name) => modules[name] ?? {} });
+  vm.runInNewContext(compiled, { exports, structuredClone, require: (name) => modules[name] ?? {} });
   exports.SceneList();
-  return { project, drop: drags[0].onDrop, get mutations() { return mutations; } };
+  return {
+    get project() { return project; },
+    get selectedSceneId() { return selectedSceneId; },
+    rows,
+    render: () => { rows.length = 0; exports.SceneList(); },
+    drop: drags[0].onDrop, get mutations() { return mutations; },
+  };
 }
 
 test("dropping on either half of the original scene keeps its order and avoids a mutation", () => {
@@ -181,4 +196,46 @@ test("dropping on a different group header still moves the scene at the same row
   s.drop(1, 1, 1, 150);
   assert.equal(s.project.scenes.find((scene) => scene.id === "b").groupId, "other");
   assert.equal(s.mutations, 1);
+});
+
+test("scene duplication preserves nested contents and references with independent data", () => {
+  const s = sceneDropSetup(null, {
+    synopsis: "Scene memo",
+    commands: [
+      { type: "serif", text: "Hello", chara: "speaker", face: "smile", anonymous: true,
+        tr: { ja: "こんにちは" }, events: [{ keyId: "event", value: 3 }] },
+      { type: "jump", target: "b" },
+      { type: "choice", options: [{ text: "Continue", target: "c", tr: { ja: "続行" } }] },
+    ],
+  });
+  const original = s.project;
+  s.rows[1].onDuplicate();
+  const copy = s.project.scenes[2];
+  assert.deepEqual(s.project.scenes.map((scene) => scene.id), ["a", "b", copy.id, "c"]);
+  assert.notEqual(copy.id, "b");
+  assert.equal(copy.name, "b (copy)");
+  assert.equal(copy.groupId, "group");
+  assert.equal(copy.synopsis, "Scene memo");
+  assert.deepEqual(copy.commands, original.scenes[1].commands);
+  assert.equal(s.selectedSceneId, copy.id);
+  assert.equal(s.mutations, 1);
+  const edited = produce(s.project, (d) => {
+    d.scenes[2].commands[0].tr.ja = "変更";
+    d.scenes[2].commands[0].events[0].value = 9;
+    d.scenes[2].commands[2].options[0].text = "Changed";
+  });
+  assert.deepEqual(edited.scenes[1], original.scenes[1]);
+  assert.equal(original.scenes.length, 3);
+});
+
+test("repeated duplication of an ungrouped empty scene uses unique names and IDs", () => {
+  const s = sceneDropSetup(null, { groupId: null });
+  s.rows[0].onDuplicate();
+  s.render();
+  s.rows[0].onDuplicate();
+  const copies = s.project.scenes.slice(1, 3);
+  assert.deepEqual(copies.map((scene) => scene.name), ["a (copy) 2", "a (copy)"]);
+  assert.notEqual(copies[0].id, copies[1].id);
+  assert.equal(copies[0].groupId, null);
+  assert.deepEqual(copies[0].commands, []);
 });

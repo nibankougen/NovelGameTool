@@ -254,6 +254,8 @@ export const ko: typeof ja = {
     addGroupTitle: "그룹（챕터） 추가",
     addGroupLabel: "챕터",
     addSceneTitle: "씬 추가",
+    duplicate: "씬 복제",
+    copyName: "{{name}} (복사본)",
     confirmMerge: "씬 \"{{names}}\"을 하나로 병합할까요?\n（첫 씬으로 대사 등이 합쳐지고, 나머지 씬은 삭제됩니다. 점프·선택지의 대상은 자동으로 병합된 씬으로 변경됩니다）",
     merged: "{{count}}개의 씬을 \"{{name}}\"으로 병합했습니다",
     cannotDeleteLast: "마지막 씬은 삭제할 수 없습니다",

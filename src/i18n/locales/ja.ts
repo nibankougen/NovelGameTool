@@ -252,6 +252,8 @@ export const ja = {
     addGroupTitle: "グループ（章）を追加",
     addGroupLabel: "章",
     addSceneTitle: "シーンを追加",
+    duplicate: "シーンを複製",
+    copyName: "{{name}} のコピー",
     confirmMerge: "シーン「{{names}}」を1つに結合しますか？\n（先頭のシーンにセリフ等がまとめられ、残りのシーンは削除されます。ジャンプ・選択肢からの参照先は自動的に結合後のシーンへ付け替えられます）",
     merged: "{{count}}件のシーンを「{{name}}」に結合しました",
     cannotDeleteLast: "最後のシーンは削除できません",

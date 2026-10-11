@@ -254,6 +254,8 @@ export const zhCN: typeof ja = {
     addGroupTitle: "添加分组（章节）",
     addGroupLabel: "章节",
     addSceneTitle: "添加场景",
+    duplicate: "复制场景",
+    copyName: "{{name}}（副本）",
     confirmMerge: "要将场景「{{names}}」合并为一个吗？\n（台词等内容会汇总到第一个场景中，其余场景将被删除。跳转・选项的目标会自动改为合并后的场景。）",
     merged: "已将{{count}}个场景合并到「{{name}}」",
     cannotDeleteLast: "无法删除最后一个场景",

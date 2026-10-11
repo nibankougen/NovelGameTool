@@ -18,6 +18,7 @@ interface Props {
   onStartRename: () => void;
   onCommitRename: (name: string) => void;
   onCancelRename: () => void;
+  onDuplicate: () => void;
   onDelete: () => void;
 }
 
@@ -35,6 +36,7 @@ export function SceneRow({
   onStartRename,
   onCommitRename,
   onCancelRename,
+  onDuplicate,
   onDelete,
 }: Props) {
   const { t } = useTranslation();
@@ -48,6 +50,10 @@ export function SceneRow({
 
   const handleClick = (e: MouseEvent) => {
     const act = (e.target as HTMLElement).closest("[data-act]")?.getAttribute("data-act");
+    if (act === "dup") {
+      onDuplicate();
+      return;
+    }
     if (act === "del") {
       onDelete();
       return;
@@ -93,6 +99,9 @@ export function SceneRow({
         <Icon name={memoOpen ? "chevron-down" : "chevron-right"} />
       </button>
       <span className="hidden group-hover:flex gap-0.5">
+        <button className="mini-btn" data-act="dup" title={t("scene.duplicate")} aria-label={t("scene.duplicate")}>
+          <Icon name="copy" />
+        </button>
         <button className="mini-btn" data-act="ren" title={t("scene.rename")}>
           <Icon name="pencil" />
         </button>

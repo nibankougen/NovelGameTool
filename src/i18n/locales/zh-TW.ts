@@ -254,6 +254,8 @@ export const zhTW: typeof ja = {
     addGroupTitle: "新增分組（章節）",
     addGroupLabel: "章節",
     addSceneTitle: "新增場景",
+    duplicate: "複製場景",
+    copyName: "{{name}}（副本）",
     confirmMerge: "要將場景「{{names}}」合併為一個嗎？\n（台詞等內容會彙整到第一個場景中，其餘場景將被刪除。跳轉・選項的目標會自動改為合併後的場景。）",
     merged: "已將{{count}}個場景合併到「{{name}}」",
     cannotDeleteLast: "無法刪除最後一個場景",

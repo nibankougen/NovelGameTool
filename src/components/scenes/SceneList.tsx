@@ -253,6 +253,23 @@ export function SceneList() {
               if (name !== s.name) mutate((d) => { const sc = d.scenes.find((x) => x.id === s.id); if (sc) sc.name = name; });
             }}
             onCancelRename={() => setRenaming(null)}
+            onDuplicate={() => {
+              // Clone before entering mutate: Immer drafts cannot be structured-cloned.
+              const copy = structuredClone(s);
+              copy.id = uid();
+              const baseName = t("scene.copyName", { name: s.name });
+              copy.name = baseName;
+              let n = 2;
+              while (project.scenes.some((scene) => scene.name === copy.name)) copy.name = `${baseName} ${n++}`;
+              mutate((d) => {
+                const idx = d.scenes.findIndex((scene) => scene.id === s.id);
+                if (idx !== -1) d.scenes.splice(idx + 1, 0, copy);
+              });
+              setSelectedSceneIds(new Set());
+              anchorRef.current = copy.id;
+              editorUi.gotoScene(copy.id);
+              setRenaming({ type: "scene", id: copy.id });
+            }}
             onDelete={() => {
               if (project.scenes.length <= 1) {
                 toast(t("scene.cannotDeleteLast"), true);
