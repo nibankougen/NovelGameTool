@@ -56,6 +56,8 @@ export function SceneList() {
       if (!moved) return;
       let target = sceneDropTarget(sceneDrag.containerRef.current, lastY, moved.sceneId, rowMapRef.current);
       if (!target) {
+        // 自分の行の前後は元の位置。削除後に自分自身を挿入先として検索しない。
+        if (rawTo === from || rawTo === from + 1) return;
         const afterEntry = rowMapRef.current[rawTo];
         const beforeEntry = rawTo > 0 ? rowMapRef.current[rawTo - 1] : null;
         target = afterEntry

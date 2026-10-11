@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, type MouseEvent as ReactMouseEvent, typ
 
 let dndSuppressClickUntil = 0;
 let clickSuppressorInstalled = false;
+const DRAG_START_DISTANCE = 5;
 
 function ensureGlobalClickSuppressor() {
   if (clickSuppressorInstalled) return;
@@ -53,16 +54,24 @@ export function useDragReorder<T extends HTMLElement>(options: DragReorderOption
 
     const items = () => Array.from(container.querySelectorAll<HTMLElement>(itemSelector));
     const fromIdx = items().indexOf(item);
+    if (fromIdx < 0) return;
     let toIdx = fromIdx;
     let lastY = e.clientY;
+    const startX = e.clientX;
+    const startY = e.clientY;
+    let dragging = false;
     const indicator = document.createElement("div");
     indicator.className = "drop-indicator";
-    item.classList.add("dragging");
-    document.body.style.cursor = "grabbing";
-    document.body.classList.add("dnd-dragging");
     const scroller = scrollerRef?.current ?? container;
 
     const move = (ev: MouseEvent) => {
+      if (!dragging) {
+        if (Math.hypot(ev.clientX - startX, ev.clientY - startY) < DRAG_START_DISTANCE) return;
+        dragging = true;
+        item.classList.add("dragging");
+        document.body.style.cursor = "grabbing";
+        document.body.classList.add("dnd-dragging");
+      }
       lastY = ev.clientY;
       const list = items();
       let idx = list.length;
@@ -74,7 +83,7 @@ export function useDragReorder<T extends HTMLElement>(options: DragReorderOption
         }
       }
       toIdx = idx;
-      if (idx < list.length) container.insertBefore(indicator, list[idx]);
+      if (idx < list.length) list[idx].before(indicator);
       else container.appendChild(indicator);
       const sr = scroller.getBoundingClientRect();
       if (ev.clientY < sr.top + 30) scroller.scrollTop -= 12;
@@ -84,6 +93,7 @@ export function useDragReorder<T extends HTMLElement>(options: DragReorderOption
     const up = () => {
       document.removeEventListener("mousemove", move);
       document.removeEventListener("mouseup", up);
+      if (!dragging) return;
       item.classList.remove("dragging");
       indicator.remove();
       document.body.style.cursor = "";
@@ -97,7 +107,6 @@ export function useDragReorder<T extends HTMLElement>(options: DragReorderOption
     };
     document.addEventListener("mousemove", move);
     document.addEventListener("mouseup", up);
-    move(e.nativeEvent);
   }, []);
 
   return { containerRef, onMouseDown };
