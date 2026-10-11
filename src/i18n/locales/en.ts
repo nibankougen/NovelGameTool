@@ -501,7 +501,7 @@ export const en: typeof ja = {
     autosaveKey: "Autosave",
     autosaveDesc: "Your edits are saved automatically to the open working folder. To back up or move to another PC, copy the whole folder.",
     editRowKey: "Editing a line",
-    editRowDesc: "Clicking a line switches it to edit mode right away. On a line with dialogue, the speaker and expression become chips you can click to change. Backspace at the start of the text removes the chip (switches to narration).",
+    editRowDesc: "Clicking a line switches it to edit mode right away. On a line with dialogue, the speaker and expression become chips you can click to change.",
     reorderKey: "Reordering",
     reorderDesc: "Drag the handle (⋮⋮) on the left edge of a line, scene, or character to change its order.",
     groupingKey: "Grouping scenes",

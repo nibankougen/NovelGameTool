@@ -501,7 +501,7 @@ export const zhCN: typeof ja = {
     autosaveKey: "自动保存",
     autosaveDesc: "编辑内容会自动保存到当前打开的工作文件夹中。备份或转移到其他电脑时，请整个复制该文件夹。",
     editRowKey: "编辑行",
-    editRowDesc: "点击一行即可立即进入编辑模式。台词行中说话者和表情会显示为标签，可点击切换。在文本开头按Backspace可整个删除标签（变为旁白）。",
+    editRowDesc: "点击一行即可立即进入编辑模式。台词行中说话者和表情会显示为标签，可点击切换。",
     reorderKey: "排序",
     reorderDesc: "拖动行、场景、角色左端的手柄（⋮⋮）即可更改顺序。",
     groupingKey: "场景分组",

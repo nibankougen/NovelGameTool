@@ -501,7 +501,7 @@ export const zhTW: typeof ja = {
     autosaveKey: "自動儲存",
     autosaveDesc: "編輯內容會自動儲存到目前開啟的工作資料夾中。備份或轉移到其他電腦時，請整個複製該資料夾。",
     editRowKey: "編輯行",
-    editRowDesc: "點擊一行即可立即進入編輯模式。台詞行中說話者和表情會顯示為標籤，可點擊切換。在文字開頭按Backspace可將整個標籤刪除（變為旁白）。",
+    editRowDesc: "點擊一行即可立即進入編輯模式。台詞行中說話者和表情會顯示為標籤，可點擊切換。",
     reorderKey: "排序",
     reorderDesc: "拖曳行、場景、角色左端的把手（⋮⋮）即可變更順序。",
     groupingKey: "場景分組",

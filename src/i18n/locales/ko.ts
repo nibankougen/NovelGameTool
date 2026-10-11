@@ -501,7 +501,7 @@ export const ko: typeof ja = {
     autosaveKey: "자동 저장",
     autosaveDesc: "편집 내용은 열려 있는 작업 폴더에 자동으로 저장됩니다. 백업이나 다른 PC로 옮길 때는 폴더 전체를 복사해 주세요.",
     editRowKey: "줄 편집",
-    editRowDesc: "줄을 클릭하면 즉시 편집 모드가 됩니다. 대사 줄에서는 화자·표정이 칩으로 표시되며 클릭으로 전환할 수 있습니다. 줄 맨 앞에서 Backspace를 누르면 칩 전체가 삭제됩니다（지문으로 전환）.",
+    editRowDesc: "줄을 클릭하면 즉시 편집 모드가 됩니다. 대사 줄에서는 화자·표정이 칩으로 표시되며 클릭으로 전환할 수 있습니다.",
     reorderKey: "순서 변경",
     reorderDesc: "줄·씬·캐릭터 왼쪽 끝의 핸들（⋮⋮）을 드래그하면 순서를 바꿀 수 있습니다.",
     groupingKey: "씬 그룹화",

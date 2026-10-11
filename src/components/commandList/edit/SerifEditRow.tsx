@@ -314,10 +314,6 @@ export function SerifEditRow({ index, cmd, scene }: { index: number; cmd: SerifC
                   e.preventDefault();
                   if (menu) setMenu(null);
                   else finish(false);
-                } else if (e.key === "Backspace" && e.currentTarget.selectionStart === 0 && e.currentTarget.selectionEnd === 0) {
-                  e.preventDefault();
-                  if (face) setFace(null);
-                  else if (spk) setSpk(null);
                 } else if (e.altKey && /^[1-9]$/.test(e.key)) {
                   e.preventDefault();
                   const idx = Number(e.key) - 1;
