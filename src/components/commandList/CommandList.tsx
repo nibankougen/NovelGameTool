@@ -217,24 +217,37 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
             findChar={findChar}
             onDelete={() => {
               const sceneId = scene.id;
+              const removing = selectedIdx.has(i) ? selectedIdx : new Set([i]);
+              const remaining = cmds.map((_, index) => index).filter((index) => !removing.has(index));
               let newSel = editorUi.selIndex;
               if (newSel !== null) {
-                if (newSel === i) newSel = i > 0 ? i - 1 : cmds.length > 1 ? 0 : null;
-                else if (newSel > i) newSel--;
+                const oldSel = newSel;
+                newSel = remaining.includes(oldSel)
+                  ? remaining.indexOf(oldSel)
+                  : remaining.length ? Math.max(0, remaining.filter((index) => index < oldSel).length - 1) : null;
               }
               mutate((d) => {
                 const sc = d.scenes.find((s) => s.id === sceneId)!;
-                sc.commands.splice(i, 1);
+                sc.commands = sc.commands.filter((_, index) => !removing.has(index));
               });
+              editorUi.stopEdit();
+              setSelectedIdx(new Set());
+              anchorRef.current = null;
               editorUi.setSelIndex(newSel);
             }}
             onDup={() => {
               const sceneId = scene.id;
+              const indices = selectedIdx.has(i) ? [...selectedIdx].sort((a, b) => a - b) : [i];
+              const insertAt = indices[indices.length - 1] + 1;
+              const copies = structuredClone(indices.map((index) => cmds[index]));
               mutate((d) => {
                 const sc = d.scenes.find((s) => s.id === sceneId)!;
-                sc.commands.splice(i + 1, 0, JSON.parse(JSON.stringify(sc.commands[i])));
+                sc.commands.splice(insertAt, 0, ...copies);
               });
-              editorUi.setSelIndex(i + 1);
+              editorUi.stopEdit();
+              setSelectedIdx(new Set());
+              anchorRef.current = null;
+              editorUi.setSelIndex(insertAt);
             }}
             onMoveUp={() => moveRowsBy(i, -1)}
             onMoveDown={() => moveRowsBy(i, 1)}
