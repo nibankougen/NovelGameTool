@@ -248,6 +248,9 @@ export const zhTW: typeof ja = {
     scene1Name: "場景1",
   },
   scene: {
+    hidden: "隱藏（不匯出）",
+    hide: "隱藏（從匯出中排除）",
+    show: "顯示（包含在匯出中）",
     sceneLabel: "場景",
     namePrefix: "場景",
     groupNamePrefix: "分組",

@@ -200,6 +200,7 @@ test("dropping on a different group header still moves the scene at the same row
 
 test("scene duplication preserves nested contents and references with independent data", () => {
   const s = sceneDropSetup(null, {
+    hidden: true,
     synopsis: "Scene memo",
     commands: [
       { type: "serif", text: "Hello", chara: "speaker", face: "smile", anonymous: true,
@@ -216,6 +217,7 @@ test("scene duplication preserves nested contents and references with independen
   assert.equal(copy.name, "b (copy)");
   assert.equal(copy.groupId, "group");
   assert.equal(copy.synopsis, "Scene memo");
+  assert.equal(copy.hidden, true);
   assert.deepEqual(copy.commands, original.scenes[1].commands);
   assert.equal(s.selectedSceneId, copy.id);
   assert.equal(s.mutations, 1);
@@ -238,4 +240,16 @@ test("repeated duplication of an ungrouped empty scene uses unique names and IDs
   assert.notEqual(copies[0].id, copies[1].id);
   assert.equal(copies[0].groupId, null);
   assert.deepEqual(copies[0].commands, []);
+});
+
+test("scene visibility toggles without changing scene selection or contents", () => {
+  const s = sceneDropSetup();
+  const original = structuredClone(s.project.scenes[1]);
+  s.rows[1].onToggleHidden();
+  assert.deepEqual(s.project.scenes[1], { ...original, hidden: true });
+  assert.equal(s.selectedSceneId, null);
+  s.render();
+  s.rows[1].onToggleHidden();
+  assert.deepEqual(s.project.scenes[1], { ...original, hidden: false });
+  assert.equal(s.mutations, 2);
 });

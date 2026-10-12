@@ -19,6 +19,7 @@ interface Props {
   onCommitRename: (name: string) => void;
   onCancelRename: () => void;
   onDuplicate: () => void;
+  onToggleHidden: () => void;
   onDelete: () => void;
 }
 
@@ -37,6 +38,7 @@ export function SceneRow({
   onCommitRename,
   onCancelRename,
   onDuplicate,
+  onToggleHidden,
   onDelete,
 }: Props) {
   const { t } = useTranslation();
@@ -50,6 +52,10 @@ export function SceneRow({
 
   const handleClick = (e: MouseEvent) => {
     const act = (e.target as HTMLElement).closest("[data-act]")?.getAttribute("data-act");
+    if (act === "visibility") {
+      onToggleHidden();
+      return;
+    }
     if (act === "dup") {
       onDuplicate();
       return;
@@ -88,7 +94,16 @@ export function SceneRow({
       <span className="drag-handle invisible group-hover:visible" title={t("common.dragToReorder")}>
         <Icon name="grip-vertical" />
       </span>
-      <span className="s-name flex-1 overflow-hidden text-ellipsis whitespace-nowrap">{scene.name}</span>
+      <span className={`s-name flex-1 overflow-hidden text-ellipsis whitespace-nowrap${scene.hidden ? " text-text-dim" : ""}`}>{scene.name}</span>
+      <button
+        className="mini-btn"
+        data-act="visibility"
+        title={t(scene.hidden ? "scene.show" : "scene.hide")}
+        aria-label={t("scene.hidden")}
+        aria-pressed={!!scene.hidden}
+      >
+        <Icon name={scene.hidden ? "eye-off" : "eye"} />
+      </button>
       {hasAlert && (
         <span className="text-danger inline-flex shrink-0" title={t("scene.brokenRefWarning")}>
           <Icon name="triangle-alert" />

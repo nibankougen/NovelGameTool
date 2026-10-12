@@ -93,6 +93,8 @@ export interface SceneGroup {
 export interface Scene {
   id: string;
   name: string;
+  /** 非表示のシーンは書き出し対象から除外する。未設定は表示扱い。 */
+  hidden?: boolean;
   commands: Command[];
   groupId: string | null;
   synopsis: string;

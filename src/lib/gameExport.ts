@@ -25,7 +25,7 @@ export function gameExportData(project: Project, cfg: ExportSettings, findChar: 
       if (cfg.face) o.expressions = c.expressions || [];
       return o;
     }),
-    scenes: project.scenes.map((s) => {
+    scenes: project.scenes.filter((s) => !s.hidden).map((s) => {
       const o: Record<string, unknown> = { id: s.id };
       if (cfg.sceneName) o.name = s.name;
       o.commands = s.commands
@@ -69,7 +69,7 @@ export function gameExportData(project: Project, cfg: ExportSettings, findChar: 
   if (langs.length) root.languages = [project.baseLanguage, ...langs];
   const ttr = pickTr(project.titleTr, langs);
   if (ttr) root.titleTr = ttr;
-  const hasAnonymous = project.scenes.some((s) => s.commands.some((c) => c.type === "serif" && c.anonymous));
+  const hasAnonymous = project.scenes.some((s) => !s.hidden && s.commands.some((c) => c.type === "serif" && c.anonymous));
   if (hasAnonymous) {
     const anonymousLabel: TrMap = {};
     for (const l of [project.baseLanguage, ...langs]) anonymousLabel[l] = anonymousLabelFor(project, l);
@@ -119,6 +119,7 @@ function cmdToScriptLine(c: Command, project: Project, findChar: CharLookup, t: 
 export function buildScriptText(project: Project, findChar: CharLookup, t: T): string {
   let out = `${project.title}\n${"=".repeat(30)}\n\n`;
   for (const s of project.scenes) {
+    if (s.hidden) continue;
     out += `${t("gameExport.sceneHeader", { name: s.name })}\n${"-".repeat(30)}\n`;
     for (const c of s.commands) {
       if (c.type !== "counter") out += cmdToScriptLine(c, project, findChar, t) + "\n";

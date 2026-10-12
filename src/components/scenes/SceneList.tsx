@@ -253,6 +253,12 @@ export function SceneList() {
               if (name !== s.name) mutate((d) => { const sc = d.scenes.find((x) => x.id === s.id); if (sc) sc.name = name; });
             }}
             onCancelRename={() => setRenaming(null)}
+            onToggleHidden={() => {
+              mutate((d) => {
+                const sc = d.scenes.find((x) => x.id === s.id);
+                if (sc) sc.hidden = !sc.hidden;
+              });
+            }}
             onDuplicate={() => {
               // Clone before entering mutate: Immer drafts cannot be structured-cloned.
               const copy = structuredClone(s);

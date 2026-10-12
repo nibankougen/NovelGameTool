@@ -248,6 +248,9 @@ export const en: typeof ja = {
     scene1Name: "Scene 1",
   },
   scene: {
+    hidden: "Hidden (excluded from exports)",
+    hide: "Hide (exclude from exports)",
+    show: "Show (include in exports)",
     sceneLabel: "Scenes",
     namePrefix: "Scene",
     groupNamePrefix: "Group",

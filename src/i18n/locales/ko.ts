@@ -248,6 +248,9 @@ export const ko: typeof ja = {
     scene1Name: "씬1",
   },
   scene: {
+    hidden: "숨김 (내보내기에서 제외)",
+    hide: "숨기기 (내보내기에서 제외)",
+    show: "표시 (내보내기에 포함)",
     sceneLabel: "씬",
     namePrefix: "씬",
     groupNamePrefix: "그룹",

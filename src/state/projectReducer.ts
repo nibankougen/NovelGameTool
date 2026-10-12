@@ -89,6 +89,7 @@ export function normalizeProject(raw: unknown): Project {
     if (s.groupId !== undefined && s.groupId !== null && !groupIds.has(s.groupId)) s.groupId = null;
     if (s.groupId === undefined) s.groupId = null;
     if (typeof s.synopsis !== "string") s.synopsis = "";
+    if (typeof s.hidden !== "boolean") delete s.hidden;
     if (!Array.isArray(s.commands)) s.commands = [];
     for (const cmd of s.commands) {
       if (cmd.type !== "serif") continue;
