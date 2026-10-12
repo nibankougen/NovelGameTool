@@ -11,12 +11,15 @@ const compiled = ts.transpileModule(source, {
 }).outputText;
 
 // Capture row callbacks while keeping project updates backed by real Immer drafts.
-function setup(selected, selIndex = selected.at(-1) ?? null, commands = null) {
+function setup(selected, selIndex = selected.at(-1) ?? null, commands = null, scrollWrap = null) {
   let project = { scenes: [{ id: "scene", commands: commands ?? ["a", "b", "c", "d"].map((text) => ({ type: "comment", text })) }] };
   const original = project;
   let mutations = 0;
   let selection = new Set(selected);
   let stateIndex = 0;
+  let refIndex = 0;
+  const refs = [];
+  let layoutEffects = [];
   let stopped = false;
   const rows = [];
   const ui = {
@@ -31,7 +34,8 @@ function setup(selected, selIndex = selected.at(-1) ?? null, commands = null) {
   const modules = {
     react: {
       useState: (initial) => stateIndex++ === 0 ? [selection, (next) => { selection = next; }] : [initial, () => {}],
-      useRef: (current) => ({ current }), useEffect: () => {}, useLayoutEffect: () => {},
+      useRef: (current) => refs[refIndex++] ??= { current },
+      useEffect: () => {}, useLayoutEffect: (effect) => { layoutEffects.push(effect); },
     },
     "react/jsx-runtime": { jsx, jsxs: jsx },
     "react-i18next": { useTranslation: () => ({ t: (key) => key }) },
@@ -49,9 +53,17 @@ function setup(selected, selIndex = selected.at(-1) ?? null, commands = null) {
   };
   const exports = {};
   vm.runInNewContext(compiled, { exports, structuredClone, require: (name) => modules[name] ?? {} });
-  exports.CommandList({ scrollWrapRef: { current: null } });
+  const render = () => {
+    stateIndex = 0;
+    refIndex = 0;
+    rows.length = 0;
+    layoutEffects = [];
+    exports.CommandList({ scrollWrapRef: { current: scrollWrap } });
+    layoutEffects.forEach((effect) => effect());
+  };
+  render();
   return {
-    rows, ui, original,
+    rows, ui, original, render,
     get commands() { return project.scenes[0].commands; },
     get mutations() { return mutations; },
     get selection() { return selection; },
@@ -130,4 +142,29 @@ test("single-row operations retain their behavior without a range selection", ()
   copy.rows[3].onDup();
   assert.deepEqual(copy.commands.map((c) => c.text), ["a", "b", "c", "d", "d"]);
   assert.equal(copy.ui.selIndex, 4);
+});
+
+test("deletion preserves scroll position with no selection, an active row, or multiple selected rows", () => {
+  for (const [selected, active, clicked] of [[[], null, 1], [[], 2, 2], [[1, 2], 2, 1]]) {
+    let followedRow = 0;
+    const wrap = {
+      scrollTop: 0,
+      scrollHeight: 2000,
+      querySelector: () => ({ scrollIntoView: () => { followedRow++; } }),
+    };
+    const s = setup(selected, active, null, wrap);
+    wrap.scrollTop = 400;
+    followedRow = 0;
+    s.rows[clicked].onDelete();
+    s.render();
+    assert.equal(wrap.scrollTop, 400);
+    assert.equal(followedRow, 0);
+    s.render();
+    assert.equal(wrap.scrollTop, 400);
+    assert.equal(followedRow, 0);
+    // Subsequent explicit navigation should still follow the selected row.
+    s.ui.selIndex = s.ui.selIndex === 0 ? 1 : 0;
+    s.render();
+    assert.equal(followedRow, 1);
+  }
 });

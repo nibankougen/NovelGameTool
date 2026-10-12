@@ -41,7 +41,7 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
     anchorRef.current = reordered?.sceneId === scene.id ? reordered.anchor : null;
   }, [mutateVersion, scene.id]);
 
-  // 並べ替え・余白での選択解除後は描画前に位置を復元し、自動追従を抑止する。
+  // 削除・並べ替え・余白での選択解除後は描画前に位置を復元し、自動追従を抑止する。
   // 毎コミットで確認することで、選択番号が変わらないドロップも処理する。
   useLayoutEffect(() => {
     const wrap = scrollWrapRef.current;
@@ -216,6 +216,8 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
             eventKeys={project.eventKeys}
             findChar={findChar}
             onDelete={() => {
+              const wrap = scrollWrapRef.current;
+              if (wrap) preservedScrollRef.current = { sceneId: scene.id, top: wrap.scrollTop };
               const sceneId = scene.id;
               const removing = selectedIdx.has(i) ? selectedIdx : new Set([i]);
               const remaining = cmds.map((_, index) => index).filter((index) => !removing.has(index));
