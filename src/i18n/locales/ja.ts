@@ -246,6 +246,8 @@ export const ja = {
     scene1Name: "シーン1",
   },
   scene: {
+    showSynopsis: "あらすじを表示",
+    hideSynopsis: "あらすじを非表示",
     hidden: "非表示（書き出し対象外）",
     hide: "非表示にする（書き出し対象から除外）",
     show: "表示する（書き出し対象に含める）",

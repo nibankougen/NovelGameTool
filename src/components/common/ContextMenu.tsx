@@ -1,9 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { Icon, type IconName } from "./Icon";
 
 export interface ContextMenuItem {
   label: string;
   disabled?: boolean;
+  icon?: IconName;
+  danger?: boolean;
   onClick: () => void;
 }
 
@@ -51,8 +54,8 @@ export function ContextMenu({ x, y, items, onClose }: { x: number; y: number; it
       {items.map((it, i) => (
         <div
           key={i}
-          className={`em-item px-3.5 py-1.5 text-sm whitespace-nowrap ${
-            it.disabled ? "text-text-dim cursor-default" : "cursor-pointer hover:bg-accent-dim"
+          className={`em-item flex items-center gap-2 px-3.5 py-1.5 text-sm whitespace-nowrap ${
+            it.disabled ? "text-text-dim cursor-default" : `cursor-pointer hover:bg-accent-dim${it.danger ? " text-danger" : ""}`
           }`}
           onClick={(e) => {
             e.stopPropagation();
@@ -61,6 +64,7 @@ export function ContextMenu({ x, y, items, onClose }: { x: number; y: number; it
             onClose();
           }}
         >
+          {it.icon && <Icon name={it.icon} />}
           {it.label}
         </div>
       ))}

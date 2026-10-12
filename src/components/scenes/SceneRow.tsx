@@ -1,7 +1,8 @@
-import type { MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Icon } from "../common/Icon";
 import { RenameInput } from "../common/RenameInput";
+import { ContextMenu } from "../common/ContextMenu";
 import type { Scene } from "../../types/project";
 
 interface Props {
@@ -42,6 +43,7 @@ export function SceneRow({
   onDelete,
 }: Props) {
   const { t } = useTranslation();
+  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   if (renaming) {
     return (
       <div className={`scene-item flex items-center gap-1.5 px-2 py-1 my-0.5 rounded-md${indented ? " grouped ml-4" : ""}`}>
@@ -56,26 +58,14 @@ export function SceneRow({
       onToggleHidden();
       return;
     }
-    if (act === "dup") {
-      onDuplicate();
-      return;
-    }
-    if (act === "del") {
-      onDelete();
-      return;
-    }
-    if (act === "ren") {
-      onStartRename();
-      return;
-    }
-    if (act === "memo") {
-      onToggleMemo();
+    if (act === "menu") {
       return;
     }
     onSelect(e.shiftKey);
   };
 
   return (
+    <>
     <div
       className={`scene-item group flex items-center gap-1.5 px-2 py-1 my-0.5 rounded-md cursor-pointer border relative${
         indented ? " grouped ml-4" : ""
@@ -94,7 +84,6 @@ export function SceneRow({
       <span className="drag-handle invisible group-hover:visible" title={t("common.dragToReorder")}>
         <Icon name="grip-vertical" />
       </span>
-      <span className={`s-name flex-1 overflow-hidden text-ellipsis whitespace-nowrap${scene.hidden ? " text-text-dim" : ""}`}>{scene.name}</span>
       <button
         className="mini-btn"
         data-act="visibility"
@@ -104,26 +93,40 @@ export function SceneRow({
       >
         <Icon name={scene.hidden ? "eye-off" : "eye"} />
       </button>
+      <span className={`s-name flex-1 overflow-hidden text-ellipsis whitespace-nowrap${scene.hidden ? " text-text-dim" : ""}`}>{scene.name}</span>
       {hasAlert && (
         <span className="text-danger inline-flex shrink-0" title={t("scene.brokenRefWarning")}>
           <Icon name="triangle-alert" />
         </span>
       )}
       <span className="text-text-dim text-[11px]">{scene.commands.length}</span>
-      <button className="mini-btn" data-act="memo" title={t("scene.toggleSynopsis")}>
-        <Icon name={memoOpen ? "chevron-down" : "chevron-right"} />
+      <button
+        className="mini-btn"
+        data-act="menu"
+        title={t("common.moreMenu")}
+        aria-label={t("common.moreMenu")}
+        aria-expanded={menu !== null}
+        onClick={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          setMenu(menu ? null : { x: rect.left, y: rect.bottom });
+        }}
+      >
+        <Icon name="ellipsis" />
       </button>
-      <span className="hidden group-hover:flex gap-0.5">
-        <button className="mini-btn" data-act="dup" title={t("scene.duplicate")} aria-label={t("scene.duplicate")}>
-          <Icon name="copy" />
-        </button>
-        <button className="mini-btn" data-act="ren" title={t("scene.rename")}>
-          <Icon name="pencil" />
-        </button>
-        <button className="mini-btn" data-act="del" title={t("common.delete")}>
-          <Icon name="trash-2" />
-        </button>
-      </span>
     </div>
+    {menu && (
+      <ContextMenu
+        x={menu.x}
+        y={menu.y}
+        onClose={() => setMenu(null)}
+        items={[
+          { label: t("scene.rename"), onClick: onStartRename },
+          { label: t("scene.duplicate"), onClick: onDuplicate },
+          { label: t(memoOpen ? "scene.hideSynopsis" : "scene.showSynopsis"), onClick: onToggleMemo },
+          { label: t("common.delete"), icon: "trash-2", danger: true, onClick: onDelete },
+        ]}
+      />
+    )}
+    </>
   );
 }

@@ -248,6 +248,8 @@ export const zhCN: typeof ja = {
     scene1Name: "场景1",
   },
   scene: {
+    showSynopsis: "显示简介",
+    hideSynopsis: "隐藏简介",
     hidden: "隐藏（不导出）",
     hide: "隐藏（从导出中排除）",
     show: "显示（包含在导出中）",
