@@ -120,6 +120,7 @@ export const zhCN: typeof ja = {
     },
   },
   commandList: {
+    jumpToSelected: "跳转到选中行",
     confirmSplitToScene: "要将选中的{{count}}行分离为新场景吗？",
     splitSceneName: "{{name}}（分离）",
     emptyHint: {

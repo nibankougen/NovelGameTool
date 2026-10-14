@@ -118,6 +118,7 @@ export const ja = {
     },
   },
   commandList: {
+    jumpToSelected: "選択中の行にジャンプ",
     confirmSplitToScene: "選択した{{count}}行を新しいシーンとして分離しますか？",
     splitSceneName: "{{name}}（分離）",
     emptyHint: {

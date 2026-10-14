@@ -69,7 +69,7 @@ export function PlainEditRow({ index, cmd, scene }: { index: number; cmd: Comman
   };
 
   return (
-    <div className="cmd-row flex items-start gap-2 px-2 py-1 my-px">
+    <div data-idx={index} className="cmd-row flex items-start gap-2 px-2 py-1 my-px">
       <span className="drag-handle invisible pt-1">
         <Icon name="grip-vertical" />
       </span>

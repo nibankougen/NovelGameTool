@@ -62,6 +62,7 @@ export function HelpModal({ open, onClose }: { open: boolean; onClose: () => voi
           <Row k={<Kbd>{t("help.enterKey")}</Kbd>} v={t("help.enterDesc")} />
           <Row k={<>{t("help.arrowKeys")}{t("help.arrowKeysNote")}</>} v={t("help.arrowKeysDesc")} />
           <Row k={<Kbd>{t("help.escKey")}</Kbd>} v={t("help.escDesc")} />
+          <Row k={<Kbd>Alt+J</Kbd>} v={t("commandList.jumpToSelected")} />
           <Row k={t("help.ctrlArrowKey")} v={t("help.ctrlArrowDesc")} />
           <Row k={t("help.ctrlDKey")} v={t("help.ctrlDDesc")} />
           <Row k={<Kbd>{t("help.deleteKey")}</Kbd>} v={t("help.deleteDesc")} />

@@ -120,6 +120,7 @@ export const ko: typeof ja = {
     },
   },
   commandList: {
+    jumpToSelected: "선택한 행으로 이동",
     confirmSplitToScene: "선택한 {{count}}줄을 새 씬으로 분리할까요?",
     splitSceneName: "{{name}}（분리）",
     emptyHint: {

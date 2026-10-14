@@ -41,7 +41,7 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
     anchorRef.current = reordered?.sceneId === scene.id ? reordered.anchor : null;
   }, [mutateVersion, scene.id]);
 
-  // 削除・並べ替え・余白での選択解除後は描画前に位置を復元し、自動追従を抑止する。
+  // 削除・並べ替え後は描画前に位置を復元し、自動追従を抑止する。
   // 毎コミットで確認することで、選択番号が変わらないドロップも処理する。
   useLayoutEffect(() => {
     const wrap = scrollWrapRef.current;
@@ -144,33 +144,6 @@ export function CommandList({ scrollWrapRef }: { scrollWrapRef: RefObject<HTMLDi
     editorUi.stopEdit();
     setSelectedIdx(new Set());
   };
-
-  useEffect(() => {
-    const wrap = scrollWrapRef.current;
-    if (!wrap) return;
-    // リスト外の左右の余白も含める。行内から余白への文字選択ドラッグは除外する。
-    const isBackground = (target: EventTarget | null) => target === wrap || target === drag.containerRef.current;
-    let startedOnBackground = false;
-    const onMouseDown = (e: MouseEvent) => {
-      startedOnBackground = e.button === 0 && isBackground(e.target);
-    };
-    const onClick = (e: MouseEvent) => {
-      const shouldClear = startedOnBackground && isBackground(e.target);
-      startedOnBackground = false;
-      if (!shouldClear) return;
-      preservedScrollRef.current = { sceneId: scene.id, top: wrap.scrollTop };
-      editorUi.stopEdit();
-      editorUi.setSelIndex(null);
-      setSelectedIdx(new Set());
-      anchorRef.current = null;
-    };
-    wrap.addEventListener("mousedown", onMouseDown, true);
-    wrap.addEventListener("click", onClick);
-    return () => {
-      wrap.removeEventListener("mousedown", onMouseDown, true);
-      wrap.removeEventListener("click", onClick);
-    };
-  }, [scrollWrapRef, drag.containerRef, editorUi, scene.id]);
 
   if (!cmds.length) {
     return (

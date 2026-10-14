@@ -120,6 +120,7 @@ export const en: typeof ja = {
     },
   },
   commandList: {
+    jumpToSelected: "Jump to selected row",
     confirmSplitToScene: "Split {{count}} selected line(s) into a new scene?",
     splitSceneName: "{{name}} (split)",
     emptyHint: {
