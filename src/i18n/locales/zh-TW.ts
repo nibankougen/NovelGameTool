@@ -7,6 +7,7 @@ export const zhTW: typeof ja = {
     help: "統計本場景截至此行的正文和最長選項文字。不含註解、角色名和其他場景，包含空格和換行。不匯出到劇本或遊戲檔案。",
   },
   common: {
+    resizeSidebar: "調整側邊欄寬度（拖曳或左右方向鍵）",
     close: "關閉",
     closeWithEsc: "關閉 (Esc)",
     cancel: "取消",

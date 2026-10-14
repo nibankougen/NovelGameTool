@@ -1,5 +1,6 @@
 export const EXPR_TMPL_LS_KEY = "novelGameTool.exprTemplateCarryOver.v1";
 export const THUMB_SIZE_LS_KEY = "novelGameTool.thumbSizeStep.v1";
+export const SIDEBAR_WIDTH_LS_KEY = "novelGameTool.sidebarWidth.v1";
 export const SIDEBAR_LS_KEY = "novelGameTool.sidebarCollapsed.v1";
 export const THEME_LS_KEY = "novelGameTool.theme.v1";
 export const SPEAKER_COL_W_LS_KEY = "novelGameTool.speakerColWidth.v1";

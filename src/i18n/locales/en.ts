@@ -7,6 +7,7 @@ export const en: typeof ja = {
     help: "Counts scene text up to this row and the longest choice label. Excludes comments, speaker names and other scenes; includes spaces and line breaks. Omitted from script and game exports.",
   },
   common: {
+    resizeSidebar: "Resize sidebar (drag or arrow keys)",
     close: "Close",
     closeWithEsc: "Close (Esc)",
     cancel: "Cancel",

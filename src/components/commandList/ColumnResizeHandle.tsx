@@ -26,13 +26,11 @@ export function ColumnResizeHandle({ width, onResize }: { width: number; onResiz
 
   return (
     <span
-      className="col-resize-handle absolute -right-1.5 top-0 bottom-0 w-3 cursor-col-resize select-none z-10 flex justify-center"
+      className={`col-resize-handle absolute right-0 inset-y-0 w-1.5 cursor-col-resize select-none z-10 hover:bg-accent/40 ${dragging ? "bg-accent/40" : ""}`}
       title={t("common.dragToResizeColumn")}
       onMouseDown={onMouseDown}
       onClick={(e) => e.stopPropagation()}
       onDoubleClick={(e) => e.stopPropagation()}
-    >
-      <span className={`block w-px h-full ${dragging ? "bg-accent" : "bg-transparent hover:bg-accent"}`} />
-    </span>
+    />
   );
 }

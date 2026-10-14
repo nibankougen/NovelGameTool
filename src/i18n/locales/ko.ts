@@ -7,6 +7,7 @@ export const ko: typeof ja = {
     help: "이 행까지의 장면 본문과 가장 긴 선택지 문구를 계산합니다. 주석, 화자 이름, 다른 장면은 제외하고 공백과 줄바꿈은 포함합니다. 대본 및 게임 파일에는 출력되지 않습니다.",
   },
   common: {
+    resizeSidebar: "사이드바 너비 조절 (드래그 또는 좌우 방향키)",
     close: "닫기",
     closeWithEsc: "닫기 (Esc)",
     cancel: "취소",

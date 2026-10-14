@@ -7,6 +7,7 @@ export const zhCN: typeof ja = {
     help: "统计本场景截至此行的正文和最长选项文本。不含注释、角色名和其他场景，包含空格和换行。不导出到剧本或游戏文件。",
   },
   common: {
+    resizeSidebar: "调整侧边栏宽度（拖动或左右方向键）",
     close: "关闭",
     closeWithEsc: "关闭 (Esc)",
     cancel: "取消",
